@@ -170,6 +170,12 @@ def getLogs(self,
         yield get_event_data(abi, entry)
 
 
+def priv_key_to_address(private_key):
+    from eth_account import Account
+    acc = Account.privateKeyToAccount(private_key)
+    return acc.address
+
+
 def deploy_contract(config, contract_name, constructor_args=()):
     from sto.ethereum.utils import deploy_contract, get_kyc_deployed_tx
     tx = get_kyc_deployed_tx(config.dbsession)
@@ -231,12 +237,42 @@ def _deploy_contract(
         PreparedTransaction
     )
     note = "Deploying token contract for {}".format(contract_name)
+
+    contract_address = deploy_contract_on_eth_network(
+        web3,
+        abi[contract_name]['abi'],
+        abi[contract_name]['bytecode'],
+        abi[contract_name]['bytecode_runtime'],
+        ethereum_private_key,
+        contructor_args
+    )
+
+    # TODO: Ask Mikko why service.deploy_contract doesn't actually deploy the contract on the ethereum network
+    # hence the code above to deploy contract to the network
     service.deploy_contract(
         contract_name=contract_name,
         abi=abi,
         note=note,
         constructor_args=contructor_args
     )
+    tx = get_kyc_deployed_tx(dbsession)
+    assert tx.contract_address == contract_address
+
+
+def deploy_contract_on_eth_network(web3, abi, bytecode, bytecode_runtime, private_key, contructor_args):
+    from web3.middleware.signing import construct_sign_and_send_raw_middleware
+    # the following code helps deploying using infura
+    web3.middleware_stack.add(construct_sign_and_send_raw_middleware(private_key))
+
+    contract = web3.eth.contract(
+        abi=abi,
+        bytecode=bytecode,
+        bytecode_runtime=bytecode_runtime
+    )
+    tx_hash = contract.constructor(*contructor_args).transact({'from': priv_key_to_address(private_key)})
+    receipt = web3.eth.waitForTransactionReceipt(tx_hash)
+    assert receipt['status'] == 1, "failed to deploy contract"
+    return receipt['contractAddress']
 
 
 def get_kyc_deployed_tx(dbsession):

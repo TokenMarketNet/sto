@@ -210,4 +210,4 @@ def test_kyc_manage(dbsession, private_key_hex, web3, db_path, monkeypatch_creat
 
     assert result.exit_code == 0
     assert 'whitelisted address' in result.output
-
+    assert kyc_contract.functions.isWhitelisted(eth_address).call() == True
