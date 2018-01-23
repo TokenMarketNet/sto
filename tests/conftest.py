@@ -33,7 +33,13 @@ def dbsession(db_path):
 
 
 @pytest.fixture
-def web3_test_provider():
+def monkey_patch_py_evm_gas_limit():
+    from eth_tester.backends.pyevm import main
+    main.GENESIS_GAS_LIMIT = 9999999999
+
+
+@pytest.fixture
+def web3_test_provider(monkey_patch_py_evm_gas_limit):
     return EthereumTesterProvider()
 
 

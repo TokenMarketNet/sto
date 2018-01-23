@@ -57,7 +57,7 @@ def create_web3(url: str) -> Web3:
 
 
 def integer_hash(number: int):
-    return int(keccak(int).hex(), 16)
+    return int(keccak(number).hex(), 16)
 
 
 def mk_contract_address(sender: str, nonce: int) -> str:
@@ -244,6 +244,8 @@ def _deploy_contract(
         abi[contract_name]['bytecode'],
         abi[contract_name]['bytecode_runtime'],
         ethereum_private_key,
+        ethereum_gas_limit,
+        ethereum_gas_price,
         contructor_args
     )
 
@@ -259,7 +261,16 @@ def _deploy_contract(
     assert tx.contract_address == contract_address
 
 
-def deploy_contract_on_eth_network(web3, abi, bytecode, bytecode_runtime, private_key, contructor_args):
+def deploy_contract_on_eth_network(
+        web3,
+        abi,
+        bytecode,
+        bytecode_runtime,
+        private_key,
+        ethereum_gas_limit,
+        ethereum_gas_price,
+        constructor_args
+):
     from web3.middleware.signing import construct_sign_and_send_raw_middleware
     # the following code helps deploying using infura
     web3.middleware_stack.add(construct_sign_and_send_raw_middleware(private_key))
@@ -269,7 +280,15 @@ def deploy_contract_on_eth_network(web3, abi, bytecode, bytecode_runtime, privat
         bytecode=bytecode,
         bytecode_runtime=bytecode_runtime
     )
-    tx_hash = contract.constructor(*contructor_args).transact({'from': priv_key_to_address(private_key)})
+    tx_kwargs = {
+        'from': priv_key_to_address(private_key)
+    }
+    if ethereum_gas_limit:
+        tx_kwargs['gas'] = ethereum_gas_limit
+    if ethereum_gas_price:
+        tx_kwargs['gasPrice'] = ethereum_gas_price
+
+    tx_hash = contract.constructor(*constructor_args).transact(tx_kwargs)
     receipt = web3.eth.waitForTransactionReceipt(tx_hash)
     assert receipt['status'] == 1, "failed to deploy contract"
     return receipt['contractAddress']

@@ -645,7 +645,7 @@ def kyc_manage(config: BoardCommmadConfiguration, whitelist_address):
 @click.option('--voting-name', required=True, help="name of the voting,", type=str)
 @click.option('--uri', required=True, help="announcement uri", type=str)
 @click.option('--type', required=True, help="announcement type", type=int)
-@click.option('--options', required=False, help="additional voting contract options", type=list)
+@click.option('--options', required=False, default=[], help="additional voting contract options", type=list)
 @click.pass_obj
 def voting_deploy(
         config: BoardCommmadConfiguration,
@@ -665,8 +665,8 @@ def voting_deploy(
     args = (
         token_address,
         kyc_address,
-        to_bytes(voting_name),
-        to_bytes(uri),
+        to_bytes(text=voting_name),
+        to_bytes(text=uri),
         type,
         integer_hash(type),
         [to_bytes(i) for i in options]
