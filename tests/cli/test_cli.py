@@ -143,7 +143,7 @@ def test_token(
     args = {
         "_name": 'test_token',
         "_symbol": 'TEST',
-        "_initialSupply": 900000000,
+        "_initialSupply": 9999000000000000000000,  # make sure this is greater tan or equal security token supply
         "_decimals": 18,
         "_mintable": True
     }
@@ -492,7 +492,8 @@ def test_payout_deposit(
             '--kyc-address', kyc_contract,
             '--payout-name', 'Pay X',
             '--uri', 'http://tokenmarket.net',
-            '--type', 0
+            '--type', 0,
+            '--options', ["Vested for dividend", ]
         ]
     )
     assert result.exit_code == 0
@@ -531,6 +532,8 @@ def test_payout_deposit(
     assert result.exit_code == 0
     assert test_token_contract.functions.balanceOf(payout_contract.address).call() > initial_balance
     # check if payouts happen
+    initial_balance = test_token_contract.call().balanceOf(priv_key_to_address(private_key_hex))
     payout_contract.functions.act(123).transact({"from": priv_key_to_address(private_key_hex)})
     # 0x0000000000000000000000000000000000000064 is the default address 100
     assert payout_contract.functions.balanceOf('0x0000000000000000000000000000000000000064').call() == 123
+    assert test_token_contract.call().balanceOf(priv_key_to_address(private_key_hex)) > initial_balance

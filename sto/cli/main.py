@@ -708,7 +708,7 @@ def payout_deploy(
         'URI': to_bytes(text=uri),
         '_type': type,
         '_hash': integer_hash(type),
-        '_options': [to_bytes(i) for i in options]
+        '_options': [to_bytes(text=i) for i in options]
     }
     deploy_contract(config, contract_name='PayoutContract', constructor_args=args)
 
