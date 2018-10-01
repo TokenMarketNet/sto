@@ -19,7 +19,7 @@ fi
 # but some other path and get Populus testrpc fixture working.
 # This is mainly a workaround to get our internal test suite to complete. Before this could be maintained
 # using a symbolic link, but Docker volume mounts ignore symbolic links.
-docker run -i -a stdin -a stdout -a stderr -v `pwd`:`pwd` -v $ME/zeppelin:`pwd`/zeppelin -v $ME/ico:`pwd`/ico -w `pwd` ethereum/solc:$VERSION --allow-paths / "$@"
+docker run -i -a stdin -a stdout -a stderr -v `pwd`:`pwd` -v $ME/zeppelin:`pwd`/zeppelin -v $ME/ico:`pwd`/ico -w `pwd` ethereum/solc:$VERSION "$@"
 
 
 # docker run -i -a stdin -a stdout -a stderr -v `pwd`:`pwd` -v $ME/zeppelin:`pwd`/zeppelin -v $ME/ico:`pwd`/ico -w `pwd` /bin/bash

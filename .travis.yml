@@ -20,7 +20,6 @@ before_install:
   - docker pull ethereum/solc:0.4.18
   - echo "Using solc $SOLC_BINARY"
   - $SOLC_BINARY --version  # Show that solc is acting somewhat sane
-  - $SOLC_BINARY ico/contracts/Issuer.sol
 
 install:
   - travis_retry pip install setuptools --upgrade
