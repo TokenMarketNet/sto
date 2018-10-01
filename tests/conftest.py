@@ -1,7 +1,7 @@
 """Test fixtures to test out security token activities."""
 import pytest
 
-from corporategovernance.tests.utils import check_gas
+from corporategovernance.testutils import check_gas
 from web3.contract import Contract
 
 
@@ -16,7 +16,6 @@ def customer(accounts) -> str:
 def customer_2(accounts) -> str:
     """Get another customer address."""
     return accounts[2]
-
 
 @pytest.fixture
 def team_multisig(accounts) -> str:

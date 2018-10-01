@@ -1,4 +1,4 @@
-from corporategovernance.tests.utils import check_gas
+from corporategovernance.testutils import check_gas
 
 
 def test_security_token_issue(chain, security_token, security_token_initial_supply, team_multisig, zero_address, customer):

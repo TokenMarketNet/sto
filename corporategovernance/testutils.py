@@ -1,3 +1,11 @@
+"""Helpers for integration tests.
+
+.. note ::
+
+    This file is moved outside tests/ tree due to py.test scanning issues
+
+"""
+
 import warnings
 
 from populus.utils.wait import wait_for_transaction_receipt
