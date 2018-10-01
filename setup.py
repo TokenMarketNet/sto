@@ -32,14 +32,14 @@ setup(
     version='0.1',
     description="Ethereum smart contracts and tools for managing crowdsales",
     long_description=readme + '\n\n',
-    author="Mikko Ohtamaa",
+    author="TokenMarket Ltd.",
     author_email='mikko@tokenmarket.net',
     url='https://tokenmarket.net',
     packages=[
-        'ico',
+        'corporategovernance',
     ],
-    package_dir={'ico':
-                 'ico'},
+    package_dir={'corporategovernance':
+                 'corporategovernance'},
     include_package_data=True,
     install_requires=requirements,
     license="Apache 2.0",
