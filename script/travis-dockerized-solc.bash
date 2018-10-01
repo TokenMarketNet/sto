@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 #
 # This is a faux solc stub that runs a dockerized solc to run under Travis
 #
