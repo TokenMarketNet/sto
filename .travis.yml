@@ -14,6 +14,10 @@ cache:
   - directories:
     - $TRAVIS_BUILD_DIR/.tox --recreate
 
+before_install:
+  - docker pull ethereum/solc:0.4.18
+  - docker run ethereum/solc:0.4.18
+
 install:
   - travis_retry pip install setuptools --upgrade
   - pip install -U tox
