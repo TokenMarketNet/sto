@@ -1,7 +1,7 @@
 language: python
 python: 3.6
 dist: trusty
-sudo: true
+sudo: required
 
 services:
   - docker
@@ -16,7 +16,7 @@ cache:
 
 before_install:
   - docker pull ethereum/solc:0.4.18
-  - docker run ethereum/solc:0.4.18
+  - script/travis-dockerized-solc.sh
 
 install:
   - travis_retry pip install setuptools --upgrade
