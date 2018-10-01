@@ -1,0 +1,20 @@
+language: python
+python: 3.6
+dist: trusty
+
+env:
+  - TOXENV=py36 SOLC_VERSION=0.4.18 SOLC_BINARY=$(pwd)/ico/dockerized-solc.sh
+
+cache:
+  - pip: true
+  - directories:
+    - $TRAVIS_BUILD_DIR/.tox --recreate
+
+install:
+  - travis_retry pip install setuptools --upgrade
+  - pip install -U tox
+
+# command to run tests, e.g. python setup.py test
+script: tox -e ${TOXENV}
+
+
