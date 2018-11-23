@@ -21,25 +21,60 @@ Requirements
 
 * Python 3.6
 
-* Senior Python software development experience
+* UNIX command line experience
 
-Running tests locally
-=====================
+Install
+=======
 
-You need to set up a contracts repository symlinks as following::
+Normal users
+------------
 
-    ln -s ../ico/zeppelin .
-    ln -s ../zeppelin/contracts .
+Dockerised distribution is provided to all operating system.
 
-Set up used solc version for your shell::
+First install Docker.
 
-    export SOLC_VERSION=0.4.18
-    export SOLC_BINARY=$(pwd)/../ico/dockerized-solc.sh
+Then set up a shell alias for `board` command that we use to execute
 
-First test that all contracts compile::
+Developers
+----------
 
-    populus compile
+Create Python virtual env. Then install from Github::
 
-Then run tests::
+    asdasd
 
-    tox
+How to set up
+=============
+
+Below are short instructions how to set up an Ethereum node, account and configuration file for a testnet (no real money involved) to test out tokens.
+
+Set up Parity
+-------------
+
+First install geth or Parity. For example on OSX::
+
+    brew install parity
+
+Start Parity in another terminal and connect it to Kovan test network::
+
+    parity --chain=kovan
+
+Parity will now sync you to Kovan network using warp (fast mode). This should take 30 minutes. You can continue to follow instructions below.
+
+Set up Ethereum account
+-----------------------
+
+To start playing with tokenised ahsers
+
+Create an Ethereum account::
+
+    board create-ethereum-account
+
+This will give you the account information::
+
+
+Now create a file `myconfig.ini` and add the content::
+
+Visit `Kovan faucet <https://faucet.kovan.network/>`_ and request some Kovan ETH (KETH) on your account you just created.
+
+
+

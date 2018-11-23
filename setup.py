@@ -13,9 +13,8 @@ with open('README.rst') as readme_file:
 
 
 requirements = [
-    'populus',
-    'Jinja2',
-    'ruamel.yaml',
+    'web3',
+    'coloredlogs',
 ]
 
 test_requirements = [
@@ -24,13 +23,12 @@ test_requirements = [
 ]
 
 dev_requirements = [
-    'sphinxcontrib-autoprogram',
 ]
 
 setup(
     name='corporategovernance',
     version='0.1',
-    description="Ethereum smart contracts and tools for managing crowdsales",
+    description="Corporate governance tools for tokenised stock",
     long_description=readme + '\n\n',
     author="TokenMarket Ltd.",
     author_email='mikko@tokenmarket.net',
@@ -57,5 +55,6 @@ setup(
     tests_require=test_requirements,
     entry_points='''
     [console_scripts]
+    board=corporategovernance.cli.main:cli
     ''',
 )
