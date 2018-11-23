@@ -20,6 +20,7 @@ class NodeNotSynced(Exception):
 class NeedMoney(Exception):
     pass
 
+
 class NeedPrivateKey(Exception):
     pass
 
@@ -51,9 +52,7 @@ def diagnose(logger: Logger, node_url: str, private_key_hex: bytes) -> Optional[
 
         ago = unix_time - last_time
 
-        logger.info("Current Ethereum node block number: %d, last block %d seconds ago", block_num, ago)
-
-        logger.info("Compare this to results on https://etherscan.io")
+        logger.info("Current Ethereum node block number: %d, last block %d seconds ago - compare this to data on https://etherscan.io", block_num, ago)
 
         if ago < 0:
             raise NodeNotSynced("Last block in the future? Do we have a clock with a wrong timezone somewhere?")

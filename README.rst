@@ -74,7 +74,7 @@ This will give you a new raw private key and related Ethereum address to play wi
     Corporate governance tool for security tokens, version 0.1 - Copyright TokenMarket Ltd. 2018
     Creating new Ethereum account.
     Account address: 0xDE5bC059aA433D72F25846bdFfe96434b406FA85
-    Account private key: 3fac35a57e1e2867290ae37d54c5de61d52644b42819ce6af0c5a9c25f4c8005
+    Account private key: 3fac35a57e1e2867290ae37d54c5de61d52644b42819ce6af0c5a9c25f4c...
 
 Now create a file `myconfig.ini` and add the content::
 
@@ -84,7 +84,7 @@ Now create a file `myconfig.ini` and add the content::
     ethereum-node-url = http://localhost:8545
 
     # The private key for your generated Ethereum account
-    ethereum-private-key = 3fac35a57e1e2867290ae37d54c5de61d52644b42819ce6af0c5a9c25f4c8005
+    ethereum-private-key = 3fac35a57e1e2867290ae37d54c5de61d52644b42819ce6af0c5a9c25f4c....
 
 Visit `Kovan faucet <https://faucet.kovan.network/>`_ and request some Kovan ETH (KETH) on your account you just created.
 
@@ -94,6 +94,13 @@ Test that your account has balance and Parity node works::
 
 This should output::
 
+    Crporate governance tool for security tokens, version 0.1 - Copyright TokenMarket Ltd. 2018
+    Attempting to connect to Ethereum node http://localhost:8545
+    Connected to Ethereum node software Parity-Ethereum//v2.1.6-stable-491f17f-20181114/x86_64-macos/rustc1.30.1
+    Current Ethereum node block number: 9462884, last block 2 seconds ago
+    Using private key 3fa...
+    Address 0xDE5bC059aA433D72F25846bdFfe96434b406FA85 has ETH balance of 1.000000
+    All systems ready to fire
 
 
 
