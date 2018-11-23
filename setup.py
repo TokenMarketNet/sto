@@ -55,6 +55,6 @@ setup(
     tests_require=test_requirements,
     entry_points='''
     [console_scripts]
-    board=corporategovernance.cli.main:cli
+    board=corporategovernance.cli.main:main
     ''',
 )

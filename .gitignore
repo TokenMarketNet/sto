@@ -70,6 +70,7 @@ build
 registrar.json
 
 *.csv
+*.ini
 
 # Libreoffice tmp files
 .~*
