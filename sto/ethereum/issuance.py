@@ -1,10 +1,10 @@
 """Issuing out tokenised shares."""
 from logging import Logger
 
-from corporategovernance.ethereum.manifest import get_package
-from corporategovernance.ethereum.txservice import EthereumStoredTXService
-from corporategovernance.ethereum.utils import get_abi, check_good_private_key
-from corporategovernance.models.implementation import BroadcastAccount, PreparedTransaction
+from sto.ethereum.manifest import get_package
+from sto.ethereum.txservice import EthereumStoredTXService
+from sto.ethereum.utils import get_abi, check_good_private_key
+from sto.models.implementation import BroadcastAccount, PreparedTransaction
 from sqlalchemy.orm import Session
 from web3 import Web3, HTTPProvider
 from web3.contract import Contract
@@ -41,7 +41,7 @@ def deploy_token_contracts(logger: Logger,
 
     # Deploy transfer agent
     note = "Unrestricted transfer manager for {}".format(name)
-    deploy_tx1 = service.deploy_contract("UnrestrictedTransferAgent", abi, note)
+    deploy_tx2 = service.deploy_contract("UnrestrictedTransferAgent", abi, note)
 
     # Set transfer agent
     note = "Setting security token transfer manager for {}".format(name)
@@ -51,10 +51,11 @@ def deploy_token_contracts(logger: Logger,
     # Issue out initial shares
     note = "Creating {} initial shares for {}".format(amount, name)
     contract_address = deploy_tx1.contract_address
-    amount_18 = amount * 10**18
+    amount_18 = int(amount) * 10**18
     update_tx2 = service.interact_with_contract("SecurityToken", abi, contract_address, note, "issueTokens", {"value": amount_18})
 
-    logger.info("Prepared transactions for broadcasting")
+    logger.info("Prepared transactions for broadcasting for network %s", network)
+    return [deploy_tx1, deploy_tx2, update_tx1, update_tx2]
 
 
 

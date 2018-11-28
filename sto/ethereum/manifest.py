@@ -2,7 +2,7 @@ import json
 from os.path import dirname
 from pathlib import Path
 
-from corporategovernance.ethereum.utils import get_abi
+from sto.ethereum.utils import get_abi
 from ethpm import Package
 from ethpm.tools.builder import build, init_manifest, source_inliner
 

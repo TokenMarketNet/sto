@@ -1,7 +1,12 @@
+import binascii
 import json
 import os
 
 from typing import Optional
+
+import rlp
+from web3.utils.normalizers import normalize_address
+from eth_utils import keccak, to_checksum_address, to_bytes
 
 
 class NoNodeConfigured(Exception):
@@ -31,3 +36,19 @@ def get_abi(abi_file: Optional[str]):
 
     with open(abi_file, "rt") as inp:
         return json.load(inp)
+
+
+def mk_contract_address(sender: str, nonce: int) -> str:
+    """Create a contract address using eth-utils.
+
+    https://ethereum.stackexchange.com/a/761/620
+    """
+    sender_bytes = to_bytes(hexstr=sender)
+    raw = rlp.encode([sender_bytes, nonce])
+    h = keccak(raw)
+    address_bytes = h[12:]
+    return to_checksum_address(address_bytes)
+
+
+# Sanity check
+assert mk_contract_address(to_checksum_address("0x6ac7ea33f8831ea9dcc53393aaa88b25a785dbf0"), 1) == to_checksum_address("0x343c43a37d37dff08ae8c4a11544c718abb4fcf8")

@@ -1,7 +1,7 @@
 """Test fixtures to test out security token activities."""
 import pytest
 
-from corporategovernance.testutils import check_gas
+from sto.testutils import check_gas
 from web3.contract import Contract
 
 

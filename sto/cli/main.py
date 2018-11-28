@@ -12,7 +12,7 @@ import pkg_resources
 import click
 import click_config_file
 import coloredlogs
-from corporategovernance.db import setup_database
+from sto.db import setup_database
 
 
 class UnknownConfiguredNetwork(Exception):
@@ -37,9 +37,13 @@ def create_command_line_logger(log_level):
     return logger
 
 
+def is_ethereum_network(network: str):
+    return network in ("ethereum", "kovan", "ropsten")
+
+
 # Config file docs: https://github.com/phha/click_config_file
 @click.group()
-@click.option('--config-file', required=False, default="ethereum")
+@click.option('--config-file', required=False, default=None)
 @click.option('--database-file', required=False, default="transactions.sqlite")
 @click.option('--network', required=False, default="ethereum")
 @click.option('--ethereum-node-url', required=False, default="http://localhost:8545")
@@ -85,14 +89,13 @@ def cli(ctx, config_file, **kwargs):
     sa_logger.setLevel(logging.WARN)
 
     dbfile = os.path.abspath(config.database_file)
-    config.dbsession = setup_database(dbfile)
+    config.dbsession = setup_database(logger, dbfile)
     ctx.obj = config
 
-    version = pkg_resources.require("corporategovernance")[0].version
+    version = pkg_resources.require("sto")[0].version
     copyright = "Copyright TokenMarket Ltd. 2018"
-    logger.info("Corporate governance tool for security tokens, version %s - %s", version, copyright)
+    logger.info("STO tool, version %s - %s", version, copyright)
     logger.info("Using database %s", dbfile)
-
 
 
 # click subcommand docs
@@ -107,13 +110,14 @@ def issue(config: BoardCommmadConfiguration, symbol, name, amount, transfer_rest
 
     logger = config.logger
 
-    assert config.network == "ethereum"  # Nothing else implemented yet
+    assert is_ethereum_network(config.network) # Nothing else implemented yet
 
-    from corporategovernance.ethereum.issuance import deploy_token_contracts
+    from sto.ethereum.issuance import deploy_token_contracts
+    from sto.ethereum.txservice import EthereumStoredTXService
 
     dbsession = config.dbsession
 
-    deploy_token_contracts(logger,
+    txs = deploy_token_contracts(logger,
                           dbsession,
                           config.network,
                           ethereum_node_url=config.ethereum_node_url,
@@ -125,6 +129,11 @@ def issue(config: BoardCommmadConfiguration, symbol, name, amount, transfer_rest
                           symbol=symbol,
                           amount=amount,
                           transfer_restriction=transfer_restriction)
+
+    EthereumStoredTXService.print_transactions(txs)
+
+    # Write database
+    dbsession.commit()
 
 @cli.command()
 @click.option('--address', required=True)
@@ -138,8 +147,8 @@ def diagnose(config: BoardCommmadConfiguration):
     """Show node and account status."""
 
     # Run Ethereum diagnostics
-    if config.network == "ethereum":
-        from corporategovernance.ethereum.diagnostics import diagnose
+    if is_ethereum_network(config.network):
+        from sto.ethereum.diagnostics import diagnose
 
         private_key = config.ethereum_private_key
         exception = diagnose(config.logger, config.ethereum_node_url, private_key)
@@ -157,8 +166,64 @@ def create_ethereum_account(config: BoardCommmadConfiguration):
     """Creates a new Ethereum account and prints out the raw private key."""
 
     config.logger.info("Creating new Ethereum account.")
-    from corporategovernance.ethereum.account import create_account_console
+    from sto.ethereum.account import create_account_console
     create_account_console(config.logger)
+
+
+@cli.command(name="tx-broadcast")
+@click.pass_obj
+def broadcast(config: BoardCommmadConfiguration):
+    """Broadcast waiting transactions."""
+
+    assert is_ethereum_network(config.network)
+
+    logger = config.logger
+
+    from sto.ethereum.broadcast import broadcast
+
+    dbsession = config.dbsession
+
+    txs = broadcast(logger,
+                          dbsession,
+                          config.network,
+                          ethereum_node_url=config.ethereum_node_url,
+                          ethereum_private_key=config.ethereum_private_key,
+                          ethereum_gas_limit=config.ethereum_gas_limit,
+                          ethereum_gas_price=config.ethereum_gas_price)
+
+    from sto.ethereum.txservice import EthereumStoredTXService
+    EthereumStoredTXService.print_transactions(txs)
+
+    # Write database
+    dbsession.commit()
+
+
+@cli.command(name="tx-update")
+@click.pass_obj
+def update(config: BoardCommmadConfiguration):
+    """Update transaction status.."""
+
+    assert is_ethereum_network(config.network)
+
+    logger = config.logger
+
+    from sto.ethereum.status import update_status
+
+    dbsession = config.dbsession
+
+    txs = update_status(logger,
+                          dbsession,
+                          config.network,
+                          ethereum_node_url=config.ethereum_node_url,
+                          ethereum_private_key=config.ethereum_private_key,
+                          ethereum_gas_limit=config.ethereum_gas_limit,
+                          ethereum_gas_price=config.ethereum_gas_price)
+
+    from sto.ethereum.txservice import EthereumStoredTXService
+    EthereumStoredTXService.print_transactions(txs)
+
+    # Write database
+    dbsession.commit()
 
 
 def main():

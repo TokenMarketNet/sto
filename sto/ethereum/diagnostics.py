@@ -10,7 +10,7 @@ from typing import Optional
 from eth_account import Account
 from eth_utils import from_wei
 from web3 import Web3, HTTPProvider
-from corporategovernance.ethereum.utils import check_good_node_url
+from sto.ethereum.utils import check_good_node_url, check_good_private_key
 
 
 class NodeNotSynced(Exception):
@@ -58,8 +58,7 @@ def diagnose(logger: Logger, node_url: str, private_key_hex: str) -> Optional[Ex
         if ago > 1800:
             raise NodeNotSynced("Looks like your node has not received a block for half an hour. It is most likely unsynced at the moment.")
 
-        if not private_key_hex:
-            raise NeedPrivateKey("No private key configured. This application signs transactions locally and needs to have a private key configured. See manual for more instructions.")
+        check_good_private_key(private_key_hex)
 
         logger.info("Using private key %s...", private_key_hex[0:3])
         account = Account.privateKeyToAccount(binascii.unhexlify(private_key_hex))

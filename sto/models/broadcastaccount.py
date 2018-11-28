@@ -1,17 +1,17 @@
 import sqlalchemy as sa
 
-from corporategovernance.models.utils import TimeStampedBaseModel
+from sto.models.utils import TimeStampedBaseModel
 
 
 class _BroadcastAccount(TimeStampedBaseModel):
-    """Account that we maintain for broadcast transactions."""
+    """Account status we maintain for broadcast transactions."""
 
     __tablename__ = "broadcast_account"
 
-    #: Network name like "kovan"
+    #: Network name like "kovan", "ethereum"
     network = sa.Column(sa.String(256), nullable=False, unique=False)
 
-    #: Address of the account, like 0x000000
+    #: Address of the account as hex string, like 0x000000
     address = sa.Column(sa.String(256), nullable=False, unique=False)
 
     #: Currently available nonce to be allocated for the next transaction
@@ -29,9 +29,6 @@ class _PreparedTransaction(TimeStampedBaseModel):
 
     nonce = sa.Column(sa.Integer, default=1)
 
-    #: Network name like "kovan"
-    account = sa.Column(sa.String(256), nullable=False, unique=False)
-
     # Is this a contract deployment transaction
     contract_deployment = sa.Column(sa.Boolean, nullable=False, default=False)
 
@@ -41,23 +38,23 @@ class _PreparedTransaction(TimeStampedBaseModel):
     #: Address of the upcoming deployed contract or token contract address interacted with
     contract_address = sa.Column(sa.String(256), nullable=True, unique=False)
 
-    #: Address of the account, like 0x000000, for the user account that receives the transaction for tokens
-    receiver = sa.Column(sa.String(256), nullable=False, unique=False)
+    #: Address of the account, like 0x000000, for benefactor who receives the tokens. Not applicable for contract deployments.
+    receiver = sa.Column(sa.String(256), nullable=True, unique=False)
 
     #: Raw payload of the transaction to be broadcasted
-    unsigned_payload = sa.Column(sa.Text, nullable=False, unique=False)
+    unsigned_payload = sa.Column(sa.JSON, nullable=False, unique=False)
 
     #: Precalculated transaction id
     txid = sa.Column(sa.String(256), nullable=True, unique=False)
 
     #: Value transferred in Ethereum transaction
-    value = sa.Column(sa.Numeric(60, 20), nullable=False, default=0)
+    # value = sa.Column(sa.Numeric(60, 20), nullable=False, default=0)
 
     #: How much gwei we paid for this in Ethereum network
-    gas_price = sa.Column(sa.Numeric(60, 20), nullable=False, default=0)
+    # gas_price = sa.Column(sa.Numeric(60, 20), nullable=False, default=0)
 
     #: Wat was the gas limit in Etheruem network
-    gas_limit = sa.Column(sa.Numeric(60, 20), nullable=False, default=0)
+    # gas_limit = sa.Column(sa.Numeric(60, 20), nullable=False, default=0)
 
     #: When we attempted this transaction was broadcasted to the network
     broadcasted_at = sa.Column(sa.DateTime, default=None)
@@ -76,5 +73,25 @@ class _PreparedTransaction(TimeStampedBaseModel):
 
     #: Human readable failure reason
     result_transaction_reason = sa.Column(sa.String(256), default=None)
+
+    def get_status(self) -> str:
+        """Machine/human readable status."""
+        if not self.broadcasted_at:
+            return "waiting"
+        elif self.broadcasted_at and not self.result_fetched_at:
+            return "broadcasted"
+        elif self.result_fetched_at:
+            if self.result_transaction_success:
+                return "success"
+            else:
+                return "failed"
+        else:
+            raise RuntimeError("State error")
+
+    def get_to(self) -> str:
+        return self.receiver or self.contract_address
+
+    def get_from(self) -> str:
+        return self.broadcast_account.address
 
 

@@ -6,7 +6,7 @@ from sqlalchemy.orm import sessionmaker
 from .models.implementation import Base
 
 
-def setup_database(db_filename):
+def setup_database(logger, db_filename):
 
     # https://docs.sqlalchemy.org/en/latest/dialects/sqlite.html
     url = "sqlite+pysqlite:///" + db_filename
@@ -14,6 +14,7 @@ def setup_database(db_filename):
     engine = create_engine(url, echo=False)
 
     if not os.path.exists(url):
+        logger.info("Initializing new database %s", db_filename)
         init_db(engine)
 
     Session = sessionmaker(bind=engine)

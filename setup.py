@@ -15,6 +15,10 @@ with open('README.rst') as readme_file:
 requirements = [
     'web3',
     'coloredlogs',
+    'colorama',
+    'tabulate',
+    'sqlalchemy>=1.3.0b1',
+    'tqdm',
 ]
 
 test_requirements = [
@@ -26,18 +30,18 @@ dev_requirements = [
 ]
 
 setup(
-    name='corporategovernance',
+    name='sto',
     version='0.1',
-    description="Corporate governance tools for tokenised stock",
+    description="Security token management tool",
     long_description=readme + '\n\n',
     author="TokenMarket Ltd.",
     author_email='mikko@tokenmarket.net',
     url='https://tokenmarket.net',
     packages=[
-        'corporategovernance',
+        'sto',
     ],
-    package_dir={'corporategovernance':
-                 'corporategovernance'},
+    package_dir={'sto':
+                 'sto'},
     include_package_data=True,
     install_requires=requirements,
     license="Apache 2.0",
@@ -55,6 +59,6 @@ setup(
     tests_require=test_requirements,
     entry_points='''
     [console_scripts]
-    board=corporategovernance.cli.main:main
+    sto=sto.cli.main:main
     ''',
 )
