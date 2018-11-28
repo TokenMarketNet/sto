@@ -77,3 +77,5 @@ registrar.json
 
 # Created by pytest
 .pytest_cache
+
+*.sqlite

@@ -21,10 +21,6 @@ class NeedMoney(Exception):
     pass
 
 
-class NeedPrivateKey(Exception):
-    pass
-
-
 def diagnose(logger: Logger, node_url: str, private_key_hex: str) -> Optional[Exception]:
     """Run Ethereum connection and account diagnostics.
 
