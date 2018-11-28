@@ -25,8 +25,10 @@ class NeedPrivateKey(Exception):
     pass
 
 
-def diagnose(logger: Logger, node_url: str, private_key_hex: bytes) -> Optional[Exception]:
+def diagnose(logger: Logger, node_url: str, private_key_hex: str) -> Optional[Exception]:
     """Run Ethereum connection and account diagnostics.
+
+    Check that the user has properly configured Ethereum node and private key.
 
     Never fails. Exceptions are written to the logger output and returned.
     """
@@ -70,7 +72,7 @@ def diagnose(logger: Logger, node_url: str, private_key_hex: bytes) -> Optional[
         logger.info("Address %s has ETH balance of %f", account.address, from_wei(balance, "ether"))
 
         if balance == 0:
-            raise NeedMoney("Your Ethereum account {} needs ETH in order to use this tool".format(account.address))
+            raise NeedMoney("Your Ethereum account {} needs to have ETH in order to use this tool".format(account.address))
 
 
     except Exception as e:

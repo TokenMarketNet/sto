@@ -3,6 +3,9 @@
 
 """
 import logging
+import sys
+
+import configobj
 import pkg_resources
 
 import click
@@ -16,12 +19,9 @@ class UnknownConfiguredNetwork(Exception):
 
 class BoardCommmadConfiguration:
 
-    def __init__(self, network: str, ethereum_node_url: str, ethereum_contract_abi: dict, ethereum_private_key: str):
-        self.network = network
-        self.ethereum_node_url = ethereum_node_url
-        self.ethereum_contract_abi = ethereum_contract_abi
-        self.ethereum_private_key = ethereum_private_key
-        self.logger = None
+    def __init__(self, **kwargs):
+        # See cli() for descriptions of variables
+        self.__dict__.update(kwargs)
 
 
 def create_command_line_logger(log_level):
@@ -37,7 +37,7 @@ def create_command_line_logger(log_level):
 
 # Config file docs: https://github.com/phha/click_config_file
 @click.group()
-@click.option('--config-file', required=False)
+@click.option('--config-file', required=False, default="ethereum")
 @click.option('--network', required=False, default="ethereum")
 @click.option('--ethereum-node-url', required=False, default="http://localhost:8545")
 @click.option('--ethereum-contract-abi', required=False)
@@ -46,13 +46,29 @@ def create_command_line_logger(log_level):
 @click.option('--ethereum-private-key', required=False)
 @click.option('--log-level', default="INFO")
 @click.pass_context
-def cli(ctx, config_file, network, ethereum_node_url, ethereum_contract_abi, log_level, ethereum_gas_price, ethereum_gas_limit, ethereum_private_key):
+def cli(ctx, config_file, **kwargs):
     """Company board activity tool.
 
     Manage tokenised equity for things like issuing out new, distributing and revoking shares.
     """
 
-    config = BoardCommmadConfiguration(network, ethereum_node_url, ethereum_contract_abi, ethereum_private_key)
+    # Fill in arguments from the configuration file
+    if config_file:
+        config = configobj.ConfigObj(config_file, raise_errors=True)
+
+        # TODO: Bug here - could not figure out how to pull out from click if an option is set on a command line or are we using default.
+        # Thus you cannot override config file variables by giving a default value from command line
+        for opt in ctx.command.params:  # type: click.core.Options:
+
+            dashed_name = opt.name.replace("_", "-")
+            value = kwargs.get(opt.name)
+            if value == opt.default:
+                config_file_value = config.get(dashed_name)
+                if config_file_value:
+                    kwargs[opt.name] = config_file_value  # TODO: opt.process_value
+
+    log_level = kwargs["log_level"]
+    config = BoardCommmadConfiguration(**kwargs)
     config.logger = create_command_line_logger(log_level.upper())
     ctx.obj = config
 
@@ -88,7 +104,7 @@ def diagnose(config: BoardCommmadConfiguration):
         private_key = config.ethereum_private_key
         exception = diagnose(config.logger, config.ethereum_node_url, private_key)
         if exception:
-            config.logger.error("Looks like everything is not ok yet")
+            config.logger.error("We identified an issue with your configuration. Please fix the issue above to use this command yet.")
         else:
             config.logger.info("All systems ready to fire")
     else:
@@ -102,7 +118,7 @@ def create_ethereum_account(config: BoardCommmadConfiguration):
 
     config.logger.info("Creating new Ethereum account.")
     from corporategovernance.ethereum.account import create_account_console
-    create_account_console(config.logger, config.ethereum_private_key)
+    create_account_console(config.logger)
 
 
 def main():
