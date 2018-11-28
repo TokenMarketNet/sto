@@ -6,6 +6,7 @@ import logging
 import os
 import sys
 
+import colorama
 import configobj
 import pkg_resources
 
@@ -41,21 +42,19 @@ def is_ethereum_network(network: str):
     return network in ("ethereum", "kovan", "ropsten")
 
 
-# Config file docs: https://github.com/phha/click_config_file
 @click.group()
-@click.option('--config-file', required=False, default=None)
-@click.option('--database-file', required=False, default="transactions.sqlite")
-@click.option('--network', required=False, default="ethereum")
-@click.option('--ethereum-node-url', required=False, default="http://localhost:8545")
-@click.option('--ethereum-abi-file', required=False)
-@click.option('--ethereum-gas-price', required=False)
-@click.option('--ethereum-gas-limit', required=False)
-@click.option('--ethereum-private-key', required=False)
-@click.option('--ethereum-contract-name', required=False, default="contracts/security-token/SecurityToken.sol")
-@click.option('--log-level', default="INFO")
+@click.option('--config-file', required=False, default=None, help="INI file where to read options from")
+@click.option('--database-file', required=False, default="transactions.sqlite", help="SQLite file that persists transaction broadcast statu")
+@click.option('--network', required=False, default="ethereum", help="Network name. Either 'ethereum' or 'kovan' are supported for now.")
+@click.option('--ethereum-node-url', required=False, default="http://localhost:8545", help="Parity or Geth JSON-RPC to connect for Ethereum network access")
+@click.option('--ethereum-abi-file', required=False, help='Solidity compiler output JSON to override default smart contracts')
+@click.option('--ethereum-gas-price', required=False, help='How many GWei we pay for gas')
+@click.option('--ethereum-gas-limit', required=False, help='What is the transaction gas limit for broadcasts', type=int)
+@click.option('--ethereum-private-key', required=False, help='Private key for the broadcasting account')
+@click.option('--log-level', default="INFO", help="Python logging level to tune the verbosity of the command")
 @click.pass_context
 def cli(ctx, config_file, **kwargs):
-    """Company board activity tool.
+    """Security token management tool.
 
     Manage tokenised equity for things like issuing out new, distributing and revoking shares.
     """
@@ -135,16 +134,18 @@ def issue(config: BoardCommmadConfiguration, symbol, name, amount, transfer_rest
     # Write database
     dbsession.commit()
 
-@cli.command()
-@click.option('--address', required=True)
-def distribute(symbol, name, amount):
-    pass
+    logger.info("Run %ssto tx-broadcast%s to write this to blockchain", colorama.Fore.LIGHTCYAN_EX, colorama.Fore.RESET)
+
+# @cli.command()
+# @click.option('--address', required=True)
+# def distribute(symbol, name, amount):
+#    pass
 
 
 @cli.command()
 @click.pass_obj
 def diagnose(config: BoardCommmadConfiguration):
-    """Show node and account status."""
+    """Show your node and account status."""
 
     # Run Ethereum diagnostics
     if is_ethereum_network(config.network):
@@ -163,11 +164,11 @@ def diagnose(config: BoardCommmadConfiguration):
 @cli.command(name="ethereum-create-account")
 @click.pass_obj
 def create_ethereum_account(config: BoardCommmadConfiguration):
-    """Creates a new Ethereum account and prints out the raw private key."""
+    """Creates a new Ethereum account."""
 
     config.logger.info("Creating new Ethereum account.")
     from sto.ethereum.account import create_account_console
-    create_account_console(config.logger)
+    create_account_console(config.logger, config.network)
 
 
 @cli.command(name="tx-broadcast")
@@ -191,8 +192,10 @@ def broadcast(config: BoardCommmadConfiguration):
                           ethereum_gas_limit=config.ethereum_gas_limit,
                           ethereum_gas_price=config.ethereum_gas_price)
 
-    from sto.ethereum.txservice import EthereumStoredTXService
-    EthereumStoredTXService.print_transactions(txs)
+    if txs:
+        from sto.ethereum.txservice import EthereumStoredTXService
+        EthereumStoredTXService.print_transactions(txs)
+        logger.info("Run %ssto tx-update%s to monitor your transaction propagation status", colorama.Fore.LIGHTCYAN_EX, colorama.Fore.RESET)
 
     # Write database
     dbsession.commit()
@@ -201,7 +204,7 @@ def broadcast(config: BoardCommmadConfiguration):
 @cli.command(name="tx-update")
 @click.pass_obj
 def update(config: BoardCommmadConfiguration):
-    """Update transaction status.."""
+    """Update transaction status."""
 
     assert is_ethereum_network(config.network)
 
@@ -219,16 +222,89 @@ def update(config: BoardCommmadConfiguration):
                           ethereum_gas_limit=config.ethereum_gas_limit,
                           ethereum_gas_price=config.ethereum_gas_price)
 
-    from sto.ethereum.txservice import EthereumStoredTXService
-    EthereumStoredTXService.print_transactions(txs)
+    if txs:
+        from sto.ethereum.txservice import EthereumStoredTXService
+        EthereumStoredTXService.print_transactions(txs)
 
     # Write database
     dbsession.commit()
 
 
-def main():
+@cli.command(name="tx-last")
+@click.option('--limit', required=False, help="How many transcations to print", default=5)
+@click.pass_obj
+def last(config: BoardCommmadConfiguration, limit):
+    """Print latest transctions from database."""
 
-    cli()
+    assert is_ethereum_network(config.network)
+
+    logger = config.logger
+
+    from sto.ethereum.last import get_last_transactions
+
+    dbsession = config.dbsession
+
+    txs = get_last_transactions(logger,
+                          dbsession,
+                          config.network,
+                          limit=limit,
+                          ethereum_node_url=config.ethereum_node_url,
+                          ethereum_private_key=config.ethereum_private_key,
+                          ethereum_gas_limit=config.ethereum_gas_limit,
+                          ethereum_gas_price=config.ethereum_gas_price)
+
+    if txs:
+        from sto.ethereum.txservice import EthereumStoredTXService
+        EthereumStoredTXService.print_transactions(txs)
+
+
+@cli.command(name="tx-restart-nonce")
+@click.pass_obj
+def restart_nonce(config: BoardCommmadConfiguration):
+    """Resets the broadcasting account nonce."""
+
+    assert is_ethereum_network(config.network)
+
+    logger = config.logger
+
+    from sto.ethereum.nonce import restart_nonce
+
+    dbsession = config.dbsession
+
+    txs = restart_nonce(logger,
+                          dbsession,
+                          config.network,
+                          ethereum_node_url=config.ethereum_node_url,
+                          ethereum_private_key=config.ethereum_private_key,
+                          ethereum_gas_limit=config.ethereum_gas_limit,
+                          ethereum_gas_price=config.ethereum_gas_price)
+
+@cli.command(name="tx-next-nonce")
+@click.pass_obj
+def next_nonce(config: BoardCommmadConfiguration):
+    """Print next nonce to be consumed."""
+
+    assert is_ethereum_network(config.network)
+
+    logger = config.logger
+
+    from sto.ethereum.nonce import next_nonce
+
+    dbsession = config.dbsession
+
+    txs = next_nonce(logger,
+                          dbsession,
+                          config.network,
+                          ethereum_node_url=config.ethereum_node_url,
+                          ethereum_private_key=config.ethereum_private_key,
+                          ethereum_gas_limit=config.ethereum_gas_limit,
+                          ethereum_gas_price=config.ethereum_gas_price)
+
+
+
+def main():
+    # https://github.com/pallets/click/issues/204#issuecomment-270012917
+    cli.main(max_content_width=200, terminal_width=200)
 
     # import cProfile
     # pr = cProfile.Profile()

@@ -10,9 +10,10 @@ from sqlalchemy.orm import Session
 from web3 import Web3, HTTPProvider
 
 
-def update_status(logger: Logger,
+def get_last_transactions(logger: Logger,
               dbsession: Session,
               network: str,
+              limit: int,
               ethereum_node_url: str,
               ethereum_private_key: str,
               ethereum_gas_limit: str,
@@ -26,19 +27,9 @@ def update_status(logger: Logger,
 
     service = EthereumStoredTXService(network, dbsession, web3, ethereum_private_key, ethereum_gas_price, ethereum_gas_limit, BroadcastAccount, PreparedTransaction)
 
-    unfinished_txs = service.get_unmined_txs()
-
-    logger.info("Updating status for %d unfinished transactions for broadcasting in network %s", unfinished_txs.count(), network)
-
-    if unfinished_txs.count() == 0:
-        logger.info("No transactions to update. Use sto tx-last command to show the status of the last transactions.")
+    last_txs = service.get_last_transactions(limit)
+    if last_txs.count() == 0:
+        logger.info("No transactions yet")
         return []
 
-    unfinished_txs = list(unfinished_txs)
-
-    # https://stackoverflow.com/questions/41985993/tqdm-show-progress-for-a-generator-i-know-the-length-of
-    for tx in tqdm(unfinished_txs):
-        service.update_status(tx)
-        dbsession.commit()  # Try to minimise file system sync issues
-
-    return unfinished_txs
+    return list(last_txs)

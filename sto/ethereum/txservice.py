@@ -1,3 +1,4 @@
+from eth_account.internal.transactions import assert_valid_fields
 from sto.ethereum.utils import mk_contract_address
 from sto.models.broadcastaccount import _BroadcastAccount, _PreparedTransaction
 from sto.models.utils import now
@@ -13,6 +14,11 @@ from sto.models.implementation import _BroadcastAccount
 
 
 class NetworkAndDatabaseNonceOutOfSync(Exception):
+    pass
+
+
+
+class AddressConfigurationMismatch(Exception):
     pass
 
 
@@ -34,7 +40,14 @@ class EthereumStoredTXService:
         self.prepared_tx_model = prepared_tx_model
 
         self.gas_price = gas_price
+
+
+        if gas_limit:
+            assert type(gas_limit) == int
+
         self.gas_limit = gas_limit
+
+
 
     @property
     def address(self):
@@ -61,13 +74,15 @@ class EthereumStoredTXService:
         broadcast_account = self.get_or_create_broadcast_account()
         return broadcast_account.current_nonce
 
-    def ensure_account_in_sync(self, broadcast_account: _BroadcastAccount):
+    def ensure_accounts_in_sync(self):
         """Make sure that our internal nonce and external nonce looks correct."""
+
+        broadcast_account = self.get_or_create_broadcast_account()
 
         tx_count = self.web3.eth.getTransactionCount(broadcast_account.address)
 
         if tx_count != broadcast_account.current_nonce:
-            NetworkAndDatabaseNonceOutOfSync("Nonced out of sync. Network: {}, database: {}".format(network_nonce, broadcast_account.current_nonce))
+            NetworkAndDatabaseNonceOutOfSync("Nonced out of sync. Network: {}, database: {}. Maybe you have a pending broadcasts propagating?".format(tx_count, broadcast_account.current_nonce))
 
     def allocate_transaction(self,
                              broadcast_account: _BroadcastAccount,
@@ -90,18 +105,34 @@ class EthereumStoredTXService:
 
         assert type(unsigned_payload) == dict
 
+        assert_valid_fields(unsigned_payload)
+
         tx = self.prepared_tx_model()  # type: _PreparedTransaction
         tx.nonce = nonce
         tx.human_readable_description = note
         tx.receiver = receiver
         tx.contract_address = contract_address
-        tx.gas_price = gas_price
-        tx.gas_limit = gas_limit
         tx.contract_deployment = contract_deployment
         tx.unsigned_payload = unsigned_payload
         broadcast_account.txs.append(tx)
         broadcast_account.current_nonce += 1
         return tx
+
+    def generate_tx_data(self, nonce: int) -> dict:
+        """Generate transaction control parameters.
+        """
+
+        # See TRANSACTION_VALID_VALUES
+        tx_data = {}
+        tx_data["nonce"] = nonce
+
+        if self.gas_limit:
+            tx_data["gas"] = self.gas_limit
+
+        if self.gas_price:
+            tx_data["gasPrice"] = self.gas_price
+
+        return tx_data
 
     def deploy_contract(self, contract_name: str, abi: dict, note: str, constructor_args=None) -> _PreparedTransaction:
         """Deploys a contract."""
@@ -123,12 +154,8 @@ class EthereumStoredTXService:
         next_nonce = self.get_next_nonce()
 
         # Creates a dict for signing
-        constructed_txn = contract_class.constructor(**constructor_args).buildTransaction({
-            'from': self.address,
-            'nonce': next_nonce,
-            'gas': self.gas_limit,
-            'gasPrice': self.gas_price})
-
+        tx_data = self.generate_tx_data(next_nonce)
+        constructed_txn = contract_class.constructor(**constructor_args).buildTransaction(tx_data)
 
         derived_contract_address = mk_contract_address(self.address, next_nonce)
         derived_contract_address = to_checksum_address(derived_contract_address.lower())
@@ -173,12 +200,9 @@ class EthereumStoredTXService:
 
         func = getattr(contract_class.functions, func_name)
 
-        constructed_txn = func(**args).buildTransaction({
-            'to': address,
-            'from': self.address,
-            'nonce': next_nonce,
-            'gas': self.gas_limit,
-            'gasPrice': self.gas_price})
+        tx_data = self.generate_tx_data(next_nonce)
+        tx_data["to"] = address
+        constructed_txn = func(**args).buildTransaction(tx_data)
 
         tx = self.allocate_transaction(
             broadcast_account=broadcast_account,
@@ -196,42 +220,49 @@ class EthereumStoredTXService:
 
     def get_pending_broadcasts(self) -> Query:
         """All transactions that need to be broadcasted."""
-        return self.dbsession.query(self.prepared_tx_model).filter_by(txid=None).join(self.broadcast_account_model).filter_by(network=self.network)
+        return self.dbsession.query(self.prepared_tx_model).filter_by(broadcasted_at=None).join(self.broadcast_account_model).filter_by(network=self.network)
 
     def get_unmined_txs(self) -> Query:
         """All transactions that do not yet have a block assigned."""
-        return self.dbsession.query(self.prepared_tx_model).filter_by(self.prepared_tx_model.is_(None)).join(self.broadcast_account_model).filter_by(network=self.network)
+        return self.dbsession.query(self.prepared_tx_model).filter_by(result_block_num=None).join(self.broadcast_account_model).filter_by(network=self.network)
 
-    def broadcast(self, txs: Iterable[_PreparedTransaction]):
+    def get_last_transactions(self, limit: int) -> Query:
+        """Fetch latest transactions."""
+        assert type(limit) == int
+        return self.dbsession.query(self.prepared_tx_model).order_by(self.prepared_tx_model.created_at.desc()).limit(limit)
+
+    def broadcast(self, tx: _PreparedTransaction):
         """Push transactions to Ethereum network."""
-        for tx in txs:
-            tx_data = tx.unsigned_payload
-            signed = self.web3.eth.account.signTransaction(tx_data, self.private_key_hex)
-            tx.txid = signed.hash
-            self.web3.sendRawTransaction(signed.rawTransaction)
-            tx.broadcasted_at = now()
-            yield tx
 
-    def update_status(self, txs: Iterable[_PreparedTransaction]):
+        if tx.broadcast_account.address != self.address:
+            raise AddressConfigurationMismatch("Could not broadcast due to address mismatch. A pendign transaction was created for account {}, but we are using configured account {}".format(tx.broadcast_account.addres, self.address))
+
+        tx_data = tx.unsigned_payload
+        signed = self.web3.eth.account.signTransaction(tx_data, self.private_key_hex)
+        tx.txid = signed.hash.hex()
+        self.web3.eth.sendRawTransaction(signed.rawTransaction)
+        tx.broadcasted_at = now()
+        return tx
+
+    def update_status(self, tx: _PreparedTransaction):
         """Update tx status from Etheruem network."""
 
-        for tx in txs:
-            assert tx.txid
+        assert tx.txid
 
-            # https://web3py.readthedocs.io/en/stable/web3.eth.html#web3.eth.Eth.getTransactionReceipt
-            receipt = self.web3.eth.getTransactionReceipt(tx.txid)
-            if receipt:
-                tx.result_block_num = receipt["blockNumber"]
+        # https://web3py.readthedocs.io/en/stable/web3.eth.html#web3.eth.Eth.getTransactionReceipt
+        receipt = self.web3.eth.getTransactionReceipt(tx.txid)
+        if receipt:
+            tx.result_block_num = receipt["blockNumber"]
 
-                # TODO: Needs smarter Ethreum transaction evaluation
-                if receipt["gas"] == receipt["gasUsed"]:
-                    tx.result_transaction_success = False
-                    tx.result_transaction_reason = "Gas limit exceeded"
-                else:
-                    tx.result_transaction_success = True
+            # https://ethereum.stackexchange.com/a/6003/620
+            if receipt["status"] == 0:
+                tx.result_transaction_success = False
+                tx.result_transaction_reason = "Transaction failed"  # TODO: Need some logic to separate failure modes
+            else:
+                tx.result_transaction_success = True
 
-            tx.result_fetched_at = now()
-            yield tx
+        tx.result_fetched_at = now()
+        return tx
 
     @classmethod
     def print_transactions(self, txs: Iterable[_PreparedTransaction]):

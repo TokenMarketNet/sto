@@ -15,7 +15,7 @@ class _BroadcastAccount(TimeStampedBaseModel):
     address = sa.Column(sa.String(256), nullable=False, unique=False)
 
     #: Currently available nonce to be allocated for the next transaction
-    current_nonce = sa.Column(sa.Integer, default=1)
+    current_nonce = sa.Column(sa.Integer, default=0)
 
 
 
@@ -73,6 +73,14 @@ class _PreparedTransaction(TimeStampedBaseModel):
 
     #: Human readable failure reason
     result_transaction_reason = sa.Column(sa.String(256), default=None)
+
+    @property
+    def gas_limit(self):
+        return self.unsigned_payload["gas"]
+
+    @property
+    def gas_price(self):
+        return self.unsigned_payload["gasPrice"]
 
     def get_status(self) -> str:
         """Machine/human readable status."""

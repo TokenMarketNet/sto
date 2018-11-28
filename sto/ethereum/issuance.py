@@ -1,6 +1,7 @@
 """Issuing out tokenised shares."""
 from logging import Logger
 
+import colorama
 from sto.ethereum.manifest import get_package
 from sto.ethereum.txservice import EthereumStoredTXService
 from sto.ethereum.utils import get_abi, check_good_private_key
@@ -35,16 +36,18 @@ def deploy_token_contracts(logger: Logger,
 
     service = EthereumStoredTXService(network, dbsession, web3, ethereum_private_key, ethereum_gas_price, ethereum_gas_limit, BroadcastAccount, PreparedTransaction)
 
+    logger.info("Starting creating transactions from nonce %s", service.get_next_nonce())
+
     # Deploy security token
-    note = "Token contract for {}".format(name)
+    note = "Deploying token contract for {}".format(name)
     deploy_tx1 = service.deploy_contract("SecurityToken", abi, note, constructor_args={"_name": name, "_symbol": symbol})  # See SecurityToken.sol
 
     # Deploy transfer agent
-    note = "Unrestricted transfer manager for {}".format(name)
+    note = "Deploying unrestricted transfer policy for {}".format(name)
     deploy_tx2 = service.deploy_contract("UnrestrictedTransferAgent", abi, note)
 
     # Set transfer agent
-    note = "Setting security token transfer manager for {}".format(name)
+    note = "Making transfer restriction policy for {} effective".format(name)
     contract_address = deploy_tx1.contract_address
     update_tx1 = service.interact_with_contract("SecurityToken", abi, contract_address, note, "setTransactionVerifier", {"newVerifier": deploy_tx1.contract_address})
 
@@ -55,6 +58,7 @@ def deploy_token_contracts(logger: Logger,
     update_tx2 = service.interact_with_contract("SecurityToken", abi, contract_address, note, "issueTokens", {"value": amount_18})
 
     logger.info("Prepared transactions for broadcasting for network %s", network)
+    logger.info("STO token contract address is %s%s%s", colorama.Fore.LIGHTGREEN_EX, deploy_tx1.contract_address, colorama.Fore.RESET)
     return [deploy_tx1, deploy_tx2, update_tx1, update_tx2]
 
 

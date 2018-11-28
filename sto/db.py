@@ -13,7 +13,7 @@ def setup_database(logger, db_filename):
 
     engine = create_engine(url, echo=False)
 
-    if not os.path.exists(url):
+    if not os.path.exists(db_filename):
         logger.info("Initializing new database %s", db_filename)
         init_db(engine)
 

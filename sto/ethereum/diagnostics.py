@@ -1,10 +1,7 @@
 import binascii
 import calendar
 import datetime
-import time
-
 from logging import Logger
-
 from typing import Optional
 
 from eth_account import Account
