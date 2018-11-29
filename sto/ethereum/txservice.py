@@ -199,7 +199,8 @@ class EthereumStoredTXService:
             bytecode=abi_data["bytecode"],
             bytecode_runtime=abi_data["bytecode_runtime"],
             )
-        return contract_class(address=address)
+
+        return contract_class(address=to_checksum_address(address))
 
     def interact_with_contract(self, contract_name: str, abi: dict, address: str, note: str, func_name: str, args=None, receiver=None) -> _PreparedTransaction:
         """Does a transaction against a contract."""

@@ -1,0 +1,2 @@
+class BadContractException(Exception):
+    pass
