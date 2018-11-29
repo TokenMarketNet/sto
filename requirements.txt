@@ -41,7 +41,6 @@ rlp==1.0.3
 semantic-version==2.6.0
 six==1.11.0
 SQLAlchemy==1.3.0b1
--e git+git@github.com:TokenMarketNet/sto.git@1452079f1aa0656322d5817ec9060e36eb33829c#egg=sto
 tabulate==0.8.2
 toolz==0.9.0
 tqdm==4.28.1
