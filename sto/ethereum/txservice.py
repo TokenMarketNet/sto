@@ -177,14 +177,8 @@ class EthereumStoredTXService:
         self.dbsession.flush()
         return tx
 
-    def interact_with_contract(self, contract_name: str, abi: dict, address: str, note: str, func_name: str, args=None, receiver=None) -> _PreparedTransaction:
-        """Does a transaction against a contract."""
-
-        assert address.startswith("0x")
-
-        if not args:
-            args = {}
-
+    def get_contract_proxy(self, contract_name: str, abi: dict, address: str) -> Contract:
+        """Get web3.Contract to interact directly with the network"""
         abi_data = abi[contract_name]
 
         contract_class = Contract.factory(
@@ -193,15 +187,24 @@ class EthereumStoredTXService:
             bytecode=abi_data["bytecode"],
             bytecode_runtime=abi_data["bytecode_runtime"],
             )
+        return contract_class(address=address)
 
+    def interact_with_contract(self, contract_name: str, abi: dict, address: str, note: str, func_name: str, args=None, receiver=None) -> _PreparedTransaction:
+        """Does a transaction against a contract."""
+
+        assert address.startswith("0x")
+
+        if not args:
+            args = {}
+
+        contract = self.get_contract_proxy(contract_name, abi, address)
         broadcast_account = self.get_or_create_broadcast_account()
 
         next_nonce = self.get_next_nonce()
 
-        func = getattr(contract_class.functions, func_name)
+        func = getattr(contract.functions, func_name)
 
         tx_data = self.generate_tx_data(next_nonce)
-        tx_data["to"] = address
         constructed_txn = func(**args).buildTransaction(tx_data)
 
         tx = self.allocate_transaction(
@@ -220,11 +223,11 @@ class EthereumStoredTXService:
 
     def get_pending_broadcasts(self) -> Query:
         """All transactions that need to be broadcasted."""
-        return self.dbsession.query(self.prepared_tx_model).filter_by(broadcasted_at=None).join(self.broadcast_account_model).filter_by(network=self.network)
+        return self.dbsession.query(self.prepared_tx_model).filter_by(broadcasted_at=None).order_by(self.prepared_tx_model.nonce).join(self.broadcast_account_model).filter_by(network=self.network)
 
     def get_unmined_txs(self) -> Query:
         """All transactions that do not yet have a block assigned."""
-        return self.dbsession.query(self.prepared_tx_model).filter_by(result_block_num=None).join(self.broadcast_account_model).filter_by(network=self.network)
+        return self.dbsession.query(self.prepared_tx_model).filter(self.prepared_tx_model.txid != None).filter_by(result_block_num=None).join(self.broadcast_account_model).filter_by(network=self.network)
 
     def get_last_transactions(self, limit: int) -> Query:
         """Fetch latest transactions."""
@@ -281,16 +284,20 @@ class EthereumStoredTXService:
                 status = colorama.Fore.BLUE + status + colorama.Fore.RESET
             elif status == "broadcasted":
                 status = colorama.Fore.YELLOW + status + colorama.Fore.RESET
+            elif status == "mining":
+                status = colorama.Fore.YELLOW + status + colorama.Fore.RESET
             elif status == "success":
                 status = colorama.Fore.GREEN + status + colorama.Fore.RESET
+                status += ":" + str(tx.result_block_num)
             elif status == "failed":
                 status = colorama.Fore.RED + status + colorama.Fore.RESET
+                status += ":" + str(tx.result_block_num)
             else:
                 raise RuntimeError("Does not compute")
 
             table.append((tx.txid, status, tx.nonce, tx.get_from(), tx.get_to(), tx.human_readable_description[0:64]))
 
-        print(tabulate(table, headers=["TXID", "Status", "Nonce", "From", "To", "Note"]))
+        print(tabulate(table, headers=["TXID", "Status and block", "Nonce", "From", "To", "Note"]))
 
 
 

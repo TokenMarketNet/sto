@@ -43,8 +43,8 @@ def is_ethereum_network(network: str):
 
 
 @click.group()
-@click.option('--config-file', required=False, default=None, help="INI file where to read options from")
-@click.option('--database-file', required=False, default="transactions.sqlite", help="SQLite file that persists transaction broadcast statu")
+@click.option('--config-file', required=False, default=None, help="INI file where to read options from", type=click.Path())
+@click.option('--database-file', required=False, default="transactions.sqlite", help="SQLite file that persists transaction broadcast status", type=click.Path())
 @click.option('--network', required=False, default="ethereum", help="Network name. Either 'ethereum' or 'kovan' are supported for now.")
 @click.option('--ethereum-node-url', required=False, default="http://localhost:8545", help="Parity or Geth JSON-RPC to connect for Ethereum network access")
 @click.option('--ethereum-abi-file', required=False, help='Solidity compiler output JSON to override default smart contracts')
@@ -97,11 +97,10 @@ def cli(ctx, config_file, **kwargs):
     logger.info("Using database %s", dbfile)
 
 
-# click subcommand docs
 @cli.command()
 @click.option('--symbol', required=True)
 @click.option('--name', required=True)
-@click.option('--amount', required=True)
+@click.option('--amount', required=True, type=int)
 @click.option('--transfer-restriction', required=False, default="unrestricted")
 @click.pass_obj
 def issue(config: BoardCommmadConfiguration, symbol, name, amount, transfer_restriction):
@@ -135,6 +134,33 @@ def issue(config: BoardCommmadConfiguration, symbol, name, amount, transfer_rest
     dbsession.commit()
 
     logger.info("Run %ssto tx-broadcast%s to write this to blockchain", colorama.Fore.LIGHTCYAN_EX, colorama.Fore.RESET)
+
+
+@cli.command(name="token-status")
+@click.option('--address', required=True, help="Token contract addrss")
+@click.pass_obj
+def status(config: BoardCommmadConfiguration, address):
+    """Print token contract status."""
+
+    logger = config.logger
+
+    assert is_ethereum_network(config.network) # Nothing else implemented yet
+
+    from sto.ethereum.issuance import contract_status
+
+    dbsession = config.dbsession
+
+    contract_status(logger,
+      dbsession,
+      config.network,
+      ethereum_node_url=config.ethereum_node_url,
+      ethereum_abi_file=config.ethereum_abi_file,
+      ethereum_private_key=config.ethereum_private_key,
+      ethereum_gas_limit=config.ethereum_gas_limit,
+      ethereum_gas_price=config.ethereum_gas_price,
+      token_contract=address)
+
+
 
 # @cli.command()
 # @click.option('--address', required=True)

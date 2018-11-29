@@ -89,10 +89,14 @@ class _PreparedTransaction(TimeStampedBaseModel):
         elif self.broadcasted_at and not self.result_fetched_at:
             return "broadcasted"
         elif self.result_fetched_at:
-            if self.result_transaction_success:
-                return "success"
+
+            if self.result_block_num:
+                if self.result_transaction_success:
+                    return "success"
+                else:
+                    return "failed"
             else:
-                return "failed"
+                return "mining"
         else:
             raise RuntimeError("State error")
 
