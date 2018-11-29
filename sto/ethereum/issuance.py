@@ -3,7 +3,6 @@ from decimal import Decimal
 from logging import Logger
 
 import colorama
-from sto.ethereum.manifest import get_package
 from sto.ethereum.txservice import EthereumStoredTXService
 from sto.ethereum.utils import get_abi, check_good_private_key
 from sto.models.implementation import BroadcastAccount, PreparedTransaction
