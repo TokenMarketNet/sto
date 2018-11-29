@@ -3,7 +3,7 @@ A tool and Python API for issuing out and managing out security tokens.
 
 .. image:: https://badges.gitter.im/TokenMarketNet/ico.svg
    :alt: Join the chat at https://gitter.im/TokenMarketNet/ico
-   :target: https://gitter.im/TokenMarketNet/sto?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge
+   :target: https://gitter.im/security-token/Lobby
 
 .. image:: https://img.shields.io/travis/TokenMarketNet/ico.svg
         :target: https://travis-ci.org/TokenMarketNet/sto
