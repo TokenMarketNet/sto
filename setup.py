@@ -25,6 +25,7 @@ test_requirements = [
 
 dev_requirements = [
     "bumpversion>=0.5.3,<1",
+    "wheel",
 ]
 
 setup(
