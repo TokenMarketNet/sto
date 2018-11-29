@@ -5,11 +5,14 @@ from logging import Logger
 import colorama
 from sto.ethereum.txservice import EthereumStoredTXService
 from sto.ethereum.utils import get_abi, check_good_private_key
+from sto.ethereum.exceptions import BadContractException
 from sto.models.implementation import BroadcastAccount, PreparedTransaction
 from sqlalchemy.orm import Session
 from web3 import Web3, HTTPProvider
 from web3.contract import Contract
-
+from eth_abi.exceptions import InsufficientDataBytes
+from eth_tester.exceptions import TransactionFailed
+from web3.exceptions import BadFunctionCallOutput
 
 def deploy_token_contracts(logger: Logger,
                           dbsession: Session,
@@ -88,15 +91,17 @@ def contract_status(logger: Logger,
     service = EthereumStoredTXService(network, dbsession, web3, ethereum_private_key, ethereum_gas_price, ethereum_gas_limit, BroadcastAccount, PreparedTransaction)
     contract = service.get_contract_proxy("SecurityToken", abi, token_contract)
 
-    logger.info("Name: %s", contract.functions.name().call())
-    logger.info("Symbol: %s", contract.functions.symbol().call())
-    supply = contract.functions.totalSupply().call()
-    human_supply = Decimal(supply) / Decimal(10 ** contract.functions.decimals().call())
-    logger.info("Total supply: %s", human_supply)
-    logger.info("Decimals: %d", contract.functions.decimals().call())
-    logger.info("Owner: %s", contract.functions.owner().call())
-    logger.info("Transfer verified: %s", contract.functions.transferVerifier().call())
-
+    try:
+        logger.info("Name: %s", contract.functions.name().call())
+        logger.info("Symbol: %s", contract.functions.symbol().call())
+        supply = contract.functions.totalSupply().call()
+        human_supply = Decimal(supply) / Decimal(10 ** contract.functions.decimals().call())
+        logger.info("Total supply: %s", human_supply)
+        logger.info("Decimals: %d", contract.functions.decimals().call())
+        logger.info("Owner: %s", contract.functions.owner().call())
+        logger.info("Transfer verified: %s", contract.functions.transferVerifier().call())
+    except BadFunctionCallOutput as e:
+        raise BadContractException("Looks like this is not a token contract address. Please check on EtherScan that the address presents the token contract")
 
 
 
