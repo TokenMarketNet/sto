@@ -42,10 +42,14 @@ Requirements
 
 * Python 3.6
 
+* Ethereum node (local Go Ethereum / local Parity / Infura)
+
 * UNIX command line experience
 
 Install
 =======
+
+Security token interaction happens through a command line `sto` command that connects to an Ethereum network node and a local database. This command is written in Python.
 
 Normal users
 ------------
