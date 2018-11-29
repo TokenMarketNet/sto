@@ -15,7 +15,7 @@ cache:
     - $TRAVIS_BUILD_DIR/.tox --recreate
 
 install:
-  - travis_retry pip install setuptools --upgrade
+  - pip install -U pip
   - pip install -U tox
 
 # command to run tests, e.g. python setup.py test
