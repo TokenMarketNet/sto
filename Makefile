@@ -52,7 +52,7 @@ x-release: clean
 	git config commit.gpgSign true
 	bumpversion $(bump)
 	git push master && git push master --tags
-	python setup.py sdist bdist_wheel upload
+	python setup.py sdist bdist_wheel upload  # Need .pypirc https://medium.freecodecamp.org/how-to-publish-a-pyton-package-on-pypi-a89e9522ce24
 	git config commit.gpgSign "$(CURRENT_SIGN_SETTING)"
 
 release: clean

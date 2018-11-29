@@ -38,6 +38,10 @@ In theory the APIs are backend neutral, but only EVM compatible chains are suppo
 
 * `Read an introduction for security tokens <https://tokenmarket.net/news/security-tokens/what-are-security-tokens/>`_
 
+* `View security token management source code on Github <http://github.com/tokenmarketnet/sto>`_
+
+* `View security token management package on Python package index <https://pypi.org/project/sto/>`_
+
 Supported networks and tokens
 =============================
 
