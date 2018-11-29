@@ -58,6 +58,11 @@ Normal users
 
     Normal user instructions are not yet available. Please refer to developer instructions.
 
+Advanced users
+--------------
+
+asss
+
 Developers
 ----------
 
@@ -65,7 +70,10 @@ Create `Python virtual environment <https://packaging.python.org/tutorials/insta
 
 Then within the activated venv do::
 
-    pip install -e "git+https://github.com/TokenMarketNet/sto.git#egg=sto"
+    git clone "git+https://github.com/TokenMarketNet/sto.git"
+    python -m venv venv  # Python 3 needed
+    source venv/bin/activate
+    pip install -e ".[test]"
 
 How to set up
 =============
