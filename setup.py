@@ -15,7 +15,7 @@ with open('README.rst') as readme_file:
 requirements = [
     'web3',
     'coloredlogs',
-    "eth_account",
+    "eth-account",
     'colorama',
     'tabulate',
     'sqlalchemy>=1.3.0b1',
