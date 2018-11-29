@@ -8,6 +8,7 @@ click==6.7
 contextlib2==0.5.5
 eth-testrpc==1.3.0
 ethereum==1.6.1
+eth-account==0.3.0
 ethereum-abi-utils==0.4.0
 ethereum-utils==0.3.2
 idna==2.5
