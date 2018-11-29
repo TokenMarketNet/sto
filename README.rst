@@ -125,6 +125,10 @@ This should output::
     Address 0xDE5bC059aA433D72F25846bdFfe96434b406FA85 has ETH balance of 1.000000
     All systems ready to fire
 
+
+Playing with security tokens
+============================
+
 Issuing out stock
 -----------------
 
@@ -150,7 +154,7 @@ You will get a list of Ethereum transactions needed to perform this operation::
 Pushing Ethereum transactions out
 ---------------------------------
 
-Ethereum transactions are first written to a local `SQlite database <https://www.sqlite.org/index.html>`_. A separate step of broadcasting transactions is needed in order to write the data to Ethereum blockchain.
+Ethereum transactions are first written to a local `SQlite database <https://www.sqlite.org/index.html>`_. A separate step of broadcasting transactions is needed in order to write the data to Ethereum blockchain. Furthermore local database allows us to add human friendly annotations for transactions, so that diagnostics and future audits are easy.
 
 Using a local database and locally generated nonces ensures we can always safely rebroadcast transactions and issue out new transactions even under severe network conditions.
 
@@ -177,11 +181,13 @@ Update transaction status
 
 Blockchain transactions are asynchronous. First the transactions are broadcasted to the network. The transactions propagade from a node to a node until a miner node decides to include your transactions in a block.
 
+`tx-update` command will read tranactions from network and update the local database for pending transasctions. It will also detect if a transaction has failed e.g. due to smart contract permission errors.
+
 To check your transaction status::
 
     sto --config-file=myconfig.ini tx-update
 
-After a while repeating this command you should see all your transactions included in blockchain::
+After a while repeating this command you should see all your transactions included in blockchain with `success` status::
 
     STO tool, version 0.1 - Copyright TokenMarket Ltd. 2018
     Using database /Users/moo/code/tm2/sto/transactions.sqlite
