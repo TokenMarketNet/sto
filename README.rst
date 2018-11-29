@@ -83,7 +83,7 @@ Then within the activated venv do::
     git clone "git+https://github.com/TokenMarketNet/sto.git"
     python -m venv venv  # Python 3 needed
     source venv/bin/activate
-    pip install -e ".[test]"
+    pip install -e ".[dev,test]"
 
 How to set up
 =============

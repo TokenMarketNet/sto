@@ -24,6 +24,7 @@ test_requirements = [
 ]
 
 dev_requirements = [
+    "bumpversion>=0.5.3,<1",
 ]
 
 setup(
@@ -55,6 +56,7 @@ setup(
     setup_requires=["pytest-runner"],
     extras_require={
         "test": test_requirements,
+        "dev": dev_requirements,
     },
     entry_points='''
     [console_scripts]
