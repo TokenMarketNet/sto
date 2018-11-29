@@ -5,7 +5,7 @@ from logging import Logger
 from typing import Optional
 
 from eth_account import Account
-from eth_utils import from_wei
+from eth_utils import from_wei, to_bytes
 from web3 import Web3, HTTPProvider
 from sto.ethereum.utils import check_good_node_url, check_good_private_key
 
@@ -58,7 +58,7 @@ def diagnose(logger: Logger, node_url: str, private_key_hex: str) -> Optional[Ex
         check_good_private_key(private_key_hex)
 
         logger.info("Using private key %s...", private_key_hex[0:3])
-        account = Account.privateKeyToAccount(binascii.unhexlify(private_key_hex))
+        account = Account.privateKeyToAccount(to_bytes(hexstr=private_key_hex))
 
         balance = web3.eth.getBalance(account.address)
         logger.info("Address %s has ETH balance of %f", account.address, from_wei(balance, "ether"))

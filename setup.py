@@ -19,6 +19,9 @@ requirements = [
     'tabulate',
     'sqlalchemy>=1.3.0b1',
     'tqdm',
+    'configobj',
+    'click',
+    'click-config-file',
 ]
 
 test_requirements = [
