@@ -1,11 +1,18 @@
-This is a tool and Python API for issuing out and managing out security tokens.
+A tool and Python API for issuing out and managing out security tokens.
+
+
+.. image:: https://badges.gitter.im/TokenMarketNet/ico.svg
+   :alt: Join the chat at https://gitter.im/TokenMarketNet/ico
+   :target: https://gitter.im/TokenMarketNet/sto?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge
+
+.. image:: https://img.shields.io/travis/TokenMarketNet/ico.svg
+        :target: https://travis-ci.org/TokenMarketNet/sto
 
 .. contents:: :local:
 
 .. note::
 
-    This software is totally alpha. If you are do not have technical sophistication and you are not willing to sit out in a chat room to wait answer for your questions this is not for your do-it-yourself needs. Instead, contact to `TokenMarket commercial support <https://tokenmarket.net/security-token-offering>`_.
-
+    This software is for technically sophisticated users only. If you are looking for business services go to `TokenMarket commercial support <https://tokenmarket.net/security-token-offering>`_.
 
 Benefits
 ========
