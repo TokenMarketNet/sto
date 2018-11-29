@@ -20,7 +20,7 @@ Table of contents
 Benefits
 ========
 
-The tool and API gives technical developers ability to manage and integrate security token functionality:
+This Python package provides a command line tool and API to manage and integrate security token functionality:
 
 * Issue out new stock series
 
@@ -28,7 +28,7 @@ The tool and API gives technical developers ability to manage and integrate secu
 
 * Printing out my portfolio
 
-* Reverting transactions
+* Managing bad transactions and lost privat keys
 
 * Paying dividends
 
@@ -71,7 +71,7 @@ Normal users
 Advanced users
 --------------
 
-asss
+TODO
 
 Developers
 ----------
