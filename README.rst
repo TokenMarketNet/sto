@@ -82,7 +82,7 @@ Install `Docker <https://www.docker.com/products/docker-desktop>`_.
 OSX and Linux
 ~~~~~~~~~~~~~
 
-Set up a shell alias for `sto` command::
+Set up a shell alias for `sto` command that executes Dockerised binary::
 
     alias sto='docker run -p 8545:8545 -v `pwd`:`pwd` -w `pwd` miohtama/sto:latest'
 
@@ -90,7 +90,7 @@ Then you can do::
 
     sto --help
 
-Docker will automatically pull an image from Docker registry for your local computer on the first run.
+Docker will automatically pull an image from Docker registry for your local computer on the first run. We map port 8545 to the localhost as that is normal Ethereum JSON-RPC API.
 
 Windows
 ~~~~~~~
