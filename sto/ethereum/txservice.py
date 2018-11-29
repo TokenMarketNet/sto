@@ -53,8 +53,6 @@ class EthereumStoredTXService:
 
         self.gas_limit = gas_limit
 
-
-
     @property
     def address(self):
         return self.account.address
@@ -134,6 +132,8 @@ class EthereumStoredTXService:
         tx_data = {}
         tx_data["nonce"] = nonce
 
+
+        # Mikko's rule of thumb estimator because local accounts do not estimate gas too well
         if self.gas_limit:
             tx_data["gas"] = self.gas_limit
         elif contract_tx:
