@@ -75,7 +75,27 @@ Normal users
 Advanced users
 --------------
 
-TODO
+The `sto` command line application is provided as a Docker image to minimize the issues with painful native dependency set up for your operating system. To use `sto` we will set up a command line alias, as Docker command itself is quite long.
+
+Install `Docker <https://www.docker.com/products/docker-desktop>`_.
+
+OSX and Linux
+~~~~~~~~~~~~~
+
+Set up a shell alias for `sto` command::
+
+    alias sto='docker run -p 8545:8545 -v `pwd`:`pwd` -w `pwd` miohtama/sto:latest'
+
+Then you can do::
+
+    sto --help
+
+Docker will automatically pull an image from Docker registry for your local computer on the first run.
+
+Windows
+~~~~~~~
+
+TODO: Windows instructions coming soon.
 
 Developers
 ----------
@@ -118,7 +138,6 @@ Create an Ethereum account::
 
 This will give you a new raw private key and related Ethereum address to play with::
 
-    Corporate governance tool for security tokens, version 0.1 - Copyright TokenMarket Ltd. 2018
     Creating new Ethereum account.
     Account address: 0xDE5bC059aA433D72F25846bdFfe96434b406FA85
     Account private key: 3fac35a57e1e2867290ae37d54c5de61d52644b42819ce6af0c5a9c25f4c...
@@ -166,8 +185,6 @@ To issue out stock you need to give stock name, ticker symbol and amount of shar
 
 You will get a list of Ethereum transactions needed to perform this operation::
 
-    STO tool, version 0.1 - Copyright TokenMarket Ltd. 2018
-    Using database /Users/moo/code/tm2/sto/transactions.sqlite
     Prepared transactions for broadcasting for network kovan
     TXID    Status      Nonce  From                                        To                                          Note
     ------  --------  -------  ------------------------------------------  ------------------------------------------  --------------------------------------------------------------
@@ -190,7 +207,6 @@ To broadcast::
 
 Transactions are send out to Ethereum network and they get a transaction id. You will see `txid` in output::
 
-    Using database /Users/moo/code/tm2/sto/transactions.sqlite
     Pending 5 transactions for broadcasting in network kovan
     Our address 0xDE5bC059aA433D72F25846bdFfe96434b406FA85 has ETH balance of 0.955684 for operations
     TXID                                                                Status and block      Nonce  From                                        To                                          Note
@@ -215,8 +231,6 @@ To check your transaction status::
 
 After a while repeating this command you should see all your transactions included in blockchain with `success` status::
 
-    STO tool, version 0.1 - Copyright TokenMarket Ltd. 2018
-    Using database /Users/moo/code/tm2/sto/transactions.sqlite
     TXID                                                                Status and block      Nonce  From                                        To                                          Note
     ------------------------------------------------------------------  ------------------  -------  ------------------------------------------  ------------------------------------------  ---------------------------------------------------------
     0x4bd273895b21a3b57e93113c26895ea142f989cde13ff0c23bb330de1889238a  success:9513331          70  0xDE5bC059aA433D72F25846bdFfe96434b406FA85  0xc48DA079aab7FEf3a2476B493f904509d1891Fa3  Deploying unrestricted transfer policy for Doobar
@@ -236,8 +250,6 @@ After all your transactions have been pushed out and are succesfully included in
 
 This outputs::
 
-    STO tool, version 0.1 - Copyright TokenMarket Ltd. 2018
-    Using database /Users/moo/code/tm2/sto/transactions.sqlite
     Name: Boobar
     Symbol: STO
     Total supply: 10000
