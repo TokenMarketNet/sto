@@ -8,11 +8,14 @@ A tool and Python API for issuing out and managing out security tokens.
 .. image:: https://img.shields.io/travis/TokenMarketNet/ico.svg
         :target: https://travis-ci.org/TokenMarketNet/sto
 
+**Technical dragons ahead**
+
+This software is for technically sophisticated users only. If you are looking for business services go to `TokenMarket commercial support <https://tokenmarket.net/security-token-offering>`_.
+
+Table of contents
+=================
+
 .. contents:: :local:
-
-.. note::
-
-    This software is for technically sophisticated users only. If you are looking for business services go to `TokenMarket commercial support <https://tokenmarket.net/security-token-offering>`_.
 
 Benefits
 ========
