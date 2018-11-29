@@ -57,7 +57,7 @@ x-release: clean
 
 release: clean
 	bumpversion $(bump)
-	git push master && git push master --tags
+	git push origin && git push origin --tags
 	python setup.py sdist bdist_wheel upload
 
 
