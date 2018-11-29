@@ -25,6 +25,12 @@ class AddressConfigurationMismatch(Exception):
 class EthereumStoredTXService:
     """A transaction service that writes entries to a local database before trying to broadcast them to the blockchain."""
 
+    #: Can't trust auto estimate
+    SPECIAL_GAS_LIMIT_FOR_CONTRACT_DEPLOYMENT = 4000000
+
+    #: Can't trust auto estimate
+    SPECIAL_GAS_LIMIT_FOR_NORMAL_TX = 350333
+
     def __init__(self, network: str, dbsession: Session, web3: Web3, private_key_hex: str, gas_price, gas_limit, broadcast_account_model, prepared_tx_model):
 
         assert isinstance(web3, Web3)
@@ -118,8 +124,10 @@ class EthereumStoredTXService:
         broadcast_account.current_nonce += 1
         return tx
 
-    def generate_tx_data(self, nonce: int) -> dict:
+    def generate_tx_data(self, nonce: int, contract_tx=False) -> dict:
         """Generate transaction control parameters.
+
+        :param contract: We use a special hardcoded gas estimate for 4,000,000 when deploying contracts. Kovan misestimates the cost of deploying SecurityToken and thus the transaction always fails with the auto estimate.
         """
 
         # See TRANSACTION_VALID_VALUES
@@ -128,6 +136,10 @@ class EthereumStoredTXService:
 
         if self.gas_limit:
             tx_data["gas"] = self.gas_limit
+        elif contract_tx:
+            tx_data["gas"] = EthereumStoredTXService.SPECIAL_GAS_LIMIT_FOR_CONTRACT_DEPLOYMENT
+        else:
+            tx_data["gas"] = EthereumStoredTXService.SPECIAL_GAS_LIMIT_FOR_NORMAL_TX
 
         if self.gas_price:
             tx_data["gasPrice"] = self.gas_price
@@ -154,7 +166,7 @@ class EthereumStoredTXService:
         next_nonce = self.get_next_nonce()
 
         # Creates a dict for signing
-        tx_data = self.generate_tx_data(next_nonce)
+        tx_data = self.generate_tx_data(next_nonce, contract_tx=True)
         constructed_txn = contract_class.constructor(**constructor_args).buildTransaction(tx_data)
 
         derived_contract_address = mk_contract_address(self.address, next_nonce)
