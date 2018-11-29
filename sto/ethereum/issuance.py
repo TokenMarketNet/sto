@@ -4,9 +4,10 @@ from logging import Logger
 
 import colorama
 from sto.ethereum.txservice import EthereumStoredTXService
-from sto.ethereum.utils import get_abi, check_good_private_key
+from sto.ethereum.utils import get_abi, check_good_private_key, create_web3
 from sto.models.implementation import BroadcastAccount, PreparedTransaction
 from sqlalchemy.orm import Session
+from typing import Union, Optional
 from web3 import Web3, HTTPProvider
 from web3.contract import Contract
 
@@ -14,11 +15,11 @@ from web3.contract import Contract
 def deploy_token_contracts(logger: Logger,
                           dbsession: Session,
                           network: str,
-                          ethereum_node_url: str,
-                          ethereum_abi_file: str,
-                          ethereum_private_key: str,
-                          ethereum_gas_limit: str,
-                          ethereum_gas_price: str,
+                          ethereum_node_url: Union[str, Web3],
+                          ethereum_abi_file: Optional[str],
+                          ethereum_private_key: Optional[str],
+                          ethereum_gas_limit: Optional[int],
+                          ethereum_gas_price: Optional[int],
                           name: str,
                           symbol: str,
                           amount: int,
@@ -32,7 +33,7 @@ def deploy_token_contracts(logger: Logger,
 
     abi = get_abi(ethereum_abi_file)
 
-    web3 = Web3(HTTPProvider(ethereum_node_url))
+    web3 = create_web3(ethereum_node_url)
 
     # We do not have anything else implemented yet
     assert transfer_restriction == "unrestricted"
@@ -83,7 +84,7 @@ def contract_status(logger: Logger,
 
     abi = get_abi(ethereum_abi_file)
 
-    web3 = Web3(HTTPProvider(ethereum_node_url))
+    web3 = create_web3(ethereum_node_url)
 
     service = EthereumStoredTXService(network, dbsession, web3, ethereum_private_key, ethereum_gas_price, ethereum_gas_limit, BroadcastAccount, PreparedTransaction)
     contract = service.get_contract_proxy("SecurityToken", abi, token_contract)
@@ -97,7 +98,8 @@ def contract_status(logger: Logger,
     logger.info("Owner: %s", contract.functions.owner().call())
     logger.info("Transfer verified: %s", contract.functions.transferVerifier().call())
 
-
-
-
-
+    return {
+        "name": contract.functions.name().call(),
+        "symbol": contract.functions.symbol().call(),
+        "totalSupply": contract.functions.totalSupply().call()
+    }

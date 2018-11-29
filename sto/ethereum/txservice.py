@@ -26,7 +26,7 @@ class EthereumStoredTXService:
     """A transaction service that writes entries to a local database before trying to broadcast them to the blockchain."""
 
     #: Can't trust auto estimate
-    SPECIAL_GAS_LIMIT_FOR_CONTRACT_DEPLOYMENT = 4000000
+    SPECIAL_GAS_LIMIT_FOR_CONTRACT_DEPLOYMENT = 3141619  # Number from Ethereum tester, cannot exceed this
 
     #: Can't trust auto estimate
     SPECIAL_GAS_LIMIT_FOR_NORMAL_TX = 350333
@@ -64,7 +64,7 @@ class EthereumStoredTXService:
 
         # Some early prototype sanity checks
         assert self.address.startswith("0x")
-        assert self.network in ("kovan", "ethereum")
+        assert self.network in ("kovan", "ethereum", "testing", "ropsten")  # TODO: Sanity check - might want to remove this
 
         account = self.dbsession.query(self.broadcast_account_model).filter_by(network=self.network, address=self.address).one_or_none()
         if not account:

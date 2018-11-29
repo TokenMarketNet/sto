@@ -5,6 +5,7 @@ import os
 from typing import Optional
 
 import rlp
+from web3 import Web3, HTTPProvider
 from web3.utils.normalizers import normalize_address
 from eth_utils import keccak, to_checksum_address, to_bytes
 
@@ -36,6 +37,17 @@ def get_abi(abi_file: Optional[str]):
 
     with open(abi_file, "rt") as inp:
         return json.load(inp)
+
+
+def create_web3(url: str) -> Web3:
+    """Web3 initializer."""
+
+    if isinstance(url, Web3):
+        # Shortcut for testing
+        return url
+    else:
+        return Web3(HTTPProvider(url))
+
 
 
 def mk_contract_address(sender: str, nonce: int) -> str:

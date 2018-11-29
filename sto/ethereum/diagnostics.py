@@ -7,7 +7,7 @@ from typing import Optional
 from eth_account import Account
 from eth_utils import from_wei, to_bytes
 from web3 import Web3, HTTPProvider
-from sto.ethereum.utils import check_good_node_url, check_good_private_key
+from sto.ethereum.utils import check_good_node_url, check_good_private_key, create_web3
 
 
 class NodeNotSynced(Exception):
@@ -30,7 +30,7 @@ def diagnose(logger: Logger, node_url: str, private_key_hex: str) -> Optional[Ex
         check_good_node_url(node_url)
 
         logger.info("Attempting to connect to Ethereum node %s", node_url)
-        web3 = Web3(HTTPProvider(node_url))
+        web3 = create_web3(node_url)
 
         logger.info("Connected to Ethereum node software %s", web3.version.node)
 

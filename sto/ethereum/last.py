@@ -2,7 +2,7 @@ from logging import Logger
 from tqdm import tqdm
 
 from sto.ethereum.txservice import EthereumStoredTXService
-from sto.ethereum.utils import check_good_private_key
+from sto.ethereum.utils import check_good_private_key, create_web3
 from sto.models.implementation import BroadcastAccount, PreparedTransaction
 from eth_account import Account
 from eth_utils import to_bytes, from_wei
@@ -23,7 +23,7 @@ def get_last_transactions(logger: Logger,
 
     check_good_private_key(ethereum_private_key)
 
-    web3 = Web3(HTTPProvider(ethereum_node_url))
+    web3 = create_web3(ethereum_node_url)
 
     service = EthereumStoredTXService(network, dbsession, web3, ethereum_private_key, ethereum_gas_price, ethereum_gas_limit, BroadcastAccount, PreparedTransaction)
 
