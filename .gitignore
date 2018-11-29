@@ -79,3 +79,6 @@ registrar.json
 .pytest_cache
 
 *.sqlite
+
+# Development tools
+.idea
