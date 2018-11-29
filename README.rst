@@ -26,7 +26,7 @@ The tool and API gives technical developers ability to manage and integrate secu
 
 In theory the APIs are backend neutral, but only EVM compatible chains are supported at the moment.
 
-* [Read an introduction for security tokens](https://tokenmarket.net/news/security-tokens/what-are-security-tokens/)
+* `Read an introduction for security tokens <https://tokenmarket.net/news/security-tokens/what-are-security-tokens/>`_
 
 Supported networks and tokens
 =============================
@@ -57,7 +57,7 @@ Normal users
 Developers
 ----------
 
-Create `Python virtual environment <https://packaging.python.org/tutorials/installing-packages/#optionally-create-a-virtual-environment>`.
+Create `Python virtual environment <https://packaging.python.org/tutorials/installing-packages/#optionally-create-a-virtual-environment>`_.
 
 Then within the activated venv do::
 
