@@ -1,6 +1,7 @@
 import binascii
 from logging import Logger
 
+import colorama
 from eth_account.account import Account
 from eth_utils import to_hex
 
@@ -31,6 +32,7 @@ def create_account_console(logger: Logger, network: str):
     config = CONFIG_FILE_TEMPLATE.format(private_key=private_key, network=network)
     config_file_name = "myconfig.ini"
 
-    print("Create a file {} and paste in the following content:".format(config_file_name))
     print()
-    print(config)
+    print("Create a file {}{}{} and paste in the following content: {}{}{}".format(colorama.Fore.LIGHTBLUE_EX, config_file_name, colorama.Fore.RESET, colorama.Fore.LIGHTBLACK_EX, config, colorama.Fore.RESET))
+    print()
+    print("After this you can run {}sto --config-file={} diagnose{}".format(colorama.Fore.LIGHTBLUE_EX, config_file_name, colorama.Fore.RESET))

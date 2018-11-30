@@ -183,9 +183,9 @@ def diagnose(config: BoardCommmadConfiguration):
         private_key = config.ethereum_private_key
         exception = diagnose(config.logger, config.ethereum_node_url, private_key)
         if exception:
-            config.logger.error("We identified an issue with your configuration. Please fix the issue above to use this command yet.")
+            config.logger.error("{}We identified an issue with your configuration. Please fix the issue above to use this command yet.{}".format(colorama.Fore.RED, colorama.Fore.RESET))
         else:
-            config.logger.info("All systems ready to fire")
+            config.logger.info("{}Ready for action.{}".format(colorama.Fore.LIGHTGREEN_EX, colorama.Fore.RESET))
     else:
         raise UnknownConfiguredNetwork()
 

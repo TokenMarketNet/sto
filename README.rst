@@ -134,7 +134,7 @@ Get a **Kovan** node URL from your dashboard (use dropdown):
 Install Parity (Option b)
 -------------------------
 
-First `install Parity. For example on OSX::
+First `install Parity <https://wiki.parity.io/Setup>`_. For example on OSX using Brew package management::
 
     brew install parity
 
@@ -163,7 +163,7 @@ Now create a file `myconfig.ini` and add the content::
 
     # Your personal configuration file as we told you on Github example
 
-    # "kovan" or "ethereum"
+    # Network we are using
     network = kovan
 
     # This is for Parity - if you are using Infura get your Kovan node URL from your Infura dashboard
@@ -172,26 +172,26 @@ Now create a file `myconfig.ini` and add the content::
     # The private key for your generated Ethereum account
     ethereum-private-key = 3fac35a57e1e2867290ae37d54c5de61d52644b42819ce6af0c5a9c25f4c....
 
-Test that your account has balance and Parity node works::
 
-    sto --config-file=myconfig.ini diagnose
-
-This should output::
-
-    Attempting to connect to Ethereum node http://localhost:8545
-    Connected to Ethereum node software Parity-Ethereum//v2.1.6-stable-491f17f-20181114/x86_64-macos/rustc1.30.1
-    Current Ethereum node block number: 9462884, last block 2 seconds ago
-    Using private key 3fa...
-    Address 0xDE5bC059aA433D72F25846bdFfe96434b406FA85 has ETH balance of 1.000000
-    All systems ready to fire
-
-
-Top it up
----------
+Top up
+------
 
 Visit `Kovan faucet <https://faucet.kovan.network/>`_.
 
-Request Kovan ETH (KETH) on your account you just create above. A `Github account <http://github.com/>`_ is needed for verification. This should give you 1000 Kovan ETH to play with and you become a testnet millionaire.
+Request Kovan ETH (KETH) on your account you just create above. A `Github account <http://github.com/>`_ is needed for verification. This should give you 1 Kovan ETH to play with and you become a testnet millionaire.
+
+Diagnose and test run
+---------------------
+
+Use `sto diagnose` command to check your account has balance and your Ethereum node works::
+
+    sto --config-file=myconfig.ini diagnose
+
+This should output:
+
+.. image:: https://github.com/TokenMarketNet/sto/raw/master/docs/source/screenshots/diagnose.png
+    :width: 500 px
+
 
 Playing with security tokens
 ============================
