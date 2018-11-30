@@ -15,7 +15,7 @@ This software is for technically sophisticated users only. If you are looking fo
 Table of contents
 =================
 
-.. contents:: :local:
+.. contents::
 
 Benefits
 ========
@@ -54,11 +54,11 @@ We are looking to expand support to other networks (EOS) and other token models 
 Requirements
 ============
 
-* Python 3.6
+* Ethereum node, for example a local Parity install or Infura-node-as-a-service
 
-* Ethereum node (local Go Ethereum / local Parity / Infura)
+* Command line tool experience
 
-* UNIX command line experience
+* Docker
 
 Install
 =======
@@ -102,6 +102,8 @@ TODO: Windows instructions coming soon.
 
 Developers
 ----------
+
+Python 3.6+ required.
 
 Create `Python virtual environment <https://packaging.python.org/tutorials/installing-packages/#optionally-create-a-virtual-environment>`_.
 
