@@ -1,7 +1,3 @@
-#!/usr/bin/env python
-# -*- coding: utf-8 -*-
-
-
 try:
     from setuptools import setup
 except ImportError:
@@ -13,29 +9,28 @@ with open('README.rst') as readme_file:
 
 
 requirements = [
-    'web3',
+    'web3[tester]',  # Cannot have more specific web3 settings separately in test_requirements
     'coloredlogs',
-    "eth-account",
     'colorama',
     'tabulate',
     'sqlalchemy>=1.3.0b1',
     'tqdm',
     'configobj',
     'click',
-    'click-config-file',
 ]
 
 test_requirements = [
     'pytest',
-
 ]
 
 dev_requirements = [
+    "bumpversion>=0.5.3,<1",
+    "wheel",
 ]
 
 setup(
     name='sto',
-    version='0.1',
+    version='0.1.0',
     description="Security token management tool",
     long_description=readme + '\n\n',
     author="TokenMarket Ltd.",
@@ -56,11 +51,14 @@ setup(
         'Intended Audience :: Developers',
         'Natural Language :: English',
         'Programming Language :: Python :: 3',
-        'Programming Language :: Python :: 3.5',
+        'Programming Language :: Python :: 3.6',
     ],
     test_suite='tests',
     setup_requires=["pytest-runner"],
-    tests_require=test_requirements,
+    extras_require={
+        "test": test_requirements,
+        "dev": dev_requirements,
+    },
     entry_points='''
     [console_scripts]
     sto=sto.cli.main:main

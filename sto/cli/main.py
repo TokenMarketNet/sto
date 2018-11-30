@@ -11,7 +11,6 @@ import configobj
 import pkg_resources
 
 import click
-import click_config_file
 import coloredlogs
 from sto.db import setup_database
 

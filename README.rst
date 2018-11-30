@@ -1,16 +1,26 @@
-This is a tool and Python API for issuing out and managing out security tokens.
+A tool and Python API for issuing out and managing out security tokens.
+
+
+.. image:: https://badges.gitter.im/TokenMarketNet/sto.svg
+   :alt: Join the chat at https://gitter.im/security-token/Lobby
+   :target: https://gitter.im/security-token/Lobby
+
+.. image:: https://img.shields.io/travis/TokenMarketNet/sto.svg
+        :target: https://travis-ci.org/TokenMarketNet/sto
+
+**Technical dragons ahead**
+
+This software is for technically sophisticated users only. If you are looking for business services go to `TokenMarket commercial support <https://tokenmarket.net/security-token-offering>`_.
+
+Table of contents
+=================
 
 .. contents:: :local:
-
-.. note::
-
-    This software is totally alpha. If you are do not have technical sophistication and you are not willing to sit out in a chat room to wait answer for your questions this is not for your do-it-yourself needs. Instead, contact to `TokenMarket commercial support <https://tokenmarket.net/security-token-offering>`_.
-
 
 Benefits
 ========
 
-The tool and API gives technical developers ability to manage and integrate security token functionality:
+This Python package provides a command line tool and API to manage and integrate security token functionality:
 
 * Issue out new stock series
 
@@ -18,7 +28,7 @@ The tool and API gives technical developers ability to manage and integrate secu
 
 * Printing out my portfolio
 
-* Reverting transactions
+* Managing bad transactions and lost privat keys
 
 * Paying dividends
 
@@ -27,6 +37,10 @@ The tool and API gives technical developers ability to manage and integrate secu
 In theory the APIs are backend neutral, but only EVM compatible chains are supported at the moment.
 
 * `Read an introduction for security tokens <https://tokenmarket.net/news/security-tokens/what-are-security-tokens/>`_
+
+* `View security token management source code on Github <http://github.com/tokenmarketnet/sto>`_
+
+* `View security token management package on Python package index <https://pypi.org/project/sto/>`_
 
 Supported networks and tokens
 =============================
@@ -58,6 +72,31 @@ Normal users
 
     Normal user instructions are not yet available. Please refer to developer instructions.
 
+Advanced users
+--------------
+
+The `sto` command line application is provided as a Docker image to minimize the issues with painful native dependency set up for your operating system. To use `sto` we will set up a command line alias, as Docker command itself is quite long.
+
+Install `Docker <https://www.docker.com/products/docker-desktop>`_.
+
+OSX and Linux
+~~~~~~~~~~~~~
+
+Set up a shell alias for `sto` command that executes Dockerised binary::
+
+    alias sto='docker run -p 8545:8545 -v `pwd`:`pwd` -w `pwd` miohtama/sto:latest'
+
+Then you can do::
+
+    sto --help
+
+Docker will automatically pull an image from Docker registry for your local computer on the first run. We map port 8545 to the localhost as that is normal Ethereum JSON-RPC API.
+
+Windows
+~~~~~~~
+
+TODO: Windows instructions coming soon.
+
 Developers
 ----------
 
@@ -65,7 +104,10 @@ Create `Python virtual environment <https://packaging.python.org/tutorials/insta
 
 Then within the activated venv do::
 
-    pip install -e "git+https://github.com/TokenMarketNet/sto.git#egg=sto"
+    git clone "git+https://github.com/TokenMarketNet/sto.git"
+    python -m venv venv  # Python 3 needed
+    source venv/bin/activate
+    pip install -e ".[dev,test]"
 
 How to set up
 =============
@@ -108,7 +150,6 @@ Create an Ethereum account::
 
 This will give you a new raw private key and related Ethereum address to play with::
 
-    Corporate governance tool for security tokens, version 0.1 - Copyright TokenMarket Ltd. 2018
     Creating new Ethereum account.
     Account address: 0xDE5bC059aA433D72F25846bdFfe96434b406FA85
     Account private key: 3fac35a57e1e2867290ae37d54c5de61d52644b42819ce6af0c5a9c25f4c...
@@ -159,8 +200,6 @@ To issue out stock you need to give stock name, ticker symbol and amount of shar
 
 You will get a list of Ethereum transactions needed to perform this operation::
 
-    STO tool, version 0.1 - Copyright TokenMarket Ltd. 2018
-    Using database /Users/moo/code/tm2/sto/transactions.sqlite
     Prepared transactions for broadcasting for network kovan
     TXID    Status      Nonce  From                                        To                                          Note
     ------  --------  -------  ------------------------------------------  ------------------------------------------  --------------------------------------------------------------
@@ -183,7 +222,6 @@ To broadcast::
 
 Transactions are send out to Ethereum network and they get a transaction id. You will see `txid` in output::
 
-    Using database /Users/moo/code/tm2/sto/transactions.sqlite
     Pending 5 transactions for broadcasting in network kovan
     Our address 0xDE5bC059aA433D72F25846bdFfe96434b406FA85 has ETH balance of 0.955684 for operations
     TXID                                                                Status and block      Nonce  From                                        To                                          Note
@@ -208,8 +246,6 @@ To check your transaction status::
 
 After a while repeating this command you should see all your transactions included in blockchain with `success` status::
 
-    STO tool, version 0.1 - Copyright TokenMarket Ltd. 2018
-    Using database /Users/moo/code/tm2/sto/transactions.sqlite
     TXID                                                                Status and block      Nonce  From                                        To                                          Note
     ------------------------------------------------------------------  ------------------  -------  ------------------------------------------  ------------------------------------------  ---------------------------------------------------------
     0x4bd273895b21a3b57e93113c26895ea142f989cde13ff0c23bb330de1889238a  success:9513331          70  0xDE5bC059aA433D72F25846bdFfe96434b406FA85  0xc48DA079aab7FEf3a2476B493f904509d1891Fa3  Deploying unrestricted transfer policy for Doobar
@@ -229,8 +265,6 @@ After all your transactions have been pushed out and are succesfully included in
 
 This outputs::
 
-    STO tool, version 0.1 - Copyright TokenMarket Ltd. 2018
-    Using database /Users/moo/code/tm2/sto/transactions.sqlite
     Name: Boobar
     Symbol: STO
     Total supply: 10000
