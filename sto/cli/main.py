@@ -41,7 +41,15 @@ def is_ethereum_network(network: str):
     return network in ("ethereum", "kovan", "ropsten")
 
 
-@click.group()
+
+INTRO_TEXT = """{}TokenMarket{} security token management tool.
+
+    {}Manage tokenised equity for things like issuing out new, distributing and revoking shares.{}
+""".format(colorama.Fore.LIGHTGREEN_EX, colorama.Fore.RESET, colorama.Fore.BLUE, colorama.Fore.RESET)
+
+
+
+@click.group(help=INTRO_TEXT)
 @click.option('--config-file', required=False, default=None, help="INI file where to read options from", type=click.Path())
 @click.option('--database-file', required=False, default="transactions.sqlite", help="SQLite file that persists transaction broadcast status", type=click.Path())
 @click.option('--network', required=False, default="ethereum", help="Network name. Either 'ethereum' or 'kovan' are supported for now.")
@@ -53,15 +61,11 @@ def is_ethereum_network(network: str):
 @click.option('--log-level', default="INFO", help="Python logging level to tune the verbosity of the command")
 @click.pass_context
 def cli(ctx, config_file, **kwargs):
-    """Security token management tool.
-
-    Manage tokenised equity for things like issuing out new, distributing and revoking shares.
-    """
 
     # Fill in arguments from the configuration file
     if config_file:
-
         if not os.path.exists(config_file):
+
             sys.exit("Config file does not exist {}".format(config_file))
 
         config = configobj.ConfigObj(config_file, raise_errors=True)

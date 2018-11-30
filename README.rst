@@ -92,6 +92,9 @@ Then you can do::
 
 Docker will automatically pull an image from Docker registry for your local computer on the first run. We map port 8545 to the localhost as that is normal Ethereum JSON-RPC API.
 
+.. image:: https://github.com/TokenMarketNet/sto/raw/master/docs/source/screenshots/help.png
+    :width: 500 px
+
 Windows
 ~~~~~~~
 
@@ -184,7 +187,9 @@ This should output::
 Top it up
 ---------
 
-Visit `Kovan faucet <https://faucet.kovan.network/>`_ and request some Kovan ETH (KETH) on your account you just created. A `Github account <http://github.com/>`_ is needed for verification.
+Visit `Kovan faucet <https://faucet.kovan.network/>`_.
+
+Request Kovan ETH (KETH) on your account you just create above. A `Github account <http://github.com/>`_ is needed for verification. This should give you 1000 Kovan ETH to play with and you become a testnet millionaire.
 
 Playing with security tokens
 ============================
