@@ -298,7 +298,7 @@ Each imported transaction must have an unique `external_id` attribute, so that w
 Example how to import CSV::
 
      # Download example CSV file provided with source code repository
-
+    curl -O
 
 Making a release
 ================
