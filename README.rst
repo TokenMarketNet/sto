@@ -295,10 +295,12 @@ The command line tool supports a simple CSV import to distribute shares to share
 
 Each imported transaction must have an unique `external_id` attribute, so that we can track which distribution transaction corresponds incoming payment transaction.
 
-Example how to import CSV::
+Example how to import CSV. `We use an example file from the source code repository <https://github.com/TokenMarketNet/sto/raw/master/docs/source/example-distribution.csv>`_::
 
      # Download example CSV file provided with source code repository
-    curl -O
+    curl -O https://github.com/TokenMarketNet/sto/raw/master/docs/source/example-distribution.csv
+
+    sto --config=myconfig.ini distiribute --csv-input=example-distribution.csv
 
 Making a release
 ================
