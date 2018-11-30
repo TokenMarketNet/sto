@@ -27,7 +27,11 @@ class _PreparedTransaction(TimeStampedBaseModel):
 
     __tablename__ = "prepared_transaction"
 
+    #: Ethereum transaction nonce allocated from BroadcastAccount for this transaction
     nonce = sa.Column(sa.Integer, default=1)
+
+    #: What is the corresponding transaction for this crypto transactions in other systems. Could be payment TXID or fiat receipt id in the case of purchasing shares. Under normal circumstances PreparedTransaction should not have duplicate external_ids but this may change under rebroadcast and other manual fix ups.
+    external_id = sa.Column(sa.String(256), nullable=True, unique=False)
 
     # Is this a contract deployment transaction
     contract_deployment = sa.Column(sa.Boolean, nullable=False, default=False)
@@ -60,6 +64,7 @@ class _PreparedTransaction(TimeStampedBaseModel):
     broadcasted_at = sa.Column(sa.DateTime, default=None)
 
     #: When was the last attempt to rebroadcast this transaction
+    #: TODO: Not in use yet.
     rebroadcasted_at = sa.Column(sa.DateTime, default=None)
 
     #: When did we poll and received that the transaction was included in a block

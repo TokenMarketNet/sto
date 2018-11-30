@@ -9,6 +9,7 @@ with open('README.rst') as readme_file:
 
 
 requirements = [
+    'eth-typing<2',
     'web3[tester]',  # Cannot have more specific web3 settings separately in test_requirements
     'coloredlogs',
     'colorama',
