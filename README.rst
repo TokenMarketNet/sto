@@ -68,14 +68,13 @@ Security token interaction happens through a command line `sto` command that con
 Normal users
 ------------
 
-.. warning::
+For business users please contact TokenMarket for arranging tokenised equity deals.
 
-    Normal user instructions are not yet available. Please refer to developer instructions.
 
 Advanced users
 --------------
 
-The `sto` command line application is provided as a Docker image to minimize the issues with painful native dependency set up for your operating system. To use `sto` we will set up a command line alias, as Docker command itself is quite long.
+The `sto` command line application is provided as a `Docker image <https://hub.docker.com/r/miohtama/sto/>`_ to minimize the issues with painful native dependency set up for your operating system. To use `sto` we will set up a command line alias, as Docker command itself is quite long.
 
 Install `Docker <https://www.docker.com/products/docker-desktop>`_.
 
@@ -279,6 +278,22 @@ This outputs::
     Owner: 0xDE5bC059aA433D72F25846bdFfe96434b406FA85
     Transfer verified: 0x7598E970888F51d7D35468E50768Fa5F21B46Bb3
 
+Making a release
+================
+
+First send out PyPi release::
+
+
+    export bump="--new-version 0.1.1 devnum"
+    make release
+
+
+Then push out new Docker::
+
+    docker login --username=miohtama
+    docker tag miohtama/sto:latest miohtama/sto:0.1
+    docker push miohtama/sto:latest
+    docker push miohtama/sto:0.1
 
 Other
 =====

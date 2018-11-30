@@ -56,6 +56,7 @@ x-release: clean
 	git config commit.gpgSign "$(CURRENT_SIGN_SETTING)"
 
 release: clean
+	echo $(bump)
 	bumpversion $(bump)
 	git push origin && git push origin --tags
 	python setup.py sdist bdist_wheel upload
