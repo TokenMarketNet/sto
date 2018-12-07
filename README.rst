@@ -112,6 +112,7 @@ Then within the activated venv do::
     git clone "git+https://github.com/TokenMarketNet/sto.git"
     python -m venv venv  # Python 3 needed
     source venv/bin/activate
+    pip install -U pip  # Make sure you are at least pip 18.1 - older versions will fail
     pip install -e ".[dev,test]"
 
 How to set up
@@ -278,6 +279,29 @@ This outputs::
     Decimals: 18
     Owner: 0xDE5bC059aA433D72F25846bdFfe96434b406FA85
     Transfer verified: 0x7598E970888F51d7D35468E50768Fa5F21B46Bb3
+
+
+Distributing shares to investors
+--------------------------------
+
+The command line tool supports a simple CSV import to distribute shares to shareholders.
+
+* Shares are moved to a hot wallet account, as configured above. (In the future, smart contract based and optimised distribution methods are supported.)
+
+* `sto` reads a CSV file with investor info (see example CSV file for colums)
+
+* Transactions are prepared for broadcasting
+
+* Transactions are broadcasted and a log file is written
+
+Each imported transaction must have an unique `external_id` attribute, so that we can track which distribution transaction corresponds incoming payment transaction.
+
+Example how to import CSV. `We use an example file from the source code repository <https://github.com/TokenMarketNet/sto/raw/master/docs/source/example-distribution.csv>`_::
+
+     # Download example CSV file provided with source code repository
+    curl -O https://github.com/TokenMarketNet/sto/raw/master/docs/source/example-distribution.csv
+
+    sto --config=myconfig.ini distiribute --csv-input=example-distribution.csv
 
 Making a release
 ================

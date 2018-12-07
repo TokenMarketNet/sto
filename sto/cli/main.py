@@ -164,11 +164,12 @@ def status(config: BoardCommmadConfiguration, address):
       token_contract=address)
 
 
+@cli.command()
+@click.option('--csv-input', required=True, help="CSV file for entities receiving tokens")
+@click.pass_obj
+def distribute(config: BoardCommmadConfiguration, csv_input):
+    """Distribute shares to shareholders."""
 
-# @cli.command()
-# @click.option('--address', required=True)
-# def distribute(symbol, name, amount):
-#    pass
 
 
 @cli.command()

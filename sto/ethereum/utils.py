@@ -7,7 +7,7 @@ from typing import Optional
 import rlp
 from web3 import Web3, HTTPProvider
 from web3.utils.normalizers import normalize_address
-from eth_utils import keccak, to_checksum_address, to_bytes
+from eth_utils import keccak, to_checksum_address, to_bytes, is_hex_address, is_checksum_address
 
 
 class NoNodeConfigured(Exception):
@@ -64,3 +64,24 @@ def mk_contract_address(sender: str, nonce: int) -> str:
 
 # Sanity check
 assert mk_contract_address(to_checksum_address("0x6ac7ea33f8831ea9dcc53393aaa88b25a785dbf0"), 1) == to_checksum_address("0x343c43a37d37dff08ae8c4a11544c718abb4fcf8")
+
+
+def validate_ethereum_address(address: str):
+    """Clever Ethereum address validator.
+
+    Assume all lowercase addresses are not checksummed.
+    """
+
+    if len(address) < 42:
+        raise ValueError("Not an Ethereum address: {}".format(address))
+
+    try:
+        if not is_hex_address(address):
+            raise ValueError("Not an Ethereum address: {}".format(address))
+    except UnicodeEncodeError:
+        raise ValueError("Could not decode: {}".format(address))
+
+    # Check if checksummed address if any of the letters is upper case
+    if any([c.isupper() for c in address]):
+        if not is_checksum_address(address):
+            raise ValueError("Not a checksummed Ethereum address: {}".format(address))

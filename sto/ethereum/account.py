@@ -11,12 +11,12 @@ CONFIG_FILE_TEMPLATE = """
 # Your STO configuration file for {network}
 #
 
-network = kovan
+network = {network}
 
 # Where to connect for Parity or Geth JSON-RPC API
 ethereum-node-url = http://localhost:8545
 
-# The private key for your generated Ethereum account
+# The private key for your generated Ethereum account {address}
 ethereum-private-key = {private_key}
 """
 
@@ -29,7 +29,7 @@ def create_account_console(logger: Logger, network: str):
     logger.info("Account address: %s", acc.address)
     logger.info("Account private key: %s", private_key)
 
-    config = CONFIG_FILE_TEMPLATE.format(private_key=private_key, network=network)
+    config = CONFIG_FILE_TEMPLATE.format(private_key=private_key, network=network, address=acc.address)
     config_file_name = "myconfig.ini"
 
     print()
