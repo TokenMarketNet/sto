@@ -97,7 +97,9 @@ class EthereumStoredTXService:
                              note: str,
                              unsigned_payload: dict,
                              gas_price: Optional[int],
-                             gas_limit: Optional[int]) -> _PreparedTransaction:
+                             gas_limit: Optional[int],
+                             external_id: Optional[str]=None,
+                             ) -> _PreparedTransaction:
         """Put a transaction to the pending queue of the current broadcast list."""
 
         if receiver:
@@ -118,6 +120,7 @@ class EthereumStoredTXService:
         tx.contract_address = contract_address
         tx.contract_deployment = contract_deployment
         tx.unsigned_payload = unsigned_payload
+        tx.external_id = external_id
         broadcast_account.txs.append(tx)
         broadcast_account.current_nonce += 1
         return tx
@@ -233,6 +236,69 @@ class EthereumStoredTXService:
         )
         self.dbsession.flush()
         return tx
+
+    def is_distributed(self, external_id):
+        # Prevent us sending the same transaction twice
+        if self.dbsession.query(self.prepared_tx_model).filter_by(external_id=external_id).one_or_none():
+            return True
+        return False
+
+    def distribute_tokens(self, external_id: str, receiver_address: str, raw_amount: int, token_address: str, abi: dict, note: str, contract_name="ERC20", func_name="transfer", receiver=None) -> _PreparedTransaction:
+        """Send out tokens."""
+
+        assert receiver_address.startswith("0x")
+        assert token_address.startswith("0x")
+        assert type(raw_amount) == int
+        assert raw_amount > 1
+
+        # Prevent us sending the same transaction twice
+        if self.dbsession.query(self.prepared_tx_model).filter_by(external_id=external_id).one_or_none():
+            raise RuntimeError("Already distributed")
+
+        contract = self.get_contract_proxy(contract_name, abi, token_address)
+        broadcast_account = self.get_or_create_broadcast_account()
+
+        next_nonce = self.get_next_nonce()
+
+        args = {
+            "to": receiver_address,
+            "amount": raw_amount,
+        }
+        func = getattr(contract.functions, func_name)
+
+        tx_data = self.generate_tx_data(next_nonce)
+        constructed_txn = func(**args).buildTransaction(tx_data)
+
+        tx = self.allocate_transaction(
+            broadcast_account=broadcast_account,
+            receiver=receiver_address,
+            contract_address=token_address,
+            contract_deployment=True,
+            nonce=next_nonce,
+            note=note,
+            unsigned_payload=constructed_txn,
+            gas_price=self.gas_price,
+            gas_limit=self.gas_limit,
+            external_id=external_id,
+        )
+        self.dbsession.flush()
+        return tx
+
+    def get_raw_token_balance(self, token_address: str, abi: dict, contract_name="ERC20Basic", func_name="balanceOf") -> int:
+        """Check that we have enough token balance for distribute operations."""
+
+        assert token_address.startswith("0x")
+
+        contract = self.get_contract_proxy(contract_name, abi, token_address)
+        broadcast_account = self.get_or_create_broadcast_account()
+
+        args = {
+            "who": broadcast_account.address,
+        }
+        func = getattr(contract.functions, func_name)
+
+        result = func(**args).call()
+        return result
 
     def get_pending_broadcasts(self) -> Query:
         """All transactions that need to be broadcasted."""

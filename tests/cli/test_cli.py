@@ -1,7 +1,19 @@
+import logging
+import os
+
+import pytest
+from sto.distribution import read_csv
 from sto.ethereum.broadcast import broadcast
+from sto.ethereum.distribution import distribute_tokens
 from sto.ethereum.issuance import deploy_token_contracts, contract_status
 from sto.ethereum.status import update_status
 from sto.models.broadcastaccount import _PreparedTransaction
+
+
+
+@pytest.fixture
+def sample_csv_file():
+    return os.path.join(os.path.dirname(__file__), "..", "..", "docs", "source", "example-distribution.csv")
 
 
 def test_issuance(logger, dbsession, web3, private_key_hex):
@@ -59,4 +71,80 @@ def test_issuance(logger, dbsession, web3, private_key_hex):
 
     assert status["name"] == "Moo Corp"
     assert status["totalSupply"] == 9999 * 10**18
+    assert status["totalSupply"] == status["broadcastBalance"]
+
+
+
+def test_distribute(logger, dbsession, web3, private_key_hex, sample_csv_file):
+    """Distribute tokens."""
+
+    # Creating transactions
+    txs = deploy_token_contracts(logger, dbsession, "testing", web3,
+                           ethereum_abi_file=None,
+                           ethereum_private_key=private_key_hex,
+                           ethereum_gas_limit=None,
+                           ethereum_gas_price=None,
+                           name="Moo Corp",
+                           symbol="MOO",
+                           amount=9999,
+                           transfer_restriction="unrestricted")
+
+    token_address = txs[0].contract_address
+
+    # Deploy contract transactions to emphmereal test chain
+    txs = broadcast(logger,
+                    dbsession,
+                    "testing",
+                    web3,
+                   ethereum_private_key=private_key_hex,
+                   ethereum_gas_limit=None,
+                   ethereum_gas_price=None,
+                   )
+
+    # Check that we can view the token status
+    status = contract_status(logger,
+                             dbsession,
+                             "testing",
+                             web3,
+                             ethereum_abi_file=None,
+                             ethereum_private_key=private_key_hex,
+                             ethereum_gas_limit=None,
+                             ethereum_gas_price=None,
+                             token_contract=token_address,
+                             )
+
+    assert status["name"] == "Moo Corp"
+    assert status["totalSupply"] == 9999 * 10 ** 18
+
+    entries = read_csv(logger, sample_csv_file)
+
+    txs = distribute_tokens(logger,
+                    dbsession,
+                    "testing",
+                    web3,
+                   ethereum_abi_file=None,
+                   ethereum_private_key=private_key_hex,
+                   ethereum_gas_limit=None,
+                   ethereum_gas_price=None,
+                   token_address=token_address,
+                   dists=entries)
+
+    assert len(txs) == 2
+
+    # Check they got mined
+    # Send transactions to emphmereal test chain
+    txs = broadcast(logger,
+                    dbsession,
+                    "testing",
+                    web3,
+                   ethereum_private_key=private_key_hex,
+                   ethereum_gas_limit=None,
+                   ethereum_gas_price=None,
+                   )
+    assert len(txs) == 2
+    for tx in txs:  # type: PreparedTransaction
+        assert tx.result_transaction_success
+
+
+
 

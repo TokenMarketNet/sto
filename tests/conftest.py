@@ -1,5 +1,6 @@
 """Test fixtures to test out security token activities."""
 import logging
+import sys
 
 import pytest
 from eth_utils import to_wei
@@ -37,6 +38,7 @@ def web3(web3_test_provider):
 
 @pytest.fixture
 def logger():
+    logging.basicConfig(stream=sys.stderr, level=logging.INFO)
     return logging.getLogger()
 
 

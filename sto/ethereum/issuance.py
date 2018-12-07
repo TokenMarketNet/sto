@@ -69,7 +69,7 @@ def deploy_token_contracts(logger: Logger,
     update_tx3 = service.interact_with_contract("SecurityToken", abi, contract_address, note, "issueTokens", {"value": amount_18})
 
     logger.info("Prepared transactions for broadcasting for network %s", network)
-    logger.info("STO token contract address is %s%s%s", colorama.Fore.LIGHTGREEN_EX, deploy_tx1.contract_address, colorama.Fore.RESET)
+    logger.info("STO token contract address will be %s%s%s after broadcast", colorama.Fore.LIGHTGREEN_EX, deploy_tx1.contract_address, colorama.Fore.RESET)
     return [deploy_tx1, deploy_tx2, update_tx1, update_tx2, update_tx3]
 
 
@@ -94,11 +94,15 @@ def contract_status(logger: Logger,
     try:
         logger.info("Name: %s", contract.functions.name().call())
         logger.info("Symbol: %s", contract.functions.symbol().call())
+        import ipdb ; ipdb.set_trace()
         supply = contract.functions.totalSupply().call()
         human_supply = Decimal(supply) / Decimal(10 ** contract.functions.decimals().call())
+        raw_balance = contract.functions.balanceOf(service.get_or_create_broadcast_account().address).call()
+        normal_balance = Decimal(raw_balance) / Decimal(10 ** contract.functions.decimals().call())
         logger.info("Total supply: %s", human_supply)
         logger.info("Decimals: %d", contract.functions.decimals().call())
         logger.info("Owner: %s", contract.functions.owner().call())
+        logger.info("Broadcast account token balance: %f", normal_balance)
         logger.info("Transfer verified: %s", contract.functions.transferVerifier().call())
     except BadFunctionCallOutput as e:
         raise BadContractException("Looks like this is not a token contract address. Please check on EtherScan that the address presents the token contract")
@@ -106,6 +110,7 @@ def contract_status(logger: Logger,
     return {
         "name": contract.functions.name().call(),
         "symbol": contract.functions.symbol().call(),
-        "totalSupply": contract.functions.totalSupply().call()
+        "totalSupply": contract.functions.totalSupply().call(),
+        "broadcastBalance": raw_balance,
     }
 
