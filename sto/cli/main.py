@@ -170,6 +170,24 @@ def status(config: BoardCommmadConfiguration, address):
 def distribute(config: BoardCommmadConfiguration, csv_input):
     """Distribute shares to shareholders."""
 
+    logger = config.logger
+
+    assert is_ethereum_network(config.network) # Nothing else implemented yet
+    dbsession = config.dbsession
+
+    from sto.distribution import read_csv
+
+    dists = read_csv(logger, csv_input)
+    if not dists:
+        sys.exit("Empty CSV file")
+
+    txs =
+
+    # Write database
+    dbsession.commit()
+
+    logger.info("Run %ssto tx-broadcast%s to send out issued shares to the world", colorama.Fore.LIGHTCYAN_EX, colorama.Fore.RESET)
+
 
 
 @cli.command()
