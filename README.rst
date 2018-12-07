@@ -68,8 +68,7 @@ Security token interaction happens through a command line `sto` command that con
 Normal users
 ------------
 
-For business users please contact TokenMarket for arranging tokenised equity deals.
-
+This tool is for command line users / developers only. `For arranging a business deal contact TokenMarket security token team <https://tokenmarket.net/security-token-offering>`_.
 
 Advanced users
 --------------
@@ -97,7 +96,9 @@ Docker will automatically pull an image from Docker registry for your local comp
 Windows
 ~~~~~~~
 
-TODO: Windows instructions coming soon.
+Windows PowerShell instructions coming soon.
+
+Meanwhile use Linux instructions and `Linux Subsystem for Windows <https://docs.microsoft.com/en-us/windows/wsl/install-win10>`_.
 
 Developers
 ----------
@@ -281,6 +282,8 @@ This outputs::
 Making a release
 ================
 
+Instructions for the future-maintainers-to-be.
+
 First send out PyPi release::
 
 
@@ -291,9 +294,10 @@ First send out PyPi release::
 Then push out new Docker::
 
     docker login --username=miohtama
-    docker tag miohtama/sto:latest miohtama/sto:0.1
+    docker build -t miohtama/sto:latest .
+    docker tag miohtama/sto:latest miohtama/sto:0.1.2
     docker push miohtama/sto:latest
-    docker push miohtama/sto:0.1
+    docker push miohtama/sto:0.1.2
 
 Other
 =====
