@@ -103,7 +103,6 @@ def contract_status(logger: Logger,
     try:
         logger.info("Name: %s", contract.functions.name().call())
         logger.info("Symbol: %s", contract.functions.symbol().call())
-        import ipdb ; ipdb.set_trace()
         supply = contract.functions.totalSupply().call()
         human_supply = Decimal(supply) / Decimal(10 ** contract.functions.decimals().call())
         raw_balance = contract.functions.balanceOf(service.get_or_create_broadcast_account().address).call()
@@ -137,7 +136,7 @@ def verify_source_code(logger: Logger,
 
     unverified_txs = dbsession.query(PreparedTransaction).filter_by(verified_at=None, result_transaction_success=True, contract_deployment=True)
 
-    logger.info("Found %d unverified deployments on %s", unverified_txs.count(), network)
+    logger.info("Found %d unverified contract deployments on %s", unverified_txs.count(), network)
 
     if unverified_txs.count() == 0:
         logger.info("No transactions to verify.")

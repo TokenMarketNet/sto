@@ -267,7 +267,7 @@ class EthereumStoredTXService:
         assert receiver_address.startswith("0x")
         assert token_address.startswith("0x")
         assert type(raw_amount) == int
-        assert raw_amount > 1
+        assert raw_amount >= 1
 
         # Prevent us sending the same transaction twice
         if self.dbsession.query(self.prepared_tx_model).filter_by(external_id=external_id).one_or_none():
@@ -278,20 +278,17 @@ class EthereumStoredTXService:
 
         next_nonce = self.get_next_nonce()
 
-        args = {
-            "to": receiver_address,
-            "amount": raw_amount,
-        }
+        args = [receiver_address, raw_amount]
         func = getattr(contract.functions, func_name)
 
         tx_data = self.generate_tx_data(next_nonce)
-        constructed_txn = func(**args).buildTransaction(tx_data)
+        constructed_txn = func(*args).buildTransaction(tx_data)
 
         tx = self.allocate_transaction(
             broadcast_account=broadcast_account,
             receiver=receiver_address,
             contract_address=token_address,
-            contract_deployment=True,
+            contract_deployment=False,
             nonce=next_nonce,
             note=note,
             unsigned_payload=constructed_txn,
@@ -401,8 +398,6 @@ def verify_on_etherscan(logger: Logger, network: str, tx: _PreparedTransaction, 
     """Verify a contrcact deployment on Etherscan.
 
     Uses https://etherscan.io/apis#contracts
-
-
     """
 
     assert network in ("ethereum", "kovan")

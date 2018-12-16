@@ -74,7 +74,6 @@ def test_issuance(logger, dbsession, web3, private_key_hex):
     assert status["totalSupply"] == status["broadcastBalance"]
 
 
-
 def test_distribute(logger, dbsession, web3, private_key_hex, sample_csv_file):
     """Distribute tokens."""
 
@@ -92,7 +91,7 @@ def test_distribute(logger, dbsession, web3, private_key_hex, sample_csv_file):
     token_address = txs[0].contract_address
 
     # Deploy contract transactions to emphmereal test chain
-    txs = broadcast(logger,
+    broadcast(logger,
                     dbsession,
                     "testing",
                     web3,
@@ -118,7 +117,7 @@ def test_distribute(logger, dbsession, web3, private_key_hex, sample_csv_file):
 
     entries = read_csv(logger, sample_csv_file)
 
-    txs = distribute_tokens(logger,
+    new_distributes, old_distributes = distribute_tokens(logger,
                     dbsession,
                     "testing",
                     web3,
@@ -129,7 +128,8 @@ def test_distribute(logger, dbsession, web3, private_key_hex, sample_csv_file):
                    token_address=token_address,
                    dists=entries)
 
-    assert len(txs) == 2
+    assert new_distributes == 2
+    assert old_distributes == 0
 
     # Check they got mined
     # Send transactions to emphmereal test chain
@@ -141,9 +141,37 @@ def test_distribute(logger, dbsession, web3, private_key_hex, sample_csv_file):
                    ethereum_gas_limit=None,
                    ethereum_gas_price=None,
                    )
-    assert len(txs) == 2
+    # Check they got mined
+    txs = update_status(logger,
+                    dbsession,
+                    "testing",
+                    web3,
+                   ethereum_private_key=private_key_hex,
+                   ethereum_gas_limit=None,
+                   ethereum_gas_price=None,
+                   )
+    assert len(txs) == 7
     for tx in txs:  # type: PreparedTransaction
         assert tx.result_transaction_success
+
+    # Check that rerun does not recreate txs
+    new_distributes, old_distributes = distribute_tokens(logger,
+                    dbsession,
+                    "testing",
+                    web3,
+                   ethereum_abi_file=None,
+                   ethereum_private_key=private_key_hex,
+                   ethereum_gas_limit=None,
+                   ethereum_gas_price=None,
+                   token_address=token_address,
+                   dists=entries)
+
+    assert new_distributes == 0
+    assert old_distributes == 2
+
+
+
+
 
 
 

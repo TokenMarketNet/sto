@@ -3,6 +3,8 @@ from decimal import Decimal
 from logging import Logger
 
 import colorama
+from tqdm import tqdm
+
 from sto.distribution import DistributionEntry
 from sto.ethereum.txservice import EthereumStoredTXService
 
@@ -31,10 +33,8 @@ def distribute_tokens(logger: Logger,
                           ethereum_gas_limit: Optional[int],
                           ethereum_gas_price: Optional[int],
                           token_address: str,
-                          dists: List[DistributionEntry]) -> Tuple[List[_PreparedTransaction], int, int]:
+                          dists: List[DistributionEntry]) -> Tuple[int, int]:
     """Issue out a new Ethereum token."""
-
-    txs = []
 
     check_good_private_key(ethereum_private_key)
 
@@ -54,15 +54,16 @@ def distribute_tokens(logger: Logger,
 
     new_distributes = old_distributes = 0
 
-    for d in dists:
+    for d in tqdm(dists):
         if not service.is_distributed(d.external_id):
             # Going to tx queue
-            note = "Distributing tokens, raw amount: {}".format(d.amount)
-            service.distribute_tokens(d.external_id, d.address, d.amount, token_address, abi, note)
+            raw_amount = int(d.amount * 10**18)
+            note = "Distributing tokens, raw amount: {}".format(raw_amount)
+            service.distribute_tokens(d.external_id, d.address, raw_amount, token_address, abi, note)
             new_distributes += 1
         else:
             # CSV reimports
             old_distributes += 1
 
     logger.info("Prepared transactions for broadcasting for network %s", network)
-    return txs, new_distributes, old_distributes
+    return new_distributes, old_distributes
