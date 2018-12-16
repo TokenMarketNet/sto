@@ -44,7 +44,7 @@ def distribute_tokens(logger: Logger,
 
     service = EthereumStoredTXService(network, dbsession, web3, ethereum_private_key, ethereum_gas_price, ethereum_gas_limit, BroadcastAccount, PreparedTransaction)
 
-    logger.info("Starting creating transactions from nonce %s", service.get_next_nonce())
+    logger.info("Starting creating distribution transactions for %s token from nonce %s", token_address, service.get_next_nonce())
 
     total = sum([dist.amount * 10**18 for dist in dists])
 

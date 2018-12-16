@@ -167,8 +167,9 @@ def status(config: BoardCommmadConfiguration, address):
 
 @cli.command()
 @click.option('--csv-input', required=True, help="CSV file for entities receiving tokens")
+@click.option('--address', required=True, help="Token contract address")
 @click.pass_obj
-def distribute(config: BoardCommmadConfiguration, csv_input):
+def distribute(config: BoardCommmadConfiguration, csv_input, address):
     """Distribute shares to shareholders."""
 
     logger = config.logger
@@ -177,18 +178,31 @@ def distribute(config: BoardCommmadConfiguration, csv_input):
     dbsession = config.dbsession
 
     from sto.distribution import read_csv
+    from sto.ethereum.distribution import distribute_tokens
 
     dists = read_csv(logger, csv_input)
     if not dists:
         sys.exit("Empty CSV file")
 
-    txs = None
+    new_txs, old_txs = distribute_tokens(
+        logger,
+        dbsession,
+        config.network,
+        ethereum_node_url=config.ethereum_node_url,
+        ethereum_abi_file=config.ethereum_abi_file,
+        ethereum_private_key=config.ethereum_private_key,
+        ethereum_gas_limit=config.ethereum_gas_limit,
+        ethereum_gas_price=config.ethereum_gas_price,
+        token_address=address,
+        dists=dists,
+    )
+
+    logger.info("Distribution created %d new transactions and there was already %d old transactions in the database", new_txs, old_txs)
 
     # Write database
     dbsession.commit()
 
-    logger.info("Run %ssto tx-broadcast%s to send out issued shares to the world", colorama.Fore.LIGHTCYAN_EX, colorama.Fore.RESET)
-
+    logger.info("Run %ssto tx-broadcast%s to send out distribured shares to the world", colorama.Fore.LIGHTCYAN_EX, colorama.Fore.RESET)
 
 
 @cli.command()

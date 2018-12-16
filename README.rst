@@ -296,12 +296,37 @@ The command line tool supports a simple CSV import to distribute shares to share
 
 Each imported transaction must have an unique `external_id` attribute, so that we can track which distribution transaction corresponds incoming payment transaction.
 
+First you need to record down the issued token address from above.
+
 Example how to import CSV. `We use an example file from the source code repository <https://github.com/TokenMarketNet/sto/raw/master/docs/source/example-distribution.csv>`_::
 
      # Download example CSV file provided with source code repository
     curl -O https://github.com/TokenMarketNet/sto/raw/master/docs/source/example-distribution.csv
 
-    sto --config=myconfig.ini distiribute --csv-input=example-distribution.csv
+    # Your token contract address goes here
+    sto --config-file=myconfig.ini distribute --csv-input=example-distribution.csv --address==0x....
+
+This should output::
+
+    Distribution created 2 new transactions and there was already 0 old transactions in the database
+
+Now you can broadcast your distribution transactions with ``sto tx-broadcast``.
+
+Verifying contracts on EtherScan
+--------------------------------
+
+`EtherScan is a popular service for blockchain exploring <https://etherscan.io>`_. It's verify contract feature allows you to create reproducible builds of your Solidity source code and then EtherScan can introspect your contract state. This is very useful for diagnostics.
+
+To verify your contracts on EtherScan, you need to first ensure all contract deployement transactions are broadcasted and mined.
+
+Then add your EtherScan API key in ``myconfig.ini``::
+
+    # Obtained after signing in to etherscan.io
+    etherscan-api-key = T2JC4....
+
+Now you can run verify::
+
+    sto --config-file=myconfig.ini tx-verify
 
 Making a release
 ================
