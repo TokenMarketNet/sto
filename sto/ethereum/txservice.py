@@ -1,5 +1,9 @@
+from logging import Logger
+
+import requests
+import time
 from eth_account.internal.transactions import assert_valid_fields
-from sto.ethereum.utils import mk_contract_address
+from sto.ethereum.utils import mk_contract_address, get_constructor_arguments
 from sto.models.broadcastaccount import _BroadcastAccount, _PreparedTransaction
 from sto.models.utils import now
 from eth_account import Account
@@ -19,6 +23,10 @@ class NetworkAndDatabaseNonceOutOfSync(Exception):
 
 
 class AddressConfigurationMismatch(Exception):
+    pass
+
+
+class CouldNotVerifyOnEtherScan(Exception):
     pass
 
 
@@ -157,6 +165,8 @@ class EthereumStoredTXService:
 
         abi_data = abi[contract_name]
 
+        assert "source" in abi_data, "We need to have special postprocessed ABI data bundle, as we need the contract source code for EtherScan verification"
+
         contract_class = Contract.factory(
             web3=self.web3,
             abi=abi_data["abi"],
@@ -171,6 +181,8 @@ class EthereumStoredTXService:
         # Creates a dict for signing
         tx_data = self.generate_tx_data(next_nonce, contract_tx=True)
         constructed_txn = contract_class.constructor(**constructor_args).buildTransaction(tx_data)
+
+        constructor_arguments = get_constructor_arguments(contract_class, kwargs=constructor_args)
 
         derived_contract_address = mk_contract_address(self.address, next_nonce)
         derived_contract_address = to_checksum_address(derived_contract_address.lower())
@@ -189,7 +201,13 @@ class EthereumStoredTXService:
             gas_limit=self.gas_limit,
         )
 
-        self.dbsession.flush()
+        self.dbsession.flush()  # Populate other_data
+
+        tx.abi = abi_data
+        tx.constructor_arguments = constructor_arguments
+        assert tx.compiler_version
+        assert tx.flattened_source_code
+
         return tx
 
     def get_contract_proxy(self, contract_name: str, abi: dict, address: str) -> Contract:
@@ -227,7 +245,7 @@ class EthereumStoredTXService:
             broadcast_account=broadcast_account,
             receiver=receiver,
             contract_address=address,
-            contract_deployment=True,
+            contract_deployment=False,
             nonce=next_nonce,
             note=note,
             unsigned_payload=constructed_txn,
@@ -365,7 +383,7 @@ class EthereumStoredTXService:
                 status = colorama.Fore.YELLOW + status + colorama.Fore.RESET
             elif status == "mining":
                 status = colorama.Fore.YELLOW + status + colorama.Fore.RESET
-            elif status == "success":
+            elif status in ("success", "verified"):
                 status = colorama.Fore.GREEN + status + colorama.Fore.RESET
                 status += ":" + str(tx.result_block_num)
             elif status == "failed":
@@ -379,13 +397,153 @@ class EthereumStoredTXService:
         print(tabulate(table, headers=["TXID", "Status and block", "Nonce", "From", "To", "Note"]))
 
 
+def verify_on_etherscan(logger: Logger, network: str, tx: _PreparedTransaction, api_key: str, session, timeout=30):
+    """Verify a contrcact deployment on Etherscan.
+
+    Uses https://etherscan.io/apis#contracts
 
 
+    """
+
+    assert network in ("ethereum", "kovan")
+    if network == "kovan":
+        url = "https://api-kovan.etherscan.io/api"
+    else:
+        url = "https://api.etherscan.io/api"
+
+    assert tx.result_transaction_success
+    assert tx.contract_deployment
+
+    source = tx.flattened_source_code
+    compiler = tx.compiler_version
+    address = tx.contract_address
+    constructor_arguments = tx.constructor_arguments
+    contract_name = tx.contract_name
+
+    data = {
+        "apikey": api_key,
+        "module": "contract",
+        "contractaddress": address,
+        "action": "verifysourcecode",
+        "sourceCode": source,
+        "contractname": contract_name,
+        "compilerversion": "v" + compiler,  # https://etherscan.io/solcversions
+        "constructorArguements": constructor_arguments[2:],  # Remove leading 0x
+        "optimizationUsed": 1,  # TODO: Hardcoded
+        "runs": 500, # TODO: Hardcoded
+    }
+
+    info_data = data.copy()
+    del info_data["sourceCode"]  # Too verbose
+    del info_data["apikey"]  # Security
+    logger.info("Calling EtherScan API as: %s", info_data)
+
+    #
+    # Step 1: EtherScan validates input and gives us a ticket id to track the submission status
+    #
+
+    resp = session.post(url, data)
+    # {'status': '0', 'message': 'NOTOK', 'result': 'Error!'}
+    data = resp.json()
+
+    logger.info("Etherscan replied %s", data)
+    if data["status"] == "0":
+
+        if "already verified" in data["result"]:
+            return
+
+        raise CouldNotVerifyOnEtherScan("Could not verify contract: " + address + " " + str(data))
 
 
+    ticket = data["result"]
 
+    #
+    # Step 2: Poll for results
+    #
+    ready = False
+    started = time.time()
+    while not ready and time.time() < started + timeout:
+        data = {
+            "apikey": api_key,
+            "module": "contract",
+            "action": "checkverifystatus",
+            "guid": ticket,
+        }
+        logger.info("Checking verification status on EtherScan API as: %s", info_data)
+        resp = session.post(url, data)
+        # {'status': '0', 'message': 'NOTOK', 'result': 'Error!'}
+        data = resp.json()
+        logger.info("Got reply %s", data)
 
+        if data["result"] == "Pending in queue":
+            # Keep polling
+            #  {'status': '0', 'message': 'NOTOK', 'result': 'Pending in queue'}
+            time.sleep(5)
+            continue
+        elif data["status"] == "0":
+            # Produced binary did not match
+            raise CouldNotVerifyOnEtherScan("Could not verify contract: " + address + " " + str(data))
+        else:
+            # All good
+            assert data["status"] == "1"  # {'status': '1', 'message': 'OK', 'result': 'Pass - Verified'}
+            break
 
+    tx.verified_at = now()
+    tx.verification_info = data
 
-
+    # //Submit Source Code for Verification
+    # $.ajax({
+    #     type: "POST",                       //Only POST supported
+    #     url: "//api-kovan.etherscan.io/api", //Set to the  correct API url for Other Networks
+    #     data: {
+    #         apikey: $('#apikey').val(),                     //A valid API-Key is required
+    #         module: 'contract',                             //Do not change
+    #         action: 'verifysourcecode',                     //Do not change
+    #         contractaddress: $('#contractaddress').val(),   //Contract Address starts with 0x...
+    #         sourceCode: $('#sourceCode').val(),             //Contract Source Code (Flattened if necessary)
+    #         contractname: $('#contractname').val(),         //ContractName
+    #         compilerversion: $('#compilerversion').val(),   // see http://etherscan.io/solcversions for list of support versions
+    #         optimizationUsed: $('#optimizationUsed').val(), //0 = Optimization used, 1 = No Optimization
+    #         runs: 200,                                      //set to 200 as default unless otherwise
+    #         constructorArguements: $('#constructorArguements').val(),   //if applicable
+    #         libraryname1: $('#libraryname1').val(),         //if applicable, a matching pair with libraryaddress1 required
+    #         libraryaddress1: $('#libraryaddress1').val(),   //if applicable, a matching pair with libraryname1 required
+    #         libraryname2: $('#libraryname2').val(),         //if applicable, matching pair required
+    #         libraryaddress2: $('#libraryaddress2').val(),   //if applicable, matching pair required
+    #         libraryname3: $('#libraryname3').val(),         //if applicable, matching pair required
+    #         libraryaddress3: $('#libraryaddress3').val(),   //if applicable, matching pair required
+    #         libraryname4: $('#libraryname4').val(),         //if applicable, matching pair required
+    #         libraryaddress4: $('#libraryaddress4').val(),   //if applicable, matching pair required
+    #         libraryname5: $('#libraryname5').val(),         //if applicable, matching pair required
+    #         libraryaddress5: $('#libraryaddress5').val(),   //if applicable, matching pair required
+    #         libraryname6: $('#libraryname6').val(),         //if applicable, matching pair required
+    #         libraryaddress6: $('#libraryaddress6').val(),   //if applicable, matching pair required
+    #         libraryname7: $('#libraryname7').val(),         //if applicable, matching pair required
+    #         libraryaddress7: $('#libraryaddress7').val(),   //if applicable, matching pair required
+    #         libraryname8: $('#libraryname8').val(),         //if applicable, matching pair required
+    #         libraryaddress8: $('#libraryaddress8').val(),   //if applicable, matching pair required
+    #         libraryname9: $('#libraryname9').val(),         //if applicable, matching pair required
+    #         libraryaddress9: $('#libraryaddress9').val(),   //if applicable, matching pair required
+    #         libraryname10: $('#libraryname10').val(),       //if applicable, matching pair required
+    #         libraryaddress10: $('#libraryaddress10').val()  //if applicable, matching pair required
+    #     },
+    #     success: function (result) {
+    #         console.log(result);
+    #         if (result.status == "1") {
+    #             //1 = submission success, use the guid returned (result.result) to check the status of your submission.
+    #             // Average time of processing is 30-60 seconds
+    #             document.getElementById("postresult").innerHTML = result.status + ";" + result.message + ";" + result.result;
+    #             // result.result is the GUID receipt for the submission, you can use this guid for checking the verification status
+    #         } else {
+    #             //0 = error
+    #             document.getElementById("postresult").innerHTML = result.status + ";" + result.message + ";" + result.result;
+    #         }
+    #         console.log("status : " + result.status);
+    #         console.log("result : " + result.result);
+    #     },
+    #     error: function (result) {
+    #         console.log("error!");
+    #         document.getElementById("postresult").innerHTML = "Unexpected Error"
+    #     }
+    # });
 

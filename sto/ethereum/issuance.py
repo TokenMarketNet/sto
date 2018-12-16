@@ -3,7 +3,10 @@ from decimal import Decimal
 from logging import Logger
 
 import colorama
-from sto.ethereum.txservice import EthereumStoredTXService
+import requests
+from tqdm import tqdm
+
+from sto.ethereum.txservice import EthereumStoredTXService, verify_on_etherscan
 
 from sto.ethereum.utils import get_abi, check_good_private_key, create_web3
 from sto.ethereum.exceptions import BadContractException
@@ -13,6 +16,11 @@ from sqlalchemy.orm import Session
 from typing import Union, Optional
 from web3 import Web3
 from web3.exceptions import BadFunctionCallOutput
+
+
+class NeedAPIKey(RuntimeError):
+    pass
+
 
 def deploy_token_contracts(logger: Logger,
                           dbsession: Session,
@@ -56,6 +64,7 @@ def deploy_token_contracts(logger: Logger,
     note = "Whitelisting deployment account for {} issuer control".format(name)
     contract_address = deploy_tx1.contract_address
     update_tx1 = service.interact_with_contract("SecurityToken", abi, contract_address, note, "addAddressToWhitelist", {"addr": deploy_tx1.get_from()})
+    assert update_tx1.contract_deployment == False
 
     # Set transfer agent
     note = "Making transfer restriction policy for {} effective".format(name)
@@ -114,3 +123,35 @@ def contract_status(logger: Logger,
         "broadcastBalance": raw_balance,
     }
 
+
+
+def verify_source_code(logger: Logger,
+              dbsession: Session,
+              network: str,
+              etherscan_api_key: str,
+):
+    """Verify source code of all unverified deployment transactions."""
+
+    if not etherscan_api_key:
+        raise NeedAPIKey("You need to give EtherScan API key in the configuration file. Get one from https://etherscan.io")
+
+    unverified_txs = dbsession.query(PreparedTransaction).filter_by(verified_at=None, result_transaction_success=True, contract_deployment=True)
+
+    logger.info("Found %d unverified deployments on %s", unverified_txs.count(), network)
+
+    if unverified_txs.count() == 0:
+        logger.info("No transactions to verify.")
+        return []
+
+    unverified_txs = list(unverified_txs)
+
+    # HTTP keep-alive
+    session = requests.Session()
+
+    # https://stackoverflow.com/questions/41985993/tqdm-show-progress-for-a-generator-i-know-the-length-of
+    for tx in unverified_txs:  # type: _PreparedTx
+        logger.info("Verifying %s for %s", tx.contract_address, tx.human_readable_description)
+        verify_on_etherscan(logger, network, tx, etherscan_api_key, session)
+        dbsession.commit()  # Try to minimise file system sync issues
+
+    return unverified_txs

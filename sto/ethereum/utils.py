@@ -5,10 +5,13 @@ import os
 from typing import Optional
 
 import rlp
+from eth_abi import encode_abi
 from web3 import Web3, HTTPProvider
+from web3.contract import Contract
+from web3.utils.abi import get_constructor_abi, merge_args_and_kwargs
 from web3.utils.normalizers import normalize_address
 from eth_utils import keccak, to_checksum_address, to_bytes, is_hex_address, is_checksum_address
-
+from web3.utils.contracts import encode_abi
 
 class NoNodeConfigured(Exception):
     pass
@@ -33,7 +36,7 @@ def get_abi(abi_file: Optional[str]):
 
     if not abi_file:
         # Use built-in solc output drop
-        abi_file = os.path.join(os.path.dirname(__file__), "contracts.json")
+        abi_file = os.path.join(os.path.dirname(__file__), "contracts-flattened.json")
 
     with open(abi_file, "rt") as inp:
         return json.load(inp)
@@ -85,3 +88,28 @@ def validate_ethereum_address(address: str):
     if any([c.isupper() for c in address]):
         if not is_checksum_address(address):
             raise ValueError("Not a checksummed Ethereum address: {}".format(address))
+
+
+def get_constructor_arguments(contract: Contract, args: Optional[list]=None, kwargs: Optional[dict]=None):
+    """Get constructor arguments for Etherscan verify.
+
+    https://etherscanio.freshdesk.com/support/solutions/articles/16000053599-contract-verification-constructor-arguments
+    """
+
+    # return contract._encode_constructor_data(args=args, kwargs=kwargs)
+
+    constructor_abi = get_constructor_abi(contract.abi)
+
+    if args is not None:
+        return contract._encode_abi(constructor_abi, args)[2:]  # No 0x
+    else:
+        constructor_abi = get_constructor_abi(contract.abi)
+        kwargs = kwargs or {}
+        arguments = merge_args_and_kwargs(constructor_abi, [], kwargs)
+        # deploy_data = add_0x_prefix(
+        #    contract._encode_abi(constructor_abi, arguments)
+        #)
+
+        # TODO: Looks like recent Web3.py ABI change
+        deploy_data = encode_abi(contract.web3, constructor_abi, arguments)
+        return deploy_data

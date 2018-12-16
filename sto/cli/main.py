@@ -58,6 +58,7 @@ INTRO_TEXT = """{}TokenMarket{} security token management tool.
 @click.option('--ethereum-gas-price', required=False, help='How many GWei we pay for gas')
 @click.option('--ethereum-gas-limit', required=False, help='What is the transaction gas limit for broadcasts', type=int)
 @click.option('--ethereum-private-key', required=False, help='Private key for the broadcasting account')
+@click.option('--etherscan-api-key', required=False, help='EtherScan API key used for the contract source code verification')
 @click.option('--log-level', default="INFO", help="Python logging level to tune the verbosity of the command")
 @click.pass_context
 def cli(ctx, config_file, **kwargs):
@@ -181,7 +182,7 @@ def distribute(config: BoardCommmadConfiguration, csv_input):
     if not dists:
         sys.exit("Empty CSV file")
 
-    txs =
+    txs = None
 
     # Write database
     dbsession.commit()
@@ -269,6 +270,33 @@ def update(config: BoardCommmadConfiguration):
                           ethereum_private_key=config.ethereum_private_key,
                           ethereum_gas_limit=config.ethereum_gas_limit,
                           ethereum_gas_price=config.ethereum_gas_price)
+
+    if txs:
+        from sto.ethereum.txservice import EthereumStoredTXService
+        EthereumStoredTXService.print_transactions(txs)
+
+    # Write database
+    dbsession.commit()
+
+
+
+@cli.command(name="tx-verify")
+@click.pass_obj
+def verify(config: BoardCommmadConfiguration):
+    """Verify source code of contract deployment transactions."""
+
+    assert is_ethereum_network(config.network)
+
+    logger = config.logger
+
+    from sto.ethereum.issuance import verify_source_code
+
+    dbsession = config.dbsession
+
+    txs = verify_source_code(logger,
+                          dbsession,
+                          config.network,
+                          config.etherscan_api_key)
 
     if txs:
         from sto.ethereum.txservice import EthereumStoredTXService

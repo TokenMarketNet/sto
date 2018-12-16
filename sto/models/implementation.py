@@ -2,6 +2,7 @@ import sqlalchemy as sa
 from sqlalchemy import orm
 from sqlalchemy.ext.declarative import declarative_base
 
+from sto.models.utils import TimeStampedBaseModel
 from .broadcastaccount import _BroadcastAccount, _PreparedTransaction
 
 
@@ -15,7 +16,6 @@ Base = declarative_base()
 class BroadcastAccount(_BroadcastAccount, Base):
     pass
 
-
 class PreparedTransaction(_PreparedTransaction, Base):
 
     broadcast_account_id = sa.Column(sa.ForeignKey("broadcast_account.id"), nullable=True)
@@ -24,3 +24,4 @@ class PreparedTransaction(_PreparedTransaction, Base):
                                         lazy="dynamic",
                                         cascade="all, delete-orphan",
                                         single_parent=True, ), )
+

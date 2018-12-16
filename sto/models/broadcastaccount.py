@@ -1,4 +1,7 @@
+from typing import Optional
+
 import sqlalchemy as sa
+from sqlalchemy.orm.attributes import flag_modified
 
 from sto.models.utils import TimeStampedBaseModel
 
@@ -16,7 +19,6 @@ class _BroadcastAccount(TimeStampedBaseModel):
 
     #: Currently available nonce to be allocated for the next transaction
     current_nonce = sa.Column(sa.Integer, default=0)
-
 
 
 class _PreparedTransaction(TimeStampedBaseModel):
@@ -79,6 +81,12 @@ class _PreparedTransaction(TimeStampedBaseModel):
     #: Human readable failure reason
     result_transaction_reason = sa.Column(sa.String(256), default=None)
 
+    #: When a contract deployment was verified at EtherScan
+    verified_at = sa.Column(sa.DateTime, default=None)
+
+    #: Misc. transaction data - like ABI with source code information for verification, verification info
+    other_data = sa.Column(sa.JSON, nullable=False, unique=False, default=dict)
+
     @property
     def gas_limit(self):
         return self.unsigned_payload["gas"]
@@ -95,7 +103,9 @@ class _PreparedTransaction(TimeStampedBaseModel):
             return "broadcasted"
         elif self.result_fetched_at:
 
-            if self.result_block_num:
+            if self.verified_at:
+                return "verified"
+            elif self.result_block_num:
                 if self.result_transaction_success:
                     return "success"
                 else:
@@ -111,4 +121,54 @@ class _PreparedTransaction(TimeStampedBaseModel):
     def get_from(self) -> str:
         return self.broadcast_account.address
 
+    @property
+    def abi(self) -> Optional["str"]:
+        """Source code used for a deployment transaction for contract verification."""
+        return self.other_data["abi"]["source"]
+
+    @abi.setter
+    def abi(self, val):
+        self.other_data["abi"] = val
+        flag_modified(self, "other_data")
+
+    @property
+    def verification_info(self) -> Optional["str"]:
+        """EtherScan reply for contract verification."""
+        return self.other_data["verification_info"]
+
+    @verification_info.setter
+    def verification_info(self, val):
+        assert type(val) == dict
+        self.other_data["verification_info"] = val
+        flag_modified(self, "other_data")
+
+    @property
+    def flattened_source_code(self) -> Optional["str"]:
+        """Source code used for a deployment transaction for contract verification."""
+        return self.other_data["abi"]["source"]
+
+    @property
+    def compiler_version(self) -> Optional["str"]:
+        """Compiled version used for verification."""
+        return self.other_data["abi"]["metadata"]["compiler"]["version"]
+
+    @property
+    def contract_name(self) -> Optional["str"]:
+        """Compiled version used for verification."""
+        abi = self.other_data["abi"]
+        return abi["name"]
+
+    @property
+    def constructor_arguments(self) -> Optional[str]:
+        """The contract payload used for the constructor.
+
+        Needed for source code verification.
+        """
+        return self.other_data["constructor_arguments"]
+
+    @constructor_arguments.setter
+    def constructor_arguments(self, val):
+        assert val.startswith("0x")
+        self.other_data["constructor_arguments"] = val
+        flag_modified(self, "other_data")
 
