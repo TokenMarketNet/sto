@@ -317,6 +317,11 @@ Verifying contracts on EtherScan
 
 `EtherScan is a popular service for blockchain exploring <https://etherscan.io>`_. It's verify contract feature allows you to create reproducible builds of your Solidity source code and then EtherScan can introspect your contract state. This is very useful for diagnostics.
 
+For example, you can see browse STO transactions easily:
+
+.. image:: https://github.com/TokenMarketNet/sto/raw/master/docs/source/screenshots/etherscan.png
+    :width: 500 px
+
 To verify your contracts on EtherScan, you need to first ensure all contract deployement transactions are broadcasted and mined.
 
 Then add your EtherScan API key in ``myconfig.ini``::
@@ -342,11 +347,16 @@ First send out PyPi release::
 
 Then push out new Docker::
 
+    VERSION=0.2.0
     docker login --username=miohtama
     docker build -t miohtama/sto:latest .
-    docker tag miohtama/sto:latest miohtama/sto:0.1.2
-    docker push miohtama/sto:latest
-    docker push miohtama/sto:0.1.2
+
+    # Test run
+    docker run -p 8545:8545 -v `pwd`:`pwd` -w `pwd` miohtama/sto:latest --help
+
+    # Push the release to hub
+    docker tag miohtama/sto:latest miohtama/sto:$VERSION
+    docker push miohtama/sto:$VERSION && docker push miohtama/sto:latest
 
 Other
 =====

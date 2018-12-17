@@ -255,9 +255,9 @@ class EthereumStoredTXService:
         self.dbsession.flush()
         return tx
 
-    def is_distributed(self, external_id):
-        # Prevent us sending the same transaction twice
-        if self.dbsession.query(self.prepared_tx_model).filter_by(external_id=external_id).one_or_none():
+    def is_distributed(self, external_id: str, contract_address: str) -> bool:
+        """Prevent us sending the same transaction twice."""
+        if self.dbsession.query(self.prepared_tx_model).filter_by(external_id=external_id, contract_address=contract_address).one_or_none():
             return True
         return False
 
@@ -270,8 +270,8 @@ class EthereumStoredTXService:
         assert raw_amount >= 1
 
         # Prevent us sending the same transaction twice
-        if self.dbsession.query(self.prepared_tx_model).filter_by(external_id=external_id).one_or_none():
-            raise RuntimeError("Already distributed")
+        if self.dbsession.query(self.prepared_tx_model).filter_by(external_id=external_id, contract_address=token_address).one_or_none():
+            raise RuntimeError("Already distributed token:{} id:{}".format(token_address, external_id))
 
         contract = self.get_contract_proxy(contract_name, abi, token_address)
         broadcast_account = self.get_or_create_broadcast_account()
@@ -394,7 +394,7 @@ class EthereumStoredTXService:
         print(tabulate(table, headers=["TXID", "Status and block", "Nonce", "From", "To", "Note"]))
 
 
-def verify_on_etherscan(logger: Logger, network: str, tx: _PreparedTransaction, api_key: str, session, timeout=30):
+def verify_on_etherscan(logger: Logger, network: str, tx: _PreparedTransaction, api_key: str, session, timeout=120):
     """Verify a contrcact deployment on Etherscan.
 
     Uses https://etherscan.io/apis#contracts
@@ -483,6 +483,7 @@ def verify_on_etherscan(logger: Logger, network: str, tx: _PreparedTransaction, 
             assert data["status"] == "1"  # {'status': '1', 'message': 'OK', 'result': 'Pass - Verified'}
             break
 
+    # Write to the database that we managed verify the contract
     tx.verified_at = now()
     tx.verification_info = data
 

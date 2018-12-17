@@ -55,7 +55,7 @@ def distribute_tokens(logger: Logger,
     new_distributes = old_distributes = 0
 
     for d in tqdm(dists):
-        if not service.is_distributed(d.external_id):
+        if not service.is_distributed(d.external_id, token_address):
             # Going to tx queue
             raw_amount = int(d.amount * 10**18)
             note = "Distributing tokens, raw amount: {}".format(raw_amount)
