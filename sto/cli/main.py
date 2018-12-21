@@ -391,6 +391,31 @@ def next_nonce(config: BoardCommmadConfiguration):
                           ethereum_gas_price=config.ethereum_gas_price)
 
 
+@cli.command(name="token-scan")
+@click.option('--start-block-num', required=False, help="The first block where we start (re)scan", default=0)
+@click.option('--end-block-num', required=False, help="Until which block we scan, also can be 'latest'", default="latest")
+@click.option('--token-address', required=True, help="Token contract address", default="latest")
+@click.pass_obj
+def token_scan(config: BoardCommmadConfiguration):
+    """Scan all t."""
+
+    assert is_ethereum_network(config.network)
+
+    logger = config.logger
+
+    from sto.ethereum.nonce import next_nonce
+
+    dbsession = config.dbsession
+
+    txs = next_nonce(logger,
+                          dbsession,
+                          config.network,
+                          ethereum_node_url=config.ethereum_node_url,
+                          ethereum_private_key=config.ethereum_private_key,
+                          ethereum_gas_limit=config.ethereum_gas_limit,
+                          ethereum_gas_price=config.ethereum_gas_price)
+
+
 
 def main():
     # https://github.com/pallets/click/issues/204#issuecomment-270012917
