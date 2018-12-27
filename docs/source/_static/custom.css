@@ -1,3 +1,11 @@
+body {
+    font-family:"Open Sans",Arial,sans-serif;
+}
+
+h1,h2,.rst-content .toctree-wrapper p.caption,h3,h4,h5,h6,legend {
+ font-family:"Open Sans",Arial,sans-serif;
+}
+
 .wy-nav-side {
     background: #00a930;
     color: white;
@@ -15,3 +23,4 @@
 .wy-side-nav-search a {
     color: #00a930;
 }
+

@@ -1,10 +1,10 @@
 
-Security token tool documentation
-=================================
+Security token documentation
+============================
 
 This is a documentation for `Security token tool <https://github.com/tokenmarketnet/sto>`_.
 
-``sto`` open source provides a command line tool and Python library to manage and integrate security tokens:
+``sto`` open source project provides a command line tool and Python library to manage and integrate security tokens:
 
 * Issue out new stock series
 

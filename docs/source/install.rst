@@ -8,7 +8,7 @@ Security token interaction happens through a command line `sto` command that con
 Normal users
 ------------
 
-This tool is for command line users / developers only. `For arranging a business deal contact TokenMarket security token team <https://tokenmarket.net/security-token-offering>`_.
+This tool is for command line users and developers only. We do not provide an end user application as open source. `For a managed service please contact TokenMarket business representatives <https://tokenmarket.net/security-token-offering>`_.
 
 Advanced users
 --------------
@@ -20,11 +20,15 @@ Install `Docker <https://www.docker.com/products/docker-desktop>`_.
 OSX and Linux
 ~~~~~~~~~~~~~
 
-Set up a shell alias for `sto` command that executes Dockerised binary::
+Set up a shell alias for `sto` command that executes Dockerised binary:
+
+.. code-block:: shell
 
     alias sto='docker run -p 8545:8545 -v `pwd`:`pwd` -w `pwd` miohtama/sto:latest'
 
-Then you can do::
+Then you can do:
+
+.. code-block:: shell
 
     sto --help
 
@@ -47,7 +51,9 @@ Python 3.6+ required.
 
 Create `Python virtual environment <https://packaging.python.org/tutorials/installing-packages/#optionally-create-a-virtual-environment>`_.
 
-Then within the activated venv do::
+Then within the activated venv do:
+
+.. code-block:: shell
 
     git clone "git+https://github.com/TokenMarketNet/sto.git"
     python -m venv venv  # Python 3 needed
