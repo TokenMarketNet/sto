@@ -8,16 +8,13 @@ A tool and Python API for issuing out and managing out security tokens.
 .. image:: https://img.shields.io/travis/TokenMarketNet/sto.svg
         :target: https://travis-ci.org/TokenMarketNet/sto
 
-**Technical dragons ahead**
-
-This software is for technically sophisticated users only. If you are looking for business services go to `TokenMarket commercial support <https://tokenmarket.net/security-token-offering>`_.
-
-Table of contents
-=================
-
-.. contents::
 
 Benefits
+========
+
+An open source tool ensures your company can manage its security tokens now and in the far future without vendor lock in. A good documentation ensures any capable technical advisory can pick up the work and assist you.
+
+Features
 ========
 
 This is a command line tool and Python library to manage and integrate security tokens:
