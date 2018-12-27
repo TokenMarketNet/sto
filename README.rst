@@ -20,7 +20,7 @@ Table of contents
 Benefits
 ========
 
-This Python package provides a command line tool and API to manage and integrate security token functionality:
+This is a command line tool and Python library to manage and integrate security tokens:
 
 * Issue out new stock series
 
@@ -60,138 +60,7 @@ Requirements
 
 * Docker
 
-Install
-=======
 
-Security token interaction happens through a command line `sto` command that connects to an Ethereum network node and a local database. This command is written in Python.
-
-Normal users
-------------
-
-This tool is for command line users / developers only. `For arranging a business deal contact TokenMarket security token team <https://tokenmarket.net/security-token-offering>`_.
-
-Advanced users
---------------
-
-The `sto` command line application is provided as a `Docker image <https://hub.docker.com/r/miohtama/sto/>`_ to minimize the issues with painful native dependency set up for your operating system. To use `sto` we will set up a command line alias, as Docker command itself is quite long.
-
-Install `Docker <https://www.docker.com/products/docker-desktop>`_.
-
-OSX and Linux
-~~~~~~~~~~~~~
-
-Set up a shell alias for `sto` command that executes Dockerised binary::
-
-    alias sto='docker run -p 8545:8545 -v `pwd`:`pwd` -w `pwd` miohtama/sto:latest'
-
-Then you can do::
-
-    sto --help
-
-Docker will automatically pull an image from Docker registry for your local computer on the first run. We map port 8545 to the localhost as that is normal Ethereum JSON-RPC API.
-
-.. image:: https://github.com/TokenMarketNet/sto/raw/master/docs/source/screenshots/help.png
-    :width: 500 px
-
-Windows
-~~~~~~~
-
-Windows PowerShell instructions coming soon.
-
-Meanwhile use Linux instructions and `Linux Subsystem for Windows <https://docs.microsoft.com/en-us/windows/wsl/install-win10>`_.
-
-Developers
-----------
-
-Python 3.6+ required.
-
-Create `Python virtual environment <https://packaging.python.org/tutorials/installing-packages/#optionally-create-a-virtual-environment>`_.
-
-Then within the activated venv do::
-
-    git clone "git+https://github.com/TokenMarketNet/sto.git"
-    python -m venv venv  # Python 3 needed
-    source venv/bin/activate
-    pip install -U pip  # Make sure you are at least pip 18.1 - older versions will fail
-    pip install -e ".[dev,test]"
-
-How to set up
-=============
-
-Below are short instructions how to set up an Ethereum node, account and configuration file for the Kovan testnet (no real money involved).
-
-You need an Ethereum node. You can either install yourself (see Install Parity) or use a Ethereum node provider like `Infura <https://infura.io/>`_.
-
-Sign up for Infura (Option a)
------------------------------
-
-`Sign up for Infura <https://infura.io/>`_.
-
-Get a **Kovan** node URL from your dashboard (use dropdown):
-
-.. image:: https://github.com/TokenMarketNet/sto/raw/master/docs/source/screenshots/infura.png
-    :width: 500 px
-
-Install Parity (Option b)
--------------------------
-
-First `install Parity <https://wiki.parity.io/Setup>`_. For example on OSX using Brew package management::
-
-    brew install parity
-
-Start Parity in another terminal and connect it to Kovan test network::
-
-    parity --chain=kovan
-
-Parity will now sync you to Kovan network using warp (fast mode). This will take up to two hours. You can continue to follow instructions below.
-
-Set up Ethereum account
------------------------
-
-To start playing with tokenised ahsers
-
-Create an Ethereum account::
-
-    sto --network=kovan ethereum-create-account
-
-This will give you a new raw private key and related Ethereum address to play with::
-
-    Creating new Ethereum account.
-    Account address: 0xDE5bC059aA433D72F25846bdFfe96434b406FA85
-    Account private key: 3fac35a57e1e2867290ae37d54c5de61d52644b42819ce6af0c5a9c25f4c...
-
-Now create a file `myconfig.ini` and add the content::
-
-    # Your personal configuration file as we told you on Github example
-
-    # Network we are using
-    network = kovan
-
-    # This is for Parity - if you are using Infura get your Kovan node URL from your Infura dashboard
-    ethereum-node-url = http://localhost:8545
-
-    # The private key for your generated Ethereum account
-    ethereum-private-key = 3fac35a57e1e2867290ae37d54c5de61d52644b42819ce6af0c5a9c25f4c....
-
-
-Top up
-------
-
-Visit `Kovan faucet <https://faucet.kovan.network/>`_.
-
-Request Kovan ETH (KETH) on your account you just create above. A `Github account <http://github.com/>`_ is needed for verification. This should give you 1 Kovan ETH to play with and you become a testnet millionaire.
-
-Diagnose and test run
----------------------
-
-Use `sto diagnose` command to check your account has balance and your Ethereum node works::
-
-    sto --config-file=myconfig.ini diagnose
-
-This should output:
-
-.. image:: https://github.com/TokenMarketNet/sto/raw/master/docs/source/screenshots/diagnose.png
-    :width: 500 px
 
 
 Playing with security tokens

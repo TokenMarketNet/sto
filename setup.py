@@ -27,6 +27,8 @@ test_requirements = [
 dev_requirements = [
     "bumpversion>=0.5.3,<1",
     "wheel",
+    "sphinx",
+    "sphinx_rtd_theme==0.4.2",
 ]
 
 setup(

@@ -296,7 +296,7 @@ def test_token_scan_incremental(logger, dbsession, network, private_key_hex, sam
     #<Token:0x890042E3d93aC10A426c7ac9e96ED6416B0cC616, holder:0x6813Eb9362372EEF6200f3b1dbC3f819671cBA69, updated at:8, balance:333000000000000000000>
     #<Token:0x890042E3d93aC10A426c7ac9e96ED6416B0cC616, holder:0x1efF47bc3a10a45D4B230B5d10E37751FE6AA718, updated at:10, balance:101000000000000000000>
 
-    # Run incremental scan
+    # Check that result match when start from the beginning
     balances = token_scan(logger, dbsession, network, web3, None, sample_token, start_block=1, end_block=web3.eth.blockNumber)
     correct_result = {
         '0xDE5bC059aA433D72F25846bdFfe96434b406FA85': 9565 * 10**18,
@@ -306,6 +306,15 @@ def test_token_scan_incremental(logger, dbsession, network, private_key_hex, sam
     }
     assert balances == correct_result
 
+    # Check that result match when start from the middle
+    balances = token_scan(logger, dbsession, network, web3, None, sample_token, start_block=8, end_block=web3.eth.blockNumber)
+    correct_result = {
+        '0xDE5bC059aA433D72F25846bdFfe96434b406FA85': 9565 * 10**18,
+        test_account_1: 0,
+        test_account_2: 333 * 10**18,
+        test_account_3: 101 * 10**18,
+    }
+    assert balances == correct_result
 
 
 

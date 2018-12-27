@@ -1,0 +1,17 @@
+.wy-nav-side {
+    background: #00a930;
+    color: white;
+}
+
+.wy-side-nav-search {
+    background: white;
+}
+
+.wy-side-nav-search > div.version {
+    color: grey;
+}
+
+
+.wy-side-nav-search a {
+    color: #00a930;
+}
