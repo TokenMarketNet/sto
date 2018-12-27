@@ -47,7 +47,7 @@ def network(web3_test_provider):
 def logger(caplog):
     # caplog is pytest built in fixtur
     # https://docs.pytest.org/en/latest/logging.html
-    caplog.set_level(logging.INFO)
+    caplog.set_level(logging.DEBUG)
     logger = logging.getLogger()
     return logger
 

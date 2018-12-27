@@ -45,9 +45,16 @@ class _TokenScanStatus(TimeStampedBaseModel):
     #: All token balances are stored in raw amounts
     decimals = sa.Column(sa.Integer, nullable=False)
 
-    def get_total_token_holder_count(self, include_past=True):
+    def get_total_token_holder_count(self, include_empty=False):
         """How many addresses are/have been holding this token."""
-        return self.balances.count()
+        q = self.balances
+
+        if include_empty:
+            pass
+        else:
+            q = q.filter_by(empty=False)
+
+        return q.count()
 
 
 class _TokenHolderDelta(TimeStampedBaseModel):
@@ -112,6 +119,9 @@ class _TokenHolderLastBalance(TimeStampedBaseModel):
     #: Raw uint256 data
     raw_balance = sa.Column(sa.Binary(32), nullable=True, unique=False)
 
+    #: Because sqlite cannot query uint256, we have this hack to query zero balances
+    empty = sa.Column(sa.Boolean, nullable=False)
+
     #: End block
     last_updated_block = sa.Column(sa.Integer, nullable=True)
 
@@ -119,7 +129,7 @@ class _TokenHolderLastBalance(TimeStampedBaseModel):
     last_block_updated_at = sa.Column(sa.DateTime, nullable=True)
 
     def __str__(self):
-        return "<Token:{}, holder:{}, updated at:{}, balance:{}>".format(self.token.address, self.address, self.block_num, self.get_balance_uint())
+        return "<Token:{}, holder:{}, updated at:{}, balance:{}>".format(self.token.address, self.address, self.last_updated_block, self.get_balance_uint())
 
     def get_balance_uint(self):
         """Return the delta as Python unlimited integer."""
@@ -130,3 +140,8 @@ class _TokenHolderLastBalance(TimeStampedBaseModel):
         assert type(val) == int
         b = val.to_bytes(32, byteorder="big")
         self.raw_balance = b
+
+        if val:
+            self.empty = False
+        else:
+            self.empty = True

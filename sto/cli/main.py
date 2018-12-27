@@ -165,12 +165,12 @@ def status(config: BoardCommmadConfiguration, address):
       token_contract=address)
 
 
-@cli.command()
+@cli.command(name="distribute-multiple")
 @click.option('--csv-input', required=True, help="CSV file for entities receiving tokens")
 @click.option('--address', required=True, help="Token contract address")
 @click.pass_obj
-def distribute(config: BoardCommmadConfiguration, csv_input, address):
-    """Distribute shares to shareholders."""
+def distribute_multiple(config: BoardCommmadConfiguration, csv_input, address):
+    """Distribute shares to multiple shareholders whose address info is read from a file."""
 
     logger = config.logger
 
@@ -203,6 +203,47 @@ def distribute(config: BoardCommmadConfiguration, csv_input, address):
     dbsession.commit()
 
     logger.info("Run %ssto tx-broadcast%s to send out distribured shares to the world", colorama.Fore.LIGHTCYAN_EX, colorama.Fore.RESET)
+
+
+@cli.command(name="distribute-single")
+@click.option('--token-address', required=True, help="Token contract address")
+@click.option('--to-address', required=True, help="Receiver")
+@click.option('--external-id', required=True, help="External id string for this transaction - no duplicates allowed")
+@click.option('--email', required=True, help="Receiver email (for audit log only)")
+@click.option('--name', required=True, help="Receiver name (for audit log only)")
+@click.option('--amount', required=True, help="Amount of tokens as a decimal number")
+@click.pass_obj
+def distribute_single(config: BoardCommmadConfiguration, token_address, to_address, external_id, email, name, amount):
+    """Send tokens to one individual shareholder."""
+
+    logger = config.logger
+
+    assert is_ethereum_network(config.network) # Nothing else implemented yet
+    dbsession = config.dbsession
+
+    from sto.ethereum.distribution import distribute_single
+
+    result = distribute_single(
+        logger,
+        dbsession,
+        config.network,
+        ethereum_node_url=config.ethereum_node_url,
+        ethereum_abi_file=config.ethereum_abi_file,
+        ethereum_private_key=config.ethereum_private_key,
+        ethereum_gas_limit=config.ethereum_gas_limit,
+        ethereum_gas_price=config.ethereum_gas_price,
+        token_address=token_address,
+        to_address=to_address,
+        ext_id=external_id,
+        email=email,
+        name=name,
+        amount=amount
+    )
+
+    if result:
+        # Write database
+        dbsession.commit()
+        logger.info("Run %ssto tx-broadcast%s to send out distribured shares to the world", colorama.Fore.LIGHTCYAN_EX, colorama.Fore.RESET)
 
 
 @cli.command()

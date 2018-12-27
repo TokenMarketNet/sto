@@ -34,7 +34,7 @@ def distribute_tokens(logger: Logger,
                           ethereum_gas_price: Optional[int],
                           token_address: str,
                           dists: List[DistributionEntry]) -> Tuple[int, int]:
-    """Issue out a new Ethereum token."""
+    """Sends tokens to their first owners in primary markets."""
 
     check_good_private_key(ethereum_private_key)
 
@@ -67,3 +67,54 @@ def distribute_tokens(logger: Logger,
 
     logger.info("Prepared transactions for broadcasting for network %s", network)
     return new_distributes, old_distributes
+
+
+
+def distribute_single(logger: Logger,
+                          dbsession: Session,
+                          network: str,
+                          ethereum_node_url: Union[str, Web3],
+                          ethereum_abi_file: Optional[str],
+                          ethereum_private_key: Optional[str],
+                          ethereum_gas_limit: Optional[int],
+                          ethereum_gas_price: Optional[int],
+                          token_address: str,
+                          ext_id: str,
+                          email: str,
+                          name: str,
+                          to_address: str,
+                          amount: Decimal) -> bool:
+    """Send out a single transfer.
+
+    :return: True if a new tx for broadcasting was created
+    """
+
+    d = DistributionEntry(ext_id, email, name, to_address, amount)
+
+    check_good_private_key(ethereum_private_key)
+
+    abi = get_abi(ethereum_abi_file)
+
+    web3 = create_web3(ethereum_node_url)
+
+    service = EthereumStoredTXService(network, dbsession, web3, ethereum_private_key, ethereum_gas_price, ethereum_gas_limit, BroadcastAccount, PreparedTransaction)
+
+    logger.info("Starting creating distribution transactions for %s token from nonce %s", token_address, service.get_next_nonce())
+
+    total = d.amount * 10**18
+
+    available = service.get_raw_token_balance(token_address, abi)
+    if total > available:
+        raise NotEnoughTokens("Not enough tokens for distribution. Account {} has {} raw token balance, needed {}".format(service.get_or_create_broadcast_account().address, available, total))
+
+    if not service.is_distributed(d.external_id, token_address):
+        # Going to tx queue
+        raw_amount = int(d.amount * 10**18)
+        note = "Distributing tokens, raw amount: {}".format(raw_amount)
+        service.distribute_tokens(d.external_id, d.address, raw_amount, token_address, abi, note)
+        logger.info("New broadcast has been created")
+        return True
+    else:
+        logger.error("Already distributed")
+        return False
+

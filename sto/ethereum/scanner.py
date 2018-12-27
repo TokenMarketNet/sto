@@ -13,6 +13,9 @@ from sto.models.tokenscan import _TokenHolderLastBalance, _TokenScanStatus
 class TokenScanner:
     """Scan blockchain for token transfer events and build a database of balances at certain timepoints (blocks)."""
 
+    #: How far back in the past we jump to detect works in incremental rescans
+    NUM_BLOCKS_RESCAN_FOR_FORKS = 10
+
     def __init__(self, logger: Logger, network: str, dbsession: Session, web3: Web3, abi: dict, token_address: str, TokenScanStatus: type, TokenHolderDelta: type, TokenHolderLastBalance: type):
 
         assert isinstance(web3, Web3)
@@ -72,6 +75,24 @@ class TokenScanner:
         last_time = block_info["timestamp"]
         return datetime.datetime.utcfromtimestamp(last_time)
 
+    def get_suggested_scan_start_block(self):
+        """Get where we should start to scan for new token events.
+
+        If there are no prior scans start from block 1.
+        Otherwise start from the last end block minus ten blocks.
+        We rescan the last ten scanned blocks in the case there were forks to avoid
+        misaccounting due to minor single block works (happens once in a hour in Ethereum).
+        These heurestics could be made more robust, but this is for the sake of simple reference implementation.
+        """
+        status = self.get_or_create_status()
+        if status.end_block:
+            return max(1, status.end_block - TokenScanner.NUM_BLOCKS_RESCAN_FOR_FORKS)
+        return 1
+
+    def get_suggested_scan_end_block(self):
+        """Get the last mined block."""
+        return self.web3.eth.blockNumber
+
     def drop_old_data(self, after_block: int):
         """Purge old data in the case of a rescan."""
         status = self.get_or_create_status()
@@ -107,7 +128,6 @@ class TokenScanner:
         if not account:
             account = self.TokenHolderLastBalance(address=token_holder)
             status.balances.append(account)
-            self.dbsession.flush()
 
         return account
 
@@ -206,15 +226,22 @@ class TokenScanner:
 
         Assumes all balances in the database are valid before start_block (no forks sneaked in).
 
+        :param start_block: The first block included in the scan
+
+        :param end_block: The last block included in the scan
+
         :return: Address -> last balance mapping for all address balances that changed during those blocks
         """
+
+        assert start_block <= end_block
+
         self.drop_old_data(start_block)
 
         current_block = start_block
         updated_token_holders = set()  # Token holders that get updates
 
         # Scan in chunks, commit between
-        while current_block < end_block:
+        while current_block <= end_block:
             current_end = min(current_block + chunk_size, end_block)
 
             self.logger.debug("Scanning token transfers for blocks: %d - %d", current_block, current_end)
@@ -222,9 +249,18 @@ class TokenScanner:
             updated_token_holders.update(mutated_addresses)
 
             self.dbsession.commit()  # Update database on the disk
-            current_block = current_end
+            current_block = current_end + 1
 
         result = self.update_denormalised_balances(mutated_addresses)
+
+        # Update token scan status
+        status = self.get_or_create_status()
+        if not status.start_block:
+            status.start_block = start_block
+
+        status.end_block = end_block
+
         self.dbsession.commit()  # Write latest balances
+
         return result
 
