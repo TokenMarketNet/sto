@@ -9,7 +9,7 @@ from sto.ethereum.issuance import deploy_token_contracts, contract_status
 from sto.ethereum.status import update_status
 from sto.ethereum.tokenscan import token_scan
 from sto.models.broadcastaccount import _PreparedTransaction
-
+from sto.models.implementation import TokenScanStatus
 
 
 @pytest.fixture
@@ -116,7 +116,34 @@ def test_simple_token_balance_scan(logger, dbsession, network, sample_token, web
     end_block = web3.eth.blockNumber
     all_balances = token_scan(logger, dbsession, network, web3, None, sample_token, start_block, end_block)
 
-    assert all_balances == {}
+    correct_result = {
+        '0x0bdcc26C4B8077374ba9DB82164B77d6885b92a6': 300 * 10**18,
+        '0xDE5bC059aA433D72F25846bdFfe96434b406FA85': 9199 * 10**18,
+        '0xE738f7A6Eb317b8B286c27296cD982445c9D8cd2': 500 * 10**18
+    }
+
+    # print("All balances:", all_balances)
+    assert all_balances == correct_result
+
+    # Read balances from the datbase
+    token_status = dbsession.query(TokenScanStatus).filter_by(address=sample_token).one()
+    assert token_status.network == "testing"
+    assert token_status.get_total_token_holder_count() == 3
+
+    last_balance_a6 = token_status.balances.filter_by(address="0x0bdcc26C4B8077374ba9DB82164B77d6885b92a6").one()
+    assert last_balance_a6.get_balance_uint() == 300 * 10**18
+    assert last_balance_a6.last_updated_block == 7
+    assert last_balance_a6.last_block_updated_at is not None
+
+    last_balance_d2 = token_status.balances.filter_by(address="0xE738f7A6Eb317b8B286c27296cD982445c9D8cd2").one()
+    assert last_balance_d2.get_balance_uint() == 500 * 10**18
+    assert last_balance_d2.last_updated_block == 8
+    assert last_balance_d2.last_block_updated_at is not None
+
+    # Rescan should be ok, yield to same results
+    # This will drop data and scan again
+    rescanned_all_balances = token_scan(logger, dbsession, network, web3, None, sample_token, start_block, end_block)
+    assert all_balances == rescanned_all_balances
 
 
 

@@ -1,8 +1,9 @@
 import datetime
+from logging import Logger
 
 from eth_utils import to_checksum_address
 from sqlalchemy.orm import Session
-from typing import Set, Dict
+from typing import Set, Dict, Tuple
 from web3 import Web3
 from web3.contract import Contract
 
@@ -12,10 +13,11 @@ from sto.models.tokenscan import _TokenHolderLastBalance, _TokenScanStatus
 class TokenScanner:
     """Scan blockchain for token transfer events and build a database of balances at certain timepoints (blocks)."""
 
-    def __init__(self, network: str, dbsession: Session, web3: Web3, abi: dict, token_address: str, TokenScanStatus: type, TokenHolderStatus: type, TokenHolderLastBalance: type):
+    def __init__(self, logger: Logger, network: str, dbsession: Session, web3: Web3, abi: dict, token_address: str, TokenScanStatus: type, TokenHolderDelta: type, TokenHolderLastBalance: type):
 
         assert isinstance(web3, Web3)
 
+        self.logger = logger
         self.network = network  # "kovan"
         self.dbsession = dbsession
         self.web3 = web3
@@ -24,7 +26,7 @@ class TokenScanner:
 
         # SQLAlchemy models, allow caller to supply their own
         self.TokenScanStatus = TokenScanStatus  #: type sto.models.implementation.TokenScanStatus
-        self.TokenHolderStatus = TokenHolderStatus #: type sto.models.implementation.TokenHolderStatus
+        self.TokenHolderDelta = TokenHolderDelta #: type sto.models.implementation.TokenHolderDelta
         self.TokenHolderLastBalance = TokenHolderLastBalance #: type sto.models.implementation.TokenHolderLastBalance
 
     @property
@@ -70,17 +72,28 @@ class TokenScanner:
         last_time = block_info["timestamp"]
         return datetime.datetime.utcfromtimestamp(last_time)
 
-    def drop_old_data(self, before_block: int):
+    def drop_old_data(self, after_block: int):
         """Purge old data in the case of a rescan."""
         status = self.get_or_create_status()
-        status.holder_deltas.filter_by(self.TokenHolderStatus.block_num < before_block).delete()
+        status.holder_deltas.filter(self.TokenHolderDelta.block_num >= after_block).delete()
 
-    def calculate_sum_from_deltas(self, token_holder: str):
+    def calculate_sum_from_deltas(self, token_holder: str) -> Tuple[int, int, datetime.datetime]:
         """Denormalize the token balance.
 
-        Drop in a PostgreSQL implementation here using native databae types.
+        Drop in a more efficient PostgreSQL implementation here using native database types.
         """
         assert token_holder.startswith("0x")
+
+        sum = last_block_num = 0
+        last_updated_at = None
+
+        status = self.get_or_create_status()
+        deltas = status.holder_deltas.filter_by(address=token_holder).order_by(self.TokenHolderDelta.block_num, self.TokenHolderDelta.tx_internal_order)
+        for d in deltas:
+            sum += d.get_delta_uint()
+            last_block_num = d.block_num
+            last_updated_at = d.block_timestamped_at
+        return sum, last_block_num, last_updated_at
 
     def get_or_create_last_balance(self, token_holder: str) -> _TokenHolderLastBalance:
         """Denormalize the token balance.
@@ -98,6 +111,30 @@ class TokenScanner:
 
         return account
 
+    def create_deltas(self, block_num: int, block_when: datetime, txid: str, idx: int, from_: str, to_: str, value: int):
+        """Creates token balance change events in the database.
+
+        For each token transfer we create debit and credit events, so that we can nicely sum the total balance of the account.
+        """
+        status = self.get_or_create_status()
+
+        assert txid.startswith("0x")
+        assert from_.startswith("0x")
+        assert to_.startswith("0x")
+
+        existing = status.holder_deltas.filter_by(block_num=block_num, tx_internal_order=idx).first()
+        if existing:
+            raise RuntimeError("Had already existing imported event: {}".format(existing))
+
+        delta_credit = self.TokenHolderDelta(address=to_, block_num=block_num, txid=txid, tx_internal_order=idx, block_timestamped_at=block_when)
+        delta_credit.set_delta_uint(value, +1)
+        status.holder_deltas.append(delta_credit)
+
+        if from_ != self.TokenHolderDelta.NULL_ADDRESS:
+            delta_debit = self.TokenHolderDelta(address=from_, block_num=block_num, txid=txid, tx_internal_order=idx, block_timestamped_at=block_when)
+            delta_debit.set_delta_uint(value, -1)
+            status.holder_deltas.append(delta_debit)
+
     def scan_chunk(self, start_block, end_block) -> Set[str]:
         """Populate TokenHolderStatus for certain blocks.
 
@@ -106,14 +143,65 @@ class TokenScanner:
 
         mutated_addresses = set()
         token = self.get_token_contract(self.address)
-        events = token.events.Transfer().createFilter(fromBlock=start_block, toBlock=end_block).get_all_entries()
 
-        for e in events:
-            print(e)
+        # Discriminate between ERC-20 transfer and ERC-667
+        # The latter is not used anywhere yet AFAIK
+        Transfer = token.events.Transfer("from", "to", "value")
+        Issued = token.events.Issued("to", "value")
+        block_timestamps = {}
+        get_block_timestamp = self.get_block_timestamp
+
+        # Cache block timestamps to reduce some RPC overhead
+        # Real solution would be smarter models around block
+        def get_block_when(block_num):
+            if not block_num in block_timestamps:
+                block_timestamps[block_num] = get_block_timestamp(block_num)
+            return block_timestamps[block_num]
+
+        for event_type in [Issued, Transfer]:
+
+            events = event_type.createFilter(fromBlock=start_block, toBlock=end_block).get_all_entries()
+
+            # AttributeDict({'args': AttributeDict({'from': '0xDE5bC059aA433D72F25846bdFfe96434b406FA85', 'to': '0x0bdcc26C4B8077374ba9DB82164B77d6885b92a6', 'value': 300000000000000000000}), 'event': 'Transfer', 'logIndex': 0, 'transactionIndex': 0, 'transactionHash': HexBytes('0x973eb270e311c23dd6173a9092c9ad4ee8f3fe24627b43c7ad75dc2dadfcbdf9'), 'address': '0x890042E3d93aC10A426c7ac9e96ED6416B0cC616', 'blockHash': HexBytes('0x779f55173414a7c0df0d9fc0ab3fec461a66ceeee0b4058e495d98830c92abf8'), 'blockNumber': 7})
+            for e in events:
+                idx = e["logIndex"]  # nteger of the log index position in the block. null when its pending log.
+                if idx is None:
+                    raise RuntimeError("Somehow tried to scan a pending block")
+
+                if e["event"] == "Issued":
+                    # New issuances pop up from empty air - mark this specially in the database.
+                    # Also some ERC-20 tokens use Transfer from null address to symbolise issuance.
+                    from_ = self.TokenHolderDelta.NULL_ADDRESS
+                else:
+                    from_ = e["args"]["from"]
+                    mutated_addresses.add(e["args"]["from"])
+
+                block_when = get_block_when(e["blockNumber"])
+
+                self.create_deltas(e["blockNumber"], block_when, e["transactionHash"].hex(), idx, from_, e["args"]["to"], e["args"]["value"])
+                self.logger.debug("Imported %s, token:%s block:%d from:%s to:%s value:%s", e["event"], self.address, e["blockNumber"], from_, e["args"]["to"], e["args"]["value"])
+
+                mutated_addresses.add(e["args"]["to"])
 
         return mutated_addresses
 
-    def scan(self, start_block, end_block, chunk_size=20) -> Dict:
+    def update_denormalised_balances(self, mutated_addresses: set) -> dict:
+        """Update the quick read table for the current balance of a token holder."""
+        result = {}
+
+        self.logger.debug("Recalculating final token balances on token %s for %d addresses", self.address, len(mutated_addresses))
+        for mutated_address in mutated_addresses:
+            balance_now, last_updated_block, last_block_updated_at = self.calculate_sum_from_deltas(mutated_address)
+            last_balance = self.get_or_create_last_balance(mutated_address)
+            last_balance.set_balance_uint(balance_now)
+            last_balance.last_updated_block = last_updated_block
+            last_balance.last_block_updated_at = last_block_updated_at
+
+            result[mutated_address] = balance_now
+
+        return result
+
+    def scan(self, start_block, end_block, chunk_size=20) -> dict:
         """Perform a token balances scan.
 
         Assumes all balances in the database are valid before start_block (no forks sneaked in).
@@ -126,26 +214,17 @@ class TokenScanner:
         updated_token_holders = set()  # Token holders that get updates
 
         # Scan in chunks, commit between
-        while current_block <= end_block:
-            current_end = current_block + chunk_size
+        while current_block < end_block:
+            current_end = min(current_block + chunk_size, end_block)
 
+            self.logger.debug("Scanning token transfers for blocks: %d - %d", current_block, current_end)
             mutated_addresses = self.scan_chunk(current_block, current_end)
-            updated_token_holders.add(mutated_addresses)
+            updated_token_holders.update(mutated_addresses)
 
             self.dbsession.commit()  # Update database on the disk
             current_block = current_end
 
-        result = {}
-
-        # Update the final balances
-        for mutated_address in mutated_addresses:
-            balance_now, last_updated_block, last_block_updated_at = self.calculate_sum_from_deltas(mutated_addresses)
-            last_balance = self.get_or_create_last_balance(mutated_address)
-            last_balance.set_balance_uint(balance_now)
-            last_balance.end_block = last_updated_block
-            last_balance.end_block_timestamp = last_block_updated_at
-            result[mutated_addresses] = balance_now
-
+        result = self.update_denormalised_balances(mutated_addresses)
         self.dbsession.commit()  # Write latest balances
         return result
 

@@ -43,10 +43,13 @@ def network(web3_test_provider):
     return "testing"
 
 
-@pytest.fixture
-def logger():
-    logging.basicConfig(stream=sys.stderr, level=logging.INFO)
-    return logging.getLogger()
+@pytest.fixture()
+def logger(caplog):
+    # caplog is pytest built in fixtur
+    # https://docs.pytest.org/en/latest/logging.html
+    caplog.set_level(logging.INFO)
+    logger = logging.getLogger()
+    return logger
 
 
 @pytest.fixture

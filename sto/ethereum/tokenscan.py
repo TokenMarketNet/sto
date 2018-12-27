@@ -22,6 +22,6 @@ def token_scan(logger: Logger,
 
     web3 = create_web3(ethereum_node_url)
 
-    scanner = TokenScanner(network, dbsession, web3, abi, token_address, TokenScanStatus, TokenHolderDelta, TokenHolderLastBalance)
+    scanner = TokenScanner(logger, network, dbsession, web3, abi, token_address, TokenScanStatus, TokenHolderDelta, TokenHolderLastBalance)
     result = scanner.scan(start_block, end_block)
     return result
