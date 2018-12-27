@@ -1,9 +1,22 @@
-Install
-=======
+Installation
+============
 
-Security token interaction happens through a command line `sto` command that connects to an Ethereum network node and a local database. This command is written in Python.
+Security token interaction happens through a command line `sto` command that connects to an Ethereum network node and a local database. `sto` command is automatically installed via Docker.
 
 .. contents:: :local:
+
+Requirements
+------------
+
+Skills needed
+
+* Command line usage experience
+
+Software or services needed
+
+* Ethereum node, for example a local Parity installation or Infura-node-as-a-service - see :doc:`how to install <setup>`
+
+* Docker
 
 Normal users
 ------------
@@ -36,6 +49,8 @@ Docker will automatically pull an image from Docker registry for your local comp
 
 .. image:: https://github.com/TokenMarketNet/sto/raw/master/docs/source/screenshots/help.png
     :width: 500 px
+
+After installing see :doc:`how to set up the software <setup>`.
 
 Windows
 ~~~~~~~

@@ -24,8 +24,15 @@ New to tokens and securities? `Read an introduction for security tokens <https:/
    :maxdepth: 1
    :caption: Contents
 
+   features
    install
    setup
+   issuance
+   broadcast
+   token-summary
+   distribute
+   etherscan
+   dev
 
 Links
 =====

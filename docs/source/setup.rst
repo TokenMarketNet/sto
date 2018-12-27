@@ -45,7 +45,9 @@ This will give you a new raw private key and related Ethereum address to play wi
     Account address: 0xDE5bC059aA433D72F25846bdFfe96434b406FA85
     Account private key: 3fac35a57e1e2867290ae37d54c5de61d52644b42819ce6af0c5a9c25f4c...
 
-Now create a file `myconfig.ini` and add the content::
+Now create a file `myconfig.ini` and add the content:
+
+.. code-block:: ini
 
     # Your personal configuration file as we told you on Github example
 
