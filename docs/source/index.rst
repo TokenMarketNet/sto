@@ -39,7 +39,7 @@ Links
 
 `Github issue tracker and source code <https://github.com/tokenmarketnet/sto>`_
 
-`Documentation <https://sto.readthedocs.io/en/latest/>`_
+`Documentation <https://security-token.readthedocs.io/en/latest/>`_
 
 `Docker releases <https://hub.docker.com/r/miohtama/sto/>`_
 
