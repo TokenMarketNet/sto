@@ -2,6 +2,7 @@
 import logging
 import sys
 
+import os
 import pytest
 from eth_utils import to_wei
 from sqlalchemy import create_engine
@@ -37,9 +38,21 @@ def web3(web3_test_provider):
 
 
 @pytest.fixture
+def network(web3_test_provider):
+    """Network name to be used in database when run against in-memory test chain."""
+    return "testing"
+
+
+@pytest.fixture
 def logger():
     logging.basicConfig(stream=sys.stderr, level=logging.INFO)
     return logging.getLogger()
+
+
+@pytest.fixture
+def sample_csv_file():
+    """Sample distribution file for tokens."""
+    return os.path.join(os.path.dirname(__file__), "..", "docs", "source", "example-distribution.csv")
 
 
 @pytest.fixture

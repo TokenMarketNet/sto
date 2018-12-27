@@ -16,12 +16,9 @@ from .tokenscan import _TokenScanStatus, _TokenHolderDelta, _TokenHolderLastBala
 Base = declarative_base()
 
 
-#
-# We have split up models to two separate files without base to ensure they can reused across different Python projects
-#
-
 class BroadcastAccount(_BroadcastAccount, Base):
     pass
+
 
 class PreparedTransaction(_PreparedTransaction, Base):
 
@@ -33,14 +30,13 @@ class PreparedTransaction(_PreparedTransaction, Base):
                                         single_parent=True, ), )
 
 
-
 class TokenScanStatus(_TokenScanStatus, Base):
     pass
 
 
-class _TokenHolderDelta(_TokenHolderStatus, Base):
+class TokenHolderDelta(_TokenHolderDelta, Base):
 
-    token_id = sa.Column(sa.ForeignKey("token_scan_status.id"), nullable=True)
+    token_id = sa.Column(sa.ForeignKey("token_scan_status.id"), nullable=False)
     token = orm.relationship(TokenScanStatus,
                         backref=orm.backref("holder_deltas",
                                         lazy="dynamic",
@@ -48,9 +44,9 @@ class _TokenHolderDelta(_TokenHolderStatus, Base):
                                         single_parent=True, ), )
 
 
-class _TokenHolderLastBalance(_TokenHolderLastBalance, Base):
+class TokenHolderLastBalance(_TokenHolderLastBalance, Base):
 
-    token_id = sa.Column(sa.ForeignKey("token_scan_status.id"), nullable=True)
+    token_id = sa.Column(sa.ForeignKey("token_scan_status.id"), nullable=False)
     token = orm.relationship(TokenScanStatus,
                         backref=orm.backref("balances",
                                         lazy="dynamic",

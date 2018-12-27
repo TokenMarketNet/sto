@@ -10,12 +10,6 @@ from sto.ethereum.status import update_status
 from sto.models.broadcastaccount import _PreparedTransaction
 
 
-
-@pytest.fixture
-def sample_csv_file():
-    return os.path.join(os.path.dirname(__file__), "..", "..", "docs", "source", "example-distribution.csv")
-
-
 def test_issuance(logger, dbsession, web3, private_key_hex):
     """Walk through issuance process from top to bottom"""
 

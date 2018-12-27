@@ -48,11 +48,11 @@ class _TokenHolderDelta(TimeStampedBaseModel):
     #: First block that was scanned (usually when the contract was deployed)
     block_num = sa.Column(sa.Integer, nullable=True)
 
-    #: Order of this event within the block, as one block may trigger multiple events
-    block_internal_order = sa.Column(sa.Integer, nullaxle=True)
-
     #: Give us direct link to this transaction
     txid = sa.Column(sa.String(256), nullable=True, unique=False)
+
+    #: Order of this event within the block, as one transaction may trigger multiple Transfer events
+    tx_internal_order = sa.Column(sa.Integer, nullable=True)
 
     #: Raw uint256 data
     raw_delta = sa.Column(sa.Binary(32), nullable=True, unique=False)
@@ -61,9 +61,10 @@ class _TokenHolderDelta(TimeStampedBaseModel):
         """Return the delta as Python unlimited integer."""
         return int(hexlify(self.raw_delta), 16)
 
-    def set_delta_uint(self, val):
+    def set_delta_uint(self, val: int):
         """Return the delta as Python """
-        b = val.to_bytes(8, byteorder="big")
+        assert type(val) == int
+        b = val.to_bytes(32, byteorder="big")
         self.raw_delta = b
 
 
@@ -71,16 +72,16 @@ class _TokenHolderLastBalance(TimeStampedBaseModel):
     """Hold the information of which blocks we have scanned for a certain token.
     """
 
-    __tablename__ = "token_scan_status"
+    __tablename__ = "token_holder_last_balance"
 
     #: Address of the token contract, as hex string 0x00000
     address = sa.Column(sa.String(256), nullable=False, unique=False)
 
-    #: End block
-    last_updated_block = sa.Column(sa.Integer, nullable=True)
-
     #: Raw uint256 data
     raw_balance = sa.Column(sa.Binary(32), nullable=True, unique=False)
+
+    #: End block
+    last_updated_block = sa.Column(sa.Integer, nullable=True)
 
     #: When the end block was timestamped
     last_block_updated_at = sa.Column(sa.DateTime, nullable=True)
@@ -89,7 +90,8 @@ class _TokenHolderLastBalance(TimeStampedBaseModel):
         """Return the delta as Python unlimited integer."""
         return int(hexlify(self.raw_balance), 16)
 
-    def set_balance_uint(self, val):
+    def set_balance_uint(self, val: int):
         """Return the delta as Python """
-        b = val.to_bytes(8, byteorder="big")
+        assert type(val) == int
+        b = val.to_bytes(32, byteorder="big")
         self.raw_balance = b
