@@ -31,7 +31,18 @@ class TokenScanner:
         # SQLAlchemy models, allow caller to supply their own
         self.TokenScanStatus = TokenScanStatus  #: type sto.models.implementation.TokenScanStatus
         self.TokenHolderDelta = TokenHolderDelta #: type sto.models.implementation.TokenHolderDelta
-        self.TokenHolderLastBalance = TokenHolderLastBalance #: type sto.models.implementation.TokenHolderLastBalance
+        self.TokenHolderLastBalance = TokenHolderLastBalance #: type sto.models.implementation.TokenHolderLastBalance]
+
+        # What is the minimim
+        self.min_scan_chunk_size = 10 # 12 s/block = 120 seconds period
+        self.max_scan_chunk_size = 500000
+
+        # Factor how fast we increase the chunk size if results are found
+        # # (slow down scan after starting to get hits)
+        self.chunk_size_decrease = 0.5
+
+        # Factor how was we increase chunk size if no results found
+        self.chunk_size_increase = 20.0
 
     @property
     def address(self):
@@ -224,7 +235,30 @@ class TokenScanner:
 
         return result
 
-    def scan(self, start_block, end_block, chunk_size=20) -> dict:
+    def estimate_next_chunk_size(self, current_chuck_size: int, event_found_count: int):
+        """Try to figure out optimal chunk size
+
+        Our scanner might need to scan the whole blockchain for all events
+
+        * We want to minimize API calls over empty blocks
+
+        * We want to make sure that one scan chunk does not try to process too many entries once, as we try to control commit buffer size and potentially asynchronous busy loop
+
+        * Do not overload node serving JSON-RPC API
+
+        This heurestics exponentiallt increases and decreases the scan chunk size depending on if we are seeing events or not.
+        """
+
+        if event_found_count:
+            current_chuck_size *= self.chunk_size_increase
+        else:
+            current_chuck_size *= self.chunk_size_decrease
+
+        current_chuck_size = max(self.min_scan_chunk_size, current_chuck_size)
+        current_chuck_size = min(self.max_scan_chunk_size, current_chuck_size)
+        return current_chuck_size
+
+    def scan(self, start_block, end_block, start_chunk_size=20) -> dict:
         """Perform a token balances scan.
 
         Assumes all balances in the database are valid before start_block (no forks sneaked in).
@@ -244,15 +278,20 @@ class TokenScanner:
         updated_token_holders = set()  # Token holders that get updates
 
         # Scan in chunks, commit between
+        chunk_size = start_chunk_size
+        mutated_addresses = set()
         while current_block <= end_block:
+
             current_end = min(current_block + chunk_size, end_block)
 
-            self.logger.debug("Scanning token transfers for blocks: %d - %d", current_block, current_end)
+            self.logger.debug("Scanning token transfers for blocks: %d - %d, chunk size %d", current_block, current_end, chunk_size)
             mutated_addresses = self.scan_chunk(current_block, current_end)
             updated_token_holders.update(mutated_addresses)
 
             self.dbsession.commit()  # Update database on the disk
             current_block = current_end + 1
+
+            chunk_size = self.estimate_next_chunk_size(chunk_size, len(mutated_addresses))
 
         result = self.update_denormalised_balances(mutated_addresses)
 
