@@ -7,6 +7,7 @@ from typing import Set, Dict, Tuple
 from web3 import Web3
 from web3.contract import Contract
 
+from sto.ethereum.utils import getLogs
 from sto.models.tokenscan import _TokenHolderLastBalance, _TokenScanStatus
 
 
@@ -180,7 +181,9 @@ class TokenScanner:
 
         for event_type in [Issued, Transfer]:
 
-            events = event_type.createFilter(fromBlock=start_block, toBlock=end_block).get_all_entries()
+            # events = event_type.createFilter(fromBlock=start_block, toBlock=end_block).get_all_entries()
+
+            events = getLogs(event_type, fromBlock=start_block, toBlock=end_block)
 
             # AttributeDict({'args': AttributeDict({'from': '0xDE5bC059aA433D72F25846bdFfe96434b406FA85', 'to': '0x0bdcc26C4B8077374ba9DB82164B77d6885b92a6', 'value': 300000000000000000000}), 'event': 'Transfer', 'logIndex': 0, 'transactionIndex': 0, 'transactionHash': HexBytes('0x973eb270e311c23dd6173a9092c9ad4ee8f3fe24627b43c7ad75dc2dadfcbdf9'), 'address': '0x890042E3d93aC10A426c7ac9e96ED6416B0cC616', 'blockHash': HexBytes('0x779f55173414a7c0df0d9fc0ab3fec461a66ceeee0b4058e495d98830c92abf8'), 'blockNumber': 7})
             for e in events:

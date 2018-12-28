@@ -1,4 +1,3 @@
-import binascii
 import json
 import os
 
@@ -9,7 +8,8 @@ from eth_abi import encode_abi
 from web3 import Web3, HTTPProvider
 from web3.contract import Contract
 from web3.utils.abi import get_constructor_abi, merge_args_and_kwargs
-from web3.utils.normalizers import normalize_address
+from web3.utils.events import get_event_data
+from web3.utils.filters import construct_event_filter_params
 from eth_utils import keccak, to_checksum_address, to_bytes, is_hex_address, is_checksum_address
 from web3.utils.contracts import encode_abi
 
@@ -113,3 +113,52 @@ def get_constructor_arguments(contract: Contract, args: Optional[list]=None, kwa
         # TODO: Looks like recent Web3.py ABI change
         deploy_data = encode_abi(contract.web3, constructor_abi, arguments)
         return deploy_data
+
+
+
+def getLogs(self,
+    argument_filters=None,
+    fromBlock=None,
+    toBlock="latest",
+    address=None,
+    topics=None):
+    """Get events using eth_getLogs API.
+
+    This is a stateless method and can be safely called against nodes which do not provide eth_newFilter API, like Infura.
+
+    :param argument_filters:
+    :param fromBlock:
+    :param toBlock:
+    :param address:
+    :param topics:
+    :return:
+    """
+
+    if fromBlock is None:
+        raise TypeError("Missing mandatory keyword argument to createFilter: fromBlock")
+
+    abi = self._get_event_abi()
+
+    argument_filters = dict()
+
+    _filters = dict(**argument_filters)
+
+    data_filter_set, event_filter_params = construct_event_filter_params(
+        abi,
+        contract_address=self.address,
+        argument_filters=_filters,
+        fromBlock=fromBlock,
+        toBlock=toBlock,
+        address=address,
+        topics=topics,
+    )
+
+    # Convert raw binary data to Python proxy objects as described by ABI
+    logs = self.web3.eth.getLogs(event_filter_params)
+    # log_data_extract_fn = functools.partial(get_event_data, self._get_event_abi())
+    for entry in logs:
+        yield get_event_data(abi, entry)
+
+
+
+

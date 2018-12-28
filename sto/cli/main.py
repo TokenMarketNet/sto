@@ -140,6 +140,28 @@ def issue(config: BoardCommmadConfiguration, symbol, name, amount, transfer_rest
     logger.info("Run %ssto tx-broadcast%s to write this to blockchain", colorama.Fore.LIGHTCYAN_EX, colorama.Fore.RESET)
 
 
+@cli.command(name="issue-logs")
+@click.pass_obj
+def past_issuances(config: BoardCommmadConfiguration):
+    """Print out transactions of for tokens issued in the past."""
+
+    logger = config.logger
+
+    from sto.ethereum.issuance import past_issuances
+
+    dbsession = config.dbsession
+
+    txs = list(past_issuances(config, dbsession))
+
+    if txs:
+        from sto.ethereum.txservice import EthereumStoredTXService
+        EthereumStoredTXService.print_transactions(txs)
+        logger.info("See column %sto%s for token contract addresses", colorama.Fore.LIGHTCYAN_EX, colorama.Fore.RESET)
+    else:
+        logger.info("No issuances")
+
+
+
 @cli.command(name="token-status")
 @click.option('--address', required=True, help="Token contract addrss")
 @click.pass_obj
@@ -433,30 +455,65 @@ def next_nonce(config: BoardCommmadConfiguration):
 
 
 @cli.command(name="token-scan")
-@click.option('--start-block-num', required=False, help="The first block where we start (re)scan", default=0)
-@click.option('--end-block-num', required=False, help="Until which block we scan, also can be 'latest'", default="latest")
-@click.option('--token-address', required=True, help="Token contract address", default="latest")
+@click.option('--start-block', required=False, help="The first block where we start (re)scan", default=1)
+@click.option('--end-block', required=False, help="Until which block we scan, also can be 'latest'", default=None)
+@click.option('--token-address', required=True, help="Token contract address", default=None)
 @click.pass_obj
-def token_scan(config: BoardCommmadConfiguration):
-    """Scan all t."""
+def token_scan(config: BoardCommmadConfiguration, token_address, start_block, end_block):
+    """Update token holder balances from a blockhain to a local database.
+
+    If start block and end block information are omited, continue the scan where we were left last time.
+    """
 
     assert is_ethereum_network(config.network)
 
     logger = config.logger
 
-    from sto.ethereum.nonce import next_nonce
+    from sto.ethereum.tokenscan import token_scan
 
     dbsession = config.dbsession
 
-    txs = next_nonce(logger,
+    updated_addresses = token_scan(logger,
                           dbsession,
                           config.network,
                           ethereum_node_url=config.ethereum_node_url,
-                          ethereum_private_key=config.ethereum_private_key,
-                          ethereum_gas_limit=config.ethereum_gas_limit,
-                          ethereum_gas_price=config.ethereum_gas_price)
+                          ethereum_abi_file=config.ethereum_abi_file,
+                          token_address=token_address,
+                          start_block=start_block,
+                          end_block=end_block)
+
+    logger.info("Updated %d token holder balances", len(updated_addresses))
 
 
+@cli.command(name="cap-table")
+@click.option('--identity-csv-file', required=False, help="The first block where we start (re)scan", default=None)
+@click.option('--token-address', required=True, help="Token contract address", default=None)
+@click.option('--sort-order', required=False, help="How cap table is sorted", default=None, type=click.Choice(['amount', 'name', 'address']))
+@click.pass_obj
+def cap_table(config: BoardCommmadConfiguration, token_address, start_block, end_block):
+    """Print out token holder cap table.
+
+    The token holder data must have been scanned earlier using token-scan command.
+
+    You can supply optional CSV file that contains Ethereum address mappings to individual token holder names.
+    """
+
+    assert is_ethereum_network(config.network)
+
+    logger = config.logger
+
+    from sto.ethereum.tokenscan import token_scan
+
+    dbsession = config.dbsession
+
+    updated_addresses = token_scan(logger,
+                          dbsession,
+                          config.network,
+                          ethereum_node_url=config.ethereum_node_url,
+                          ethereum_abi_file=config.ethereum_abi_file,
+                          token_address=token_address,
+                          start_block=start_block,
+                          end_block=end_block)
 
 def main():
     # https://github.com/pallets/click/issues/204#issuecomment-270012917

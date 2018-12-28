@@ -13,7 +13,7 @@ from sto.ethereum.exceptions import BadContractException
 
 from sto.models.implementation import BroadcastAccount, PreparedTransaction
 from sqlalchemy.orm import Session
-from typing import Union, Optional
+from typing import Union, Optional, List, Iterable
 from web3 import Web3
 from web3.exceptions import BadFunctionCallOutput
 
@@ -154,3 +154,13 @@ def verify_source_code(logger: Logger,
         dbsession.commit()  # Try to minimise file system sync issues
 
     return unverified_txs
+
+
+def past_issuances(logger: Logger, dbsession: Session) -> Iterable[PreparedTransaction]:
+    """Get list of past issuances."""
+
+    txs = dbsession.query(PreparedTransaction).filter_by(contract_deployment=True)
+    for tx in txs:
+        if tx.is_token_contract_deployment():
+            yield tx
+

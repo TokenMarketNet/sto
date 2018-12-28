@@ -1,4 +1,4 @@
-A tool and Python API for issuing out and managing out security tokens.
+A tool and Python library for issuing out and integrating security tokens.
 
 
 .. image:: https://badges.gitter.im/TokenMarketNet/sto.svg
@@ -31,7 +31,7 @@ This is a command line tool and Python library to manage and integrate security 
 
 * Delivering voting ballots
 
-In theory the APIs are backend neutral, but only EVM compatible chains are supported at the moment.
+The command line tool is locally installed via Docker and available for Windows, OSX and Linux.
 
 Get started
 ===========

@@ -23,7 +23,7 @@ Example how to import CSV. `We use an example file from the source code reposito
     curl -O https://github.com/TokenMarketNet/sto/raw/master/docs/source/example-distribution.csv
 
     # Your token contract address goes here
-    sto --config-file=myconfig.ini distribute --csv-input=example-distribution.csv --address==0x....
+    sto --config-file=myconfig.ini distribute-multiple --csv-input=example-distribution.csv --address==0x....
 
 This should output::
 

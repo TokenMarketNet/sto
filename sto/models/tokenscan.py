@@ -117,7 +117,10 @@ class _TokenHolderLastBalance(TimeStampedBaseModel):
     address = sa.Column(sa.String(256), nullable=False, unique=False)
 
     #: Raw uint256 data
-    raw_balance = sa.Column(sa.Binary(32), nullable=True, unique=False)
+    raw_balance = sa.Column(sa.Binary(32), nullable=False, unique=False)
+
+    #: SQLite hack to be able to sort balances
+    sortable_balance = sa.Column(sa.Integer, nullable=False)
 
     #: Because sqlite cannot query uint256, we have this hack to query zero balances
     empty = sa.Column(sa.Boolean, nullable=False)
@@ -145,3 +148,6 @@ class _TokenHolderLastBalance(TimeStampedBaseModel):
             self.empty = False
         else:
             self.empty = True
+
+        # Assume 18 decimals, get only top 64 bits
+        self.sortable_balance = val >> 192

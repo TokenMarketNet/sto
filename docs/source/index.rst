@@ -18,6 +18,8 @@ This is a documentation for `Security token tool <https://github.com/tokenmarket
 
 * Maintaining audit logs of delivered actions
 
+The command line tool is locally installed via Docker and available for Windows, OSX and Linux.
+
 New to tokens and securities? `Read an introduction for security tokens <https://tokenmarket.net/news/security-tokens/what-are-security-tokens/>`_
 
 .. toctree::
@@ -31,6 +33,7 @@ New to tokens and securities? `Read an introduction for security tokens <https:/
    broadcast
    token-summary
    distribute
+   scanner
    etherscan
    dev
 

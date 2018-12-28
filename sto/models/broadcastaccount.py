@@ -172,3 +172,10 @@ class _PreparedTransaction(TimeStampedBaseModel):
         self.other_data["constructor_arguments"] = val
         flag_modified(self, "other_data")
 
+    def is_token_contract_deployment(self) -> bool:
+        """Is this transaction to deploy a token contract.
+
+        To separate for deploying transfer agents, etc. other smart contracts.
+        """
+        return self.contract_name in ("SecurityToken",)
+
