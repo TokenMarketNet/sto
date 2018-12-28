@@ -1,4 +1,5 @@
 import datetime
+import time
 from logging import Logger
 
 from eth_utils import to_checksum_address
@@ -247,9 +248,10 @@ class TokenScanner:
         * Do not overload node serving JSON-RPC API
 
         This heurestics exponentiallt increases and decreases the scan chunk size depending on if we are seeing events or not.
+        It does not make sense to do a full chain scan starting from block 1, doing one JSON-RPC call per 20 blocks.
         """
 
-        if event_found_count:
+        if event_found_count > 0:
             current_chuck_size *= self.chunk_size_increase
         else:
             current_chuck_size *= self.chunk_size_decrease
@@ -280,12 +282,17 @@ class TokenScanner:
         # Scan in chunks, commit between
         chunk_size = start_chunk_size
         mutated_addresses = set()
+        last_scan_duration = 0
         while current_block <= end_block:
 
             current_end = min(current_block + chunk_size, end_block)
 
-            self.logger.debug("Scanning token transfers for blocks: %d - %d, chunk size %d", current_block, current_end, chunk_size)
+            # Print some diagnostics to logs to try to fiddle with real world JSON-RPC API performance
+            self.logger.debug("Scanning token transfers for blocks: %d - %d, chunk size %d, last chunk scan took %f", current_block, current_end, chunk_size, last_scan_duration)
+            start = time.time()
             mutated_addresses = self.scan_chunk(current_block, current_end)
+            last_scan_duration = time.time() - start
+
             updated_token_holders.update(mutated_addresses)
 
             self.dbsession.commit()  # Update database on the disk

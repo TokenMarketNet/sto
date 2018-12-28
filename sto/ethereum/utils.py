@@ -115,7 +115,6 @@ def get_constructor_arguments(contract: Contract, args: Optional[list]=None, kwa
         return deploy_data
 
 
-
 def getLogs(self,
     argument_filters=None,
     fromBlock=None,
@@ -124,7 +123,8 @@ def getLogs(self,
     topics=None):
     """Get events using eth_getLogs API.
 
-    This is a stateless method and can be safely called against nodes which do not provide eth_newFilter API, like Infura.
+    This is a stateless method, as opposite to createFilter.
+    It can be safely called against nodes which do not provide eth_newFilter API, like Infura.
 
     :param argument_filters:
     :param fromBlock:
@@ -135,7 +135,7 @@ def getLogs(self,
     """
 
     if fromBlock is None:
-        raise TypeError("Missing mandatory keyword argument to createFilter: fromBlock")
+        raise TypeError("Missing mandatory keyword argument to getLogs: fromBlock")
 
     abi = self._get_event_abi()
 
@@ -143,6 +143,8 @@ def getLogs(self,
 
     _filters = dict(**argument_filters)
 
+    # Construct JSON-RPC raw filter presentation based on human readable Python descriptions
+    # Namely, convert event names to their keccak signatures
     data_filter_set, event_filter_params = construct_event_filter_params(
         abi,
         contract_address=self.address,
@@ -153,9 +155,10 @@ def getLogs(self,
         topics=topics,
     )
 
-    # Convert raw binary data to Python proxy objects as described by ABI
+    # Call JSON-RPC API
     logs = self.web3.eth.getLogs(event_filter_params)
-    # log_data_extract_fn = functools.partial(get_event_data, self._get_event_abi())
+
+    # Convert raw binary data to Python proxy objects as described by ABI
     for entry in logs:
         yield get_event_data(abi, entry)
 

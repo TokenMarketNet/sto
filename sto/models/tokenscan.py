@@ -16,6 +16,9 @@ from binascii import hexlify
 from typing import Optional
 
 import sqlalchemy as sa
+from decimal import Decimal
+
+from sqlalchemy.orm import Query
 from sqlalchemy.orm.attributes import flag_modified
 
 from sto.models.utils import TimeStampedBaseModel
@@ -45,16 +48,18 @@ class _TokenScanStatus(TimeStampedBaseModel):
     #: All token balances are stored in raw amounts
     decimals = sa.Column(sa.Integer, nullable=False)
 
-    def get_total_token_holder_count(self, include_empty=False):
-        """How many addresses are/have been holding this token."""
+    def get_balances(self, include_empty=False) -> Query:
         q = self.balances
 
         if include_empty:
             pass
         else:
             q = q.filter_by(empty=False)
+        return q
 
-        return q.count()
+    def get_total_token_holder_count(self, include_empty=False):
+        """How many addresses are/have been holding this token."""
+        return self.get_balances(include_empty).count()
 
 
 class _TokenHolderDelta(TimeStampedBaseModel):
@@ -150,4 +155,8 @@ class _TokenHolderLastBalance(TimeStampedBaseModel):
             self.empty = True
 
         # Assume 18 decimals, get only top 64 bits
-        self.sortable_balance = val >> 192
+        self.sortable_balance = int(Decimal(val) / Decimal(10 ** 18))
+
+    def get_decimal_balance(self) -> Decimal:
+        """Get balance in human readable decimal fractions."""
+        return self.get_balance_uint() / Decimal(self.token.decimals * 10**18)
