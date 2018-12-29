@@ -43,14 +43,15 @@ Get started
 Links
 =====
 
-`Github issue tracker and source code <https://github.com/tokenmarketnet/sto>`_
+`TokenMarket website <https://tokenmarket.net>`_
 
 `Documentation <https://security-token.readthedocs.io/en/latest/>`_
+
+`Github Source code and issue tracker <https://github.com/tokenmarketnet/sto>`_
 
 `Docker releases <https://hub.docker.com/r/miohtama/sto/>`_
 
 `Python releases <https://pypi.org/project/sto/>`_
-
 
 
 

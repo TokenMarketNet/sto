@@ -34,15 +34,18 @@ New to tokens and securities? `Read an introduction for security tokens <https:/
    token-summary
    distribute
    scanner
+   captable
    etherscan
    dev
 
 Links
 =====
 
-`Github issue tracker and source code <https://github.com/tokenmarketnet/sto>`_
+`TokenMarket website <https://tokenmarket.net>`_
 
 `Documentation <https://security-token.readthedocs.io/en/latest/>`_
+
+`Github Source code and issue tracker <https://github.com/tokenmarketnet/sto>`_
 
 `Docker releases <https://hub.docker.com/r/miohtama/sto/>`_
 

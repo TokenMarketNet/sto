@@ -21,7 +21,7 @@ from decimal import Decimal
 from sqlalchemy.orm import Query
 from sqlalchemy.orm.attributes import flag_modified
 
-from sto.models.utils import TimeStampedBaseModel
+from sto.models.utils import TimeStampedBaseModel, UTCDateTime
 
 
 class _TokenScanStatus(TimeStampedBaseModel):
@@ -43,10 +43,19 @@ class _TokenScanStatus(TimeStampedBaseModel):
     end_block = sa.Column(sa.Integer, nullable=True)
 
     #: When the end block was timestamped
-    end_block_timestamp = sa.Column(sa.DateTime, nullable=True)
+    end_block_timestamp = sa.Column(UTCDateTime, nullable=True)
+
+    #: Token name
+    name = sa.Column(sa.String(256), nullable=True, unique=False)
+
+    #: Ticker symbol
+    symbol = sa.Column(sa.String(256), nullable=True, unique=False)
 
     #: All token balances are stored in raw amounts
-    decimals = sa.Column(sa.Integer, nullable=False)
+    decimals = sa.Column(sa.Integer, nullable=False, default=0)
+
+    #: Total supply, as stringified decimal
+    total_supply = sa.Column(sa.String(256), nullable=True, unique=False)
 
     def get_balances(self, include_empty=False) -> Query:
         q = self.balances
@@ -83,7 +92,7 @@ class _TokenHolderDelta(TimeStampedBaseModel):
     block_num = sa.Column(sa.Integer, nullable=True)
 
     #: When the block was timestamped
-    block_timestamped_at = sa.Column(sa.DateTime, nullable=True)
+    block_timestamped_at = sa.Column(UTCDateTime, nullable=True)
 
     #: Give us direct link to this transaction
     txid = sa.Column(sa.String(256), nullable=True, unique=False)
@@ -134,7 +143,7 @@ class _TokenHolderLastBalance(TimeStampedBaseModel):
     last_updated_block = sa.Column(sa.Integer, nullable=True)
 
     #: When the end block was timestamped
-    last_block_updated_at = sa.Column(sa.DateTime, nullable=True)
+    last_block_updated_at = sa.Column(UTCDateTime, nullable=True)
 
     def __str__(self):
         return "<Token:{}, holder:{}, updated at:{}, balance:{}>".format(self.token.address, self.address, self.last_updated_block, self.get_balance_uint())
@@ -159,4 +168,5 @@ class _TokenHolderLastBalance(TimeStampedBaseModel):
 
     def get_decimal_balance(self) -> Decimal:
         """Get balance in human readable decimal fractions."""
-        return self.get_balance_uint() / Decimal(self.token.decimals * 10**18)
+        raw_balance = self.get_balance_uint()
+        return Decimal(raw_balance) / (Decimal(10) ** Decimal(self.token.decimals))

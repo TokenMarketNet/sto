@@ -20,6 +20,10 @@ class UnknownConfiguredNetwork(Exception):
 
 
 class BoardCommmadConfiguration:
+    """All top level option switcs either read command line or INI
+
+    See ``main.cli()`` arguments for content.
+    """
 
     def __init__(self, **kwargs):
         # See cli() for descriptions of variables
@@ -60,6 +64,7 @@ INTRO_TEXT = """{}TokenMarket{} security token management tool.
 @click.option('--ethereum-private-key', required=False, help='Private key for the broadcasting account')
 @click.option('--etherscan-api-key', required=False, help='EtherScan API key used for the contract source code verification')
 @click.option('--log-level', default="INFO", help="Python logging level to tune the verbosity of the command")
+@click.option('--auto-restart-nonce', default=True, help="Automatically restart nonce for the deployment account if starting with a fresh database", type=bool)
 @click.pass_context
 def cli(ctx, config_file, **kwargs):
 
@@ -91,14 +96,27 @@ def cli(ctx, config_file, **kwargs):
     sa_logger = logging.getLogger("sqlalchemy")
     sa_logger.setLevel(logging.WARN)
 
+    # Print out the info
     dbfile = os.path.abspath(config.database_file)
-    config.dbsession = setup_database(logger, dbfile)
-    ctx.obj = config
-
     version = pkg_resources.require("sto")[0].version
-    copyright = "Copyright TokenMarket Ltd. 2018"
-    logger.info("STO tool, version %s - %s", version, copyright)
+    copyright = "Copyright TokenMarket Ltd. 2018 - 2019"
+    logger.info("STO tool, version %s%s%s - %s", colorama.Fore.LIGHTCYAN_EX, version, colorama.Fore.RESET, copyright)
     logger.info("Using database %s", dbfile)
+
+    config.dbsession, new_db = setup_database(logger, dbfile)
+    if new_db:
+        if config.auto_restart_nonce and config.ethereum_private_key:
+            logger.info("Automatically fetching the initial nonce for the deployment account from blockchain")
+            from sto.ethereum.nonce import restart_nonce
+            restart_nonce(logger,
+                          config.dbsession,
+                          config.network,
+                          ethereum_node_url=config.ethereum_node_url,
+                          ethereum_private_key=config.ethereum_private_key,
+                          ethereum_gas_limit=config.ethereum_gas_limit,
+                          ethereum_gas_price=config.ethereum_gas_price)
+
+    ctx.obj = config
 
 
 @cli.command()
@@ -424,13 +442,13 @@ def restart_nonce(config: BoardCommmadConfiguration):
 
     dbsession = config.dbsession
 
-    txs = restart_nonce(logger,
-                          dbsession,
-                          config.network,
-                          ethereum_node_url=config.ethereum_node_url,
-                          ethereum_private_key=config.ethereum_private_key,
-                          ethereum_gas_limit=config.ethereum_gas_limit,
-                          ethereum_gas_price=config.ethereum_gas_price)
+    restart_nonce(logger,
+          dbsession,
+          config.network,
+          ethereum_node_url=config.ethereum_node_url,
+          ethereum_private_key=config.ethereum_private_key,
+          ethereum_gas_limit=config.ethereum_gas_limit,
+          ethereum_gas_price=config.ethereum_gas_price)
 
 @cli.command(name="tx-next-nonce")
 @click.pass_obj
@@ -486,11 +504,15 @@ def token_scan(config: BoardCommmadConfiguration, token_address, start_block, en
 
 
 @cli.command(name="cap-table")
-@click.option('--identity-csv-file', required=False, help="The first block where we start (re)scan", default=None)
+@click.option('--identity-file', required=False, help="CSV file containing address real world identities", default=None)
 @click.option('--token-address', required=True, help="Token contract address", default=None)
-@click.option('--sort-order', required=False, help="How cap table is sorted", default=None, type=click.Choice(['amount', 'name', 'address']))
+@click.option('--order-by', required=False, help="How cap table is sorted", default="balance", type=click.Choice(["balance", "name", "updated", "address"]))
+@click.option('--order-direction', required=False, help="Sort direction", default="desc", type=click.Choice(["asc", "desc"]))
+@click.option('--include-empty', required=False, help="Sort direction", default=False, type=bool)
+@click.option('--max-entries', required=False, help="Print only first N entries", default=None, type=int)
+@click.option('--accuracy', required=False, help="How many decimals include in balance output", default=2, type=int)
 @click.pass_obj
-def cap_table(config: BoardCommmadConfiguration, token_address, start_block, end_block):
+def cap_table(config: BoardCommmadConfiguration, token_address, identity_file, order_by, order_direction, include_empty, max_entries, accuracy):
     """Print out token holder cap table.
 
     The token holder data must have been scanned earlier using token-scan command.
@@ -502,18 +524,30 @@ def cap_table(config: BoardCommmadConfiguration, token_address, start_block, end
 
     logger = config.logger
 
-    from sto.ethereum.tokenscan import token_scan
+    from sto.generic.captable import generate_cap_table, print_cap_table
+    from sto.identityprovider import read_csv, NullIdentityProvider, CSVIdentityProvider
+    from sto.models.implementation import TokenScanStatus, TokenHolderLastBalance
 
     dbsession = config.dbsession
 
-    updated_addresses = token_scan(logger,
+    if identity_file:
+        entries = read_csv(identity_file)
+        provider = CSVIdentityProvider(entries)
+    else:
+        provider = NullIdentityProvider()
+
+    cap_table = generate_cap_table(logger,
                           dbsession,
-                          config.network,
-                          ethereum_node_url=config.ethereum_node_url,
-                          ethereum_abi_file=config.ethereum_abi_file,
                           token_address=token_address,
-                          start_block=start_block,
-                          end_block=end_block)
+                          identity_provider=provider,
+                          order_by=order_by,
+                          order_direction=order_direction,
+                          include_empty=include_empty,
+                          TokenScanStatus=TokenScanStatus,
+                          TokenHolderLastBalance=TokenHolderLastBalance)
+
+    print_cap_table(cap_table, max_entries, accuracy)
+
 
 def main():
     # https://github.com/pallets/click/issues/204#issuecomment-270012917

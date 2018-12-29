@@ -8,7 +8,7 @@ Verifying contracts on EtherScan
 
 For example, you can see browse STO transactions easily:
 
-.. image:: https://github.com/TokenMarketNet/sto/raw/master/docs/source/screenshots/etherscan.png
+.. image:: screenshots/etherscan.png
     :width: 500 px
 
 To verify your contracts on EtherScan, you need to first ensure all contract deployement transactions are broadcasted and mined.

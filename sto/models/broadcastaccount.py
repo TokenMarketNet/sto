@@ -3,7 +3,7 @@ from typing import Optional
 import sqlalchemy as sa
 from sqlalchemy.orm.attributes import flag_modified
 
-from sto.models.utils import TimeStampedBaseModel
+from sto.models.utils import TimeStampedBaseModel, UTCDateTime
 
 
 class _BroadcastAccount(TimeStampedBaseModel):
@@ -63,14 +63,14 @@ class _PreparedTransaction(TimeStampedBaseModel):
     # gas_limit = sa.Column(sa.Numeric(60, 20), nullable=False, default=0)
 
     #: When we attempted this transaction was broadcasted to the network
-    broadcasted_at = sa.Column(sa.DateTime, default=None)
+    broadcasted_at = sa.Column(UTCDateTime, default=None)
 
     #: When was the last attempt to rebroadcast this transaction
     #: TODO: Not in use yet.
-    rebroadcasted_at = sa.Column(sa.DateTime, default=None)
+    rebroadcasted_at = sa.Column(UTCDateTime, default=None)
 
     #: When did we poll and received that the transaction was included in a block
-    result_fetched_at = sa.Column(sa.DateTime, default=None)
+    result_fetched_at = sa.Column(UTCDateTime, default=None)
 
     #: What was the resulting block where this transaction was included
     result_block_num = sa.Column(sa.Integer, default=None)
@@ -82,7 +82,7 @@ class _PreparedTransaction(TimeStampedBaseModel):
     result_transaction_reason = sa.Column(sa.String(256), default=None)
 
     #: When a contract deployment was verified at EtherScan
-    verified_at = sa.Column(sa.DateTime, default=None)
+    verified_at = sa.Column(UTCDateTime, default=None)
 
     #: Misc. transaction data - like ABI with source code information for verification, verification info
     other_data = sa.Column(sa.JSON, nullable=False, unique=False, default=dict)

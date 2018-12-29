@@ -2,11 +2,14 @@ import os
 
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
+from sqlalchemy.orm import Session
+from typing import Tuple
 
 from .models.implementation import Base
 
 
-def setup_database(logger, db_filename):
+def setup_database(logger, db_filename) -> Tuple[Session, bool]:
+    """Create new SQLite daabase and set up conneciton"""
 
     # https://docs.sqlalchemy.org/en/latest/dialects/sqlite.html
     url = "sqlite+pysqlite:///" + db_filename
@@ -16,10 +19,13 @@ def setup_database(logger, db_filename):
     if not os.path.exists(db_filename):
         logger.info("Initializing new database %s", db_filename)
         init_db(engine)
+        new = True
+    else:
+        new = False
 
     Session = sessionmaker(bind=engine)
     session = Session()
-    return session
+    return session, new
 
 
 def init_db(engine):

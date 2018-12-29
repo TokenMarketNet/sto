@@ -47,7 +47,7 @@ Then you can do:
 
 Docker will automatically pull an image from Docker registry for your local computer on the first run. We map port 8545 to the localhost as that is normal Ethereum JSON-RPC API.
 
-.. image:: https://github.com/TokenMarketNet/sto/raw/master/docs/source/screenshots/help.png
+.. image:: screenshots/help.png
     :width: 500 px
 
 After installing see :doc:`how to set up the software <setup>`.

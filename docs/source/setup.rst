@@ -14,7 +14,7 @@ Sign up for Infura (Option a)
 
 Get a **Kovan** node URL from your dashboard (use dropdown):
 
-.. image:: https://github.com/TokenMarketNet/sto/raw/master/docs/source/screenshots/infura.png
+.. image:: screenshots/infura.png
     :width: 500 px
 
 Install Parity (Option b)
@@ -77,5 +77,5 @@ Use `sto diagnose` command to check your account has balance and your Ethereum n
 
 This should output:
 
-.. image:: https://github.com/TokenMarketNet/sto/raw/master/docs/source/screenshots/diagnose.png
+.. image:: screenshots/diagnose.png
     :width: 500 px

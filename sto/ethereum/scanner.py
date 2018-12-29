@@ -2,9 +2,10 @@ import datetime
 import time
 from logging import Logger
 
+from decimal import Decimal
 from eth_utils import to_checksum_address
 from sqlalchemy.orm import Session
-from typing import Set, Dict, Tuple
+from typing import Set, Dict, Tuple, Optional, Callable
 from web3 import Web3
 from web3.contract import Contract
 
@@ -36,14 +37,17 @@ class TokenScanner:
 
         # What is the minimim
         self.min_scan_chunk_size = 10 # 12 s/block = 120 seconds period
-        self.max_scan_chunk_size = 500000
+
+        # This should not exceed the reply size where Infura timeouts when it tries to dump
+        # Tranfer events over this many blocks
+        self.max_scan_chunk_size = 10000
 
         # Factor how fast we increase the chunk size if results are found
         # # (slow down scan after starting to get hits)
         self.chunk_size_decrease = 0.5
 
         # Factor how was we increase chunk size if no results found
-        self.chunk_size_increase = 20.0
+        self.chunk_size_increase = 5.0
 
     @property
     def address(self):
@@ -56,10 +60,19 @@ class TokenScanner:
         account = self.dbsession.query(self.TokenScanStatus).filter_by(network=self.network, address=self.address).one_or_none()
         if not account:
             account = self.TokenScanStatus(network=self.network, address=self.address)
-            account.decimals = self.get_token_contract_decimals(self.address)
             self.dbsession.add(account)
             self.dbsession.flush()
+
         return account
+
+    def update_token_info(self):
+        """Update token data."""
+        name, symbol, decimals, token_supply = self.get_token_contract_info(self.address)
+        status = self.get_or_create_status()
+        status.name = name
+        status.symbol = symbol
+        status.decimals = decimals
+        status.total_supply = str(Decimal(token_supply) / Decimal(10 ** decimals))
 
     def get_contract_proxy(self, contract_name: str, address: str) -> Contract:
         """Get web3.Contract to interact directly with the network"""
@@ -77,10 +90,10 @@ class TokenScanner:
     def get_token_contract(self, address) -> Contract:
         return self.get_contract_proxy("SecurityToken", address)
 
-    def get_token_contract_decimals(self, token_address) -> int:
+    def get_token_contract_info(self, token_address) -> [str, str, int, int]:
         """Ask token contract decimal amount using web3 and ABI."""
         contract = self.get_token_contract(token_address)
-        return contract.functions.decimals().call()
+        return [contract.functions.name().call(), contract.functions.symbol().call(), contract.functions.decimals().call(), contract.functions.totalSupply().call()]
 
     def get_block_timestamp(self, block_num) -> datetime.datetime:
         """Get Ethereum block timestamp"""
@@ -247,20 +260,23 @@ class TokenScanner:
 
         * Do not overload node serving JSON-RPC API
 
+        TODO: eth_getLogs does not provide meaningful way to get the block number when events start. Make a feature request. Somewhere.
+
         This heurestics exponentiallt increases and decreases the scan chunk size depending on if we are seeing events or not.
         It does not make sense to do a full chain scan starting from block 1, doing one JSON-RPC call per 20 blocks.
         """
 
         if event_found_count > 0:
-            current_chuck_size *= self.chunk_size_increase
+            # When we encounter first events then reset the chunk size window
+            current_chuck_size = self.min_scan_chunk_size
         else:
-            current_chuck_size *= self.chunk_size_decrease
+            current_chuck_size *= self.chunk_size_increase
 
         current_chuck_size = max(self.min_scan_chunk_size, current_chuck_size)
         current_chuck_size = min(self.max_scan_chunk_size, current_chuck_size)
-        return current_chuck_size
+        return int(current_chuck_size)
 
-    def scan(self, start_block, end_block, start_chunk_size=20) -> dict:
+    def scan(self, start_block, end_block, start_chunk_size=20, progress_callback=Optional[Callable]) -> dict:
         """Perform a token balances scan.
 
         Assumes all balances in the database are valid before start_block (no forks sneaked in).
@@ -275,6 +291,7 @@ class TokenScanner:
         assert start_block <= end_block
 
         self.drop_old_data(start_block)
+        self.update_token_info()
 
         current_block = start_block
         updated_token_holders = set()  # Token holders that get updates
@@ -282,21 +299,25 @@ class TokenScanner:
         # Scan in chunks, commit between
         chunk_size = start_chunk_size
         mutated_addresses = set()
-        last_scan_duration = 0
+        last_scan_duration = last_logs_found = 0
         while current_block <= end_block:
 
             current_end = min(current_block + chunk_size, end_block)
 
             # Print some diagnostics to logs to try to fiddle with real world JSON-RPC API performance
-            self.logger.debug("Scanning token transfers for blocks: %d - %d, chunk size %d, last chunk scan took %f", current_block, current_end, chunk_size, last_scan_duration)
+            self.logger.debug("Scanning token transfers for blocks: %d - %d, chunk size %d, last chunk scan took %f, last logs found %d", current_block, current_end, chunk_size, last_scan_duration, last_logs_found)
             start = time.time()
             mutated_addresses = self.scan_chunk(current_block, current_end)
             last_scan_duration = time.time() - start
+            last_logs_found = len(mutated_addresses)
 
             updated_token_holders.update(mutated_addresses)
 
             self.dbsession.commit()  # Update database on the disk
             current_block = current_end + 1
+
+            if progress_callback:
+                progress_callback(start_block, end_block, current_block, chunk_size)
 
             chunk_size = self.estimate_next_chunk_size(chunk_size, len(mutated_addresses))
 
@@ -308,6 +329,7 @@ class TokenScanner:
             status.start_block = start_block
 
         status.end_block = end_block
+        status.end_block_timestamp = self.get_block_timestamp(status.end_block)
 
         self.dbsession.commit()  # Write latest balances
 

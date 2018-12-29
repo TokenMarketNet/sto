@@ -1,3 +1,4 @@
+arrow==0.12.1
 asn1crypto==0.24.0
 atomicwrites==1.2.1
 attrdict==2.0.0
@@ -36,6 +37,7 @@ pycparser==2.19
 pycryptodome==3.7.2
 pyethash==0.1.27
 pytest==4.0.1
+python-dateutil==2.7.5
 requests==2.20.1
 rlp==1.0.3
 semantic-version==2.6.0

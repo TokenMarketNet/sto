@@ -18,6 +18,7 @@ requirements = [
     'tqdm',
     'configobj',
     'click',
+    'arrow',
 ]
 
 test_requirements = [

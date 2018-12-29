@@ -101,6 +101,9 @@
               <img src="{{ pathto('_static/logo_black.png', 1) }}" class="logo" alt="Logo"/>
             </a>
 
+            <p>Security token documentation</p>
+
+            {#
           {% if theme_display_version %}
             {%- set nav_version = version %}
             {% if READTHEDOCS and current_version %}
@@ -112,12 +115,9 @@
               </div>
             {% endif %}
           {% endif %}
+           #}
 
           {% include "searchbox.html" %}
-
-            <a href="https://tokenmarket.net">
-              www.tokenmarket.net
-            </a>
 
           {% endblock %}
         </div>

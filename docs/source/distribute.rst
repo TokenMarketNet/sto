@@ -30,3 +30,5 @@ This should output::
     Distribution created 2 new transactions and there was already 0 old transactions in the database
 
 Now you can broadcast your distribution transactions with ``sto tx-broadcast`` (see :doc:`broadcasting <broadcast>`).
+
+

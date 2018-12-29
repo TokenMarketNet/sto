@@ -81,7 +81,7 @@ class CSVIdentityProvider(IdentityProvider):
 
     def __init__(self, entries: List[IdentityEntry]):
         self.map = {}
-        for entry in entries
+        for entry in entries:
             self.map[entry.address] = entry
 
     def get_identity(self, address) -> Optional[IdentityEntry]:

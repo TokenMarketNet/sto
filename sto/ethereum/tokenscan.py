@@ -1,7 +1,10 @@
 from logging import Logger
 
+import colorama
 from sqlalchemy.orm import Session
 from typing import Optional
+
+from tqdm import tqdm
 
 from sto.ethereum.scanner import TokenScanner
 from sto.ethereum.utils import get_abi, create_web3
@@ -38,5 +41,15 @@ def token_scan(logger: Logger,
     if end_block is None:
         end_block = scanner.get_suggested_scan_end_block()
 
-    result = scanner.scan(start_block, end_block)
+    last_block = web3.eth.blockNumber
+    logger.info("Current last block for chain %s: %s%s%s", network, colorama.Fore.LIGHTGREEN_EX, last_block, colorama.Fore.RESET)
+
+    logger.info("Scanning blocks: %s%d%s - %s%d%s", colorama.Fore.LIGHTGREEN_EX, start_block, colorama.Fore.RESET, colorama.Fore.LIGHTGREEN_EX, end_block, colorama.Fore.RESET)
+    total = end_block - start_block
+    with tqdm(total=total) as progress_bar:
+        def _update_progress(start, end, current, chunk_size):
+            progress_bar.set_description("Scanning block: {}, batch size: {}".format(current, chunk_size))
+            progress_bar.update(chunk_size)
+
+        result = scanner.scan(start_block, end_block, progress_callback=_update_progress)
     return result
