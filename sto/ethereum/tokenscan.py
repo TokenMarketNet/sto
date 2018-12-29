@@ -9,7 +9,7 @@ from tqdm import tqdm
 from sto.ethereum.scanner import TokenScanner
 from sto.ethereum.utils import get_abi, create_web3
 
-from sto.models.implementation import TokenScanStatus, TokenHolderDelta,TokenHolderLastBalance
+from sto.models.implementation import TokenScanStatus, TokenHolderDelta,TokenHolderAccount
 
 
 def token_scan(logger: Logger,
@@ -33,7 +33,7 @@ def token_scan(logger: Logger,
 
     web3 = create_web3(ethereum_node_url)
 
-    scanner = TokenScanner(logger, network, dbsession, web3, abi, token_address, TokenScanStatus, TokenHolderDelta, TokenHolderLastBalance)
+    scanner = TokenScanner(logger, network, dbsession, web3, abi, token_address, TokenScanStatus, TokenHolderDelta, TokenHolderAccount)
 
     if start_block is None:
         start_block = scanner.get_suggested_scan_start_block()

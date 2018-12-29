@@ -12,10 +12,10 @@ class _BroadcastAccount(TimeStampedBaseModel):
     __tablename__ = "broadcast_account"
 
     #: Network name like "kovan", "ethereum"
-    network = sa.Column(sa.String(256), nullable=False, unique=False)
+    network = sa.Column(sa.String(256), nullable=False)
 
     #: Address of the account as hex string, like 0x000000
-    address = sa.Column(sa.String(256), nullable=False, unique=False)
+    address = sa.Column(sa.String(256), nullable=False)
 
     #: Currently available nonce to be allocated for the next transaction
     current_nonce = sa.Column(sa.Integer, default=0)
@@ -33,25 +33,25 @@ class _PreparedTransaction(TimeStampedBaseModel):
     nonce = sa.Column(sa.Integer, default=1)
 
     #: What is the corresponding transaction for this crypto transactions in other systems. Could be payment TXID or fiat receipt id in the case of purchasing shares. Under normal circumstances PreparedTransaction should not have duplicate external_ids but this may change under rebroadcast and other manual fix ups.
-    external_id = sa.Column(sa.String(256), nullable=True, unique=False)
+    external_id = sa.Column(sa.String(256), nullable=True)
 
     # Is this a contract deployment transaction
     contract_deployment = sa.Column(sa.Boolean, nullable=False, default=False)
 
     #: For diagnostics purpose
-    human_readable_description = sa.Column(sa.Text, nullable=False, unique=False)
+    human_readable_description = sa.Column(sa.Text, nullable=False)
 
     #: Address of the upcoming deployed contract or token contract address interacted with
-    contract_address = sa.Column(sa.String(256), nullable=True, unique=False)
+    contract_address = sa.Column(sa.String(256), nullable=True)
 
     #: Address of the account, like 0x000000, for benefactor who receives the tokens. Not applicable for contract deployments.
-    receiver = sa.Column(sa.String(256), nullable=True, unique=False)
+    receiver = sa.Column(sa.String(256), nullable=True)
 
     #: Raw payload of the transaction to be broadcasted
-    unsigned_payload = sa.Column(sa.JSON, nullable=False, unique=False)
+    unsigned_payload = sa.Column(sa.JSON, nullable=False)
 
     #: Precalculated transaction id
-    txid = sa.Column(sa.String(256), nullable=True, unique=False)
+    txid = sa.Column(sa.String(256), nullable=True)
 
     #: Value transferred in Ethereum transaction
     # value = sa.Column(sa.Numeric(60, 20), nullable=False, default=0)
@@ -85,7 +85,7 @@ class _PreparedTransaction(TimeStampedBaseModel):
     verified_at = sa.Column(UTCDateTime, default=None)
 
     #: Misc. transaction data - like ABI with source code information for verification, verification info
-    other_data = sa.Column(sa.JSON, nullable=False, unique=False, default=dict)
+    other_data = sa.Column(sa.JSON, nullable=False, default=dict)
 
     @property
     def gas_limit(self):

@@ -8,7 +8,7 @@ from sqlalchemy.orm import Session, Query
 from typing import Optional, List
 
 from sto.identityprovider import IdentityProvider
-from sto.models.implementation import TokenHolderLastBalance
+from sto.models.implementation import TokenHolderAccount
 from sto.models.tokenscan import _TokenScanStatus
 from sto.time import friendly_time
 
@@ -80,14 +80,14 @@ def generate_cap_table(logger: Logger,
               identity_provider: IdentityProvider,
               include_empty: bool,
               TokenScanStatus: type,
-              TokenHolderLastBalance: type,
+              TokenHolderAccount: type,
               no_name="<Unknown>") -> CapTableInfo:
     """Print out cap table.
 
     :param sort_order: "balance", "name", "updated", "address"
     :param include_empty: Include accounts that hold balance in the past
     :param TokenScanStatus: Token scan model used
-    :param TokenHolderLastBalance: Token balance model used
+    :param TokenHolderAccount: Token balance model used
     :return: List of CapTable entries
     """
 
@@ -95,7 +95,7 @@ def generate_cap_table(logger: Logger,
     if not status or status.end_block is None:
         raise NeedsTokenScan("No token holder balances available in the local database. Please run sto token-scan first.")
 
-    q = status.get_balances(include_empty)
+    q = status.get_accounts(include_empty)
 
     results = []
     total_balance = Decimal(0)

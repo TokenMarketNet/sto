@@ -526,7 +526,7 @@ def cap_table(config: BoardCommmadConfiguration, token_address, identity_file, o
 
     from sto.generic.captable import generate_cap_table, print_cap_table
     from sto.identityprovider import read_csv, NullIdentityProvider, CSVIdentityProvider
-    from sto.models.implementation import TokenScanStatus, TokenHolderLastBalance
+    from sto.models.implementation import TokenScanStatus, TokenHolderAccount
 
     dbsession = config.dbsession
 
@@ -544,7 +544,7 @@ def cap_table(config: BoardCommmadConfiguration, token_address, identity_file, o
                           order_direction=order_direction,
                           include_empty=include_empty,
                           TokenScanStatus=TokenScanStatus,
-                          TokenHolderLastBalance=TokenHolderLastBalance)
+                          TokenHolderAccount=TokenHolderAccount)
 
     print_cap_table(cap_table, max_entries, accuracy)
 

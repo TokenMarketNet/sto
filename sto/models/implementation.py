@@ -8,9 +8,8 @@ import sqlalchemy as sa
 from sqlalchemy import orm
 from sqlalchemy.ext.declarative import declarative_base
 
-from sto.models.utils import TimeStampedBaseModel
 from .broadcastaccount import _BroadcastAccount, _PreparedTransaction
-from .tokenscan import _TokenScanStatus, _TokenHolderDelta, _TokenHolderLastBalance
+from .tokenscan import _TokenScanStatus, _TokenHolderDelta, _TokenHolderAccount
 
 
 Base = declarative_base()
@@ -34,21 +33,23 @@ class TokenScanStatus(_TokenScanStatus, Base):
     pass
 
 
+class TokenHolderAccount(_TokenHolderAccount, Base):
+
+    token_id = sa.Column(sa.ForeignKey("token_scan_status.id"), nullable=False)
+    token = orm.relationship(TokenScanStatus,
+                        backref=orm.backref("accounts",
+                                        lazy="dynamic",
+                                        cascade="all, delete-orphan",
+                                        single_parent=True, ), )
+
+
 class TokenHolderDelta(_TokenHolderDelta, Base):
 
-    token_id = sa.Column(sa.ForeignKey("token_scan_status.id"), nullable=False)
-    token = orm.relationship(TokenScanStatus,
-                        backref=orm.backref("holder_deltas",
+    account_id = sa.Column(sa.ForeignKey("token_holder_account.id"), nullable=False)
+    account = orm.relationship(TokenHolderAccount,
+                        backref=orm.backref("deltas",
                                         lazy="dynamic",
                                         cascade="all, delete-orphan",
                                         single_parent=True, ), )
 
 
-class TokenHolderLastBalance(_TokenHolderLastBalance, Base):
-
-    token_id = sa.Column(sa.ForeignKey("token_scan_status.id"), nullable=False)
-    token = orm.relationship(TokenScanStatus,
-                        backref=orm.backref("balances",
-                                        lazy="dynamic",
-                                        cascade="all, delete-orphan",
-                                        single_parent=True, ), )

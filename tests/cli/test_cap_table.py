@@ -7,7 +7,7 @@ from sto.ethereum.issuance import deploy_token_contracts, contract_status
 from sto.ethereum.status import update_status
 from sto.ethereum.tokenscan import token_scan
 from sto.generic.captable import generate_cap_table, print_cap_table
-from sto.models.implementation import TokenScanStatus, TokenHolderLastBalance
+from sto.models.implementation import TokenScanStatus, TokenHolderAccount
 from sto.identityprovider import NullIdentityProvider
 
 
@@ -134,7 +134,7 @@ def test_cap_table_formats(logger, dbsession, network, scanned_distribution, web
                 order_direction=sort_direction,
                 include_empty=False,
                 TokenScanStatus=TokenScanStatus,
-                TokenHolderLastBalance=TokenHolderLastBalance,
+                TokenHolderAccount=TokenHolderAccount,
             )
 
 
@@ -150,12 +150,13 @@ def test_cap_table_printer(logger, dbsession, network, scanned_distribution, web
         token_address,
         order_by="balance",
         identity_provider=identity_provider,
+        include_empty=False,
         order_direction="desc",
         TokenScanStatus=TokenScanStatus,
-        TokenHolderLastBalance=TokenHolderLastBalance
+        TokenHolderAccount=TokenHolderAccount
         )
 
-    print_cap_table(table)
+    print_cap_table(table, max_entries=1000, accuracy=2)
 
 
 

@@ -218,14 +218,14 @@ def test_simple_token_balance_scan(logger, dbsession, network, sample_distributi
     assert token_status.network == "testing"
     assert token_status.get_total_token_holder_count() == 3
 
-    last_balance_a6 = token_status.balances.filter_by(address="0x0bdcc26C4B8077374ba9DB82164B77d6885b92a6").one()
+    last_balance_a6 = token_status.get_accounts().filter_by(address="0x0bdcc26C4B8077374ba9DB82164B77d6885b92a6").one()
     assert last_balance_a6.get_balance_uint() == 300 * 10**18
-    assert last_balance_a6.last_updated_block == 7
+    assert last_balance_a6.last_block_num == 7
     assert last_balance_a6.last_block_updated_at is not None
 
-    last_balance_d2 = token_status.balances.filter_by(address="0xE738f7A6Eb317b8B286c27296cD982445c9D8cd2").one()
+    last_balance_d2 = token_status.get_accounts().filter_by(address="0xE738f7A6Eb317b8B286c27296cD982445c9D8cd2").one()
     assert last_balance_d2.get_balance_uint() == 500 * 10**18
-    assert last_balance_d2.last_updated_block == 8
+    assert last_balance_d2.last_block_num == 8
     assert last_balance_d2.last_block_updated_at is not None
 
     # Rescan should be ok, yield to same results
