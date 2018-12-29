@@ -49,6 +49,8 @@ Links
 
 `Github Source code and issue tracker <https://github.com/tokenmarketnet/sto>`_
 
+`Support and chat <https://gitter.im/security-token/Lobby>`_
+
 `Docker releases <https://hub.docker.com/r/miohtama/sto/>`_
 
 `Python releases <https://pypi.org/project/sto/>`_

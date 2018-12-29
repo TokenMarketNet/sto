@@ -60,7 +60,7 @@ def sort_entries(entries: List[CapTableEntry], order_by: str, order_direction: s
     elif order_by == "updated":
         key = lambda entry: entry.updated_at
     elif order_by == "address":
-        key = lambda entry: entry.adderss
+        key = lambda entry: entry.address
     else:
         raise TypeError("Unknown sort order")
 
@@ -77,7 +77,7 @@ def generate_cap_table(logger: Logger,
               token_address: str,
               order_by: str,
               order_direction: str,
-              identity_provider: Optional[IdentityProvider],
+              identity_provider: IdentityProvider,
               include_empty: bool,
               TokenScanStatus: type,
               TokenHolderLastBalance: type,
