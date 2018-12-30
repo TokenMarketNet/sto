@@ -55,6 +55,8 @@ Links
 
 `Python releases <https://pypi.org/project/sto/>`_
 
+`Smart contracts repository <http://github.com/tokenmarketnet/ico>`_
+
 
 
 

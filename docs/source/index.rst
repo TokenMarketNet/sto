@@ -2,11 +2,15 @@
 Security token documentation
 ============================
 
-This is a documentation for `Security token tool <https://github.com/tokenmarketnet/sto>`_.
+Here is a documentation for TokenMarket Security Token.
 
-``sto`` open source project provides a command line tool and Python library to manage and integrate security tokens:
+``sto`` open source project provides a command line tool and Python library to manage and integrate security tokens.
 
-* Issue out new stock series
+Operations include e.g.
+
+* Issue out new stock series as security tokens
+
+* Distributing shares to primary market investors
 
 * Printing out cap table
 
@@ -26,7 +30,6 @@ New to tokens and securities? `Read an introduction for security tokens <https:/
    :maxdepth: 1
    :caption: Contents
 
-   features
    install
    setup
    issuance
@@ -36,6 +39,8 @@ New to tokens and securities? `Read an introduction for security tokens <https:/
    scanner
    captable
    etherscan
+   protocols
+   command-line-reference
    dev
 
 Links
@@ -52,5 +57,7 @@ Links
 `Docker releases <https://hub.docker.com/r/miohtama/sto/>`_
 
 `Python releases <https://pypi.org/project/sto/>`_
+
+`Smart contracts repository <http://github.com/tokenmarketnet/ico>`_
 
 

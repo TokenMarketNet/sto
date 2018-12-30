@@ -20,11 +20,15 @@ Get a **Kovan** node URL from your dashboard (use dropdown):
 Install Parity (Option b)
 -------------------------
 
-First `install Parity <https://wiki.parity.io/Setup>`_. For example on OSX using Brew package management::
+First `install Parity <https://wiki.parity.io/Setup>`_. For example on OSX using Brew package management:
+
+.. code-block:: console
 
     brew install parity
 
-Start Parity in another terminal and connect it to Kovan test network::
+Start Parity in another terminal and connect it to Kovan test network:
+
+.. code-block:: console
 
     parity --chain=kovan
 
@@ -33,13 +37,15 @@ Parity will now sync you to Kovan network using warp (fast mode). This will take
 Set up Ethereum account
 -----------------------
 
-To start playing with tokenised ahsers
+To start playing with tokenised shares we first need to create a new Ethereum account we use for management operations.
 
 Create an Ethereum account::
 
     sto --network=kovan ethereum-create-account
 
-This will give you a new raw private key and related Ethereum address to play with::
+This will give you a new raw private key and related Ethereum address to play with:
+
+.. code-block:: text
 
     Creating new Ethereum account.
     Account address: 0xDE5bC059aA433D72F25846bdFfe96434b406FA85
@@ -79,3 +85,6 @@ This should output:
 
 .. image:: screenshots/diagnose.png
     :width: 500 px
+
+Now your can proceed to :doc:`issue out your first play shares <issuance>`.
+

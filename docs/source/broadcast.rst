@@ -46,3 +46,8 @@ After a while repeating this command you should see all your transactions includ
 You can also enter TXID to `Kovan EtherScan explorer to see how your transactions are doing <http://kovan.etherscan.io/>`_ to check more information about your transactions.
 
 After you have get your transactions to Ethereum blockchain, see :doc:`how to view the token summary <token-summary>`.
+
+Further information
+-------------------
+
+See :ref:`tx-broadcast` or :ref:`tx-update` commands.

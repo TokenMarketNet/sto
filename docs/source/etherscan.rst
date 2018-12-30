@@ -13,11 +13,20 @@ For example, you can see browse STO transactions easily:
 
 To verify your contracts on EtherScan, you need to first ensure all contract deployement transactions are broadcasted and mined.
 
-Then add your EtherScan API key in ``myconfig.ini``::
+Then add your EtherScan API key in ``myconfig.ini``:
+
+.. code-block:: ini
 
     # Obtained after signing in to etherscan.io
     etherscan-api-key = T2JC4....
 
-Now you can run verify::
+Now you can run verify:
+
+.. code-block:: shell
 
     sto --config-file=myconfig.ini tx-verify
+
+Further information
+-------------------
+
+See :ref:`tx-verify`.

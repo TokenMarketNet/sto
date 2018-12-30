@@ -8,13 +8,22 @@ Token holder balances ae managed in a blockchain. Accessing token holder informa
 Scanning token holders
 ----------------------
 
-To scan all transactions of your security token you can do:
+To scan all transactions of your security token use ``token-scan`` command. Use the token address for which you have created a distribution.
 
 .. code-block:: console
 
     sto --config-file=myconfig.ini token-scan --token-address=0x1091aA1ED6070eDEDFdf46f665C1eD78Bd2c7431
 
-Use the token address for which you have created a distribution.
+Scan may take few minutes, as the operation walks through the whole blockchian. In the end, it should print:
+
+.. code-block:: text
+
+    Scanning token: Mikko's corp 5
+    Current last block for chain kovan: 9880112
+    Scanning blocks: 133739 - 9880112
+    Last scan ended at block: 133749
+    Scanning block: 9524384, batch size: 500000: : 9890620it [00:13, 104737.39it/s]
+    Updated 3 token holder balances
 
 Reruns
 ------
@@ -26,4 +35,12 @@ About the scan algorithm
 
 The provided scan algorithm is referential in the nature. It may not scale to large number or tokens or token holders. The algorithm has been designed the limitations of SQLite databases in mind.
 
+Printing to cap table
+---------------------
 
+After you have scanned the balances you can :doc:`print the cap table <captable>`.
+
+Further information
+-------------------
+
+See :ref:`token-scan` command.

@@ -1,7 +1,4 @@
-"""
-
-
-"""
+"""Define command line interface and subcommands. """
 import logging
 import os
 import sys
@@ -101,7 +98,7 @@ def cli(ctx, config_file, **kwargs):
     version = pkg_resources.require("sto")[0].version
     copyright = "Copyright TokenMarket Ltd. 2018 - 2019"
     logger.info("STO tool, version %s%s%s - %s", colorama.Fore.LIGHTCYAN_EX, version, colorama.Fore.RESET, copyright)
-    logger.info("Using database %s", dbfile)
+    logger.info("Using database %s%s%s", colorama.Fore.LIGHTCYAN_EX, dbfile, colorama.Fore.RESET)
 
     config.dbsession, new_db = setup_database(logger, dbfile)
     if new_db:
@@ -126,7 +123,14 @@ def cli(ctx, config_file, **kwargs):
 @click.option('--transfer-restriction', required=False, default="unrestricted")
 @click.pass_obj
 def issue(config: BoardCommmadConfiguration, symbol, name, amount, transfer_restriction):
-    """Issue out a new security token."""
+    """Issue out a new security token.
+
+    * Creates a new share series
+
+    * Allocates all new shares to the management account
+
+    * Sets the share transfer restriction mode
+    """
 
     logger = config.logger
 
@@ -318,7 +322,11 @@ def create_ethereum_account(config: BoardCommmadConfiguration):
 @cli.command(name="tx-broadcast")
 @click.pass_obj
 def broadcast(config: BoardCommmadConfiguration):
-    """Broadcast waiting transactions."""
+    """Broadcast waiting transactions.
+
+    Send all management account transactions to Ethereum network.
+    After a while, transactions are picked up by miners and included in the blockchain.
+    """
 
     assert is_ethereum_network(config.network)
 
@@ -348,7 +356,11 @@ def broadcast(config: BoardCommmadConfiguration):
 @cli.command(name="tx-update")
 @click.pass_obj
 def update(config: BoardCommmadConfiguration):
-    """Update transaction status."""
+    """Update transaction status.
+
+    Connects to Ethereum network, queries the status of our broadcasted transactions.
+    Then print outs the still currently pending transactions or freshly mined transactions.
+    """
 
     assert is_ethereum_network(config.network)
 
@@ -378,7 +390,10 @@ def update(config: BoardCommmadConfiguration):
 @cli.command(name="tx-verify")
 @click.pass_obj
 def verify(config: BoardCommmadConfiguration):
-    """Verify source code of contract deployment transactions."""
+    """Verify source code of contract deployment transactions on EtherScan.
+
+    Users EtherScan API to verify all deployed contracts from the management account.
+    """
 
     assert is_ethereum_network(config.network)
 
@@ -402,10 +417,11 @@ def verify(config: BoardCommmadConfiguration):
 
 
 @cli.command(name="tx-last")
-@click.option('--limit', required=False, help="How many transcations to print", default=5)
+@click.option('--limit', required=False, help="How many transactions to print", default=5)
 @click.pass_obj
 def last(config: BoardCommmadConfiguration, limit):
-    """Print latest transctions from database."""
+    """Print latest transactions from database.
+    """
 
     assert is_ethereum_network(config.network)
 
@@ -473,14 +489,17 @@ def next_nonce(config: BoardCommmadConfiguration):
 
 
 @cli.command(name="token-scan")
-@click.option('--start-block', required=False, help="The first block where we start (re)scan", default=1)
+@click.option('--start-block', required=False, help="The first block where we start (re)scan", default=None)
 @click.option('--end-block', required=False, help="Until which block we scan, also can be 'latest'", default=None)
 @click.option('--token-address', required=True, help="Token contract address", default=None)
 @click.pass_obj
 def token_scan(config: BoardCommmadConfiguration, token_address, start_block, end_block):
-    """Update token holder balances from a blockhain to a local database.
+    """Update token holder balances from a blockchain to a local database.
 
-    If start block and end block information are omited, continue the scan where we were left last time.
+    Reads the Ethereum blockchain for a certain token and builds a local database of token holders and transfers.
+
+    If start block and end block information are omitted, continue the scan where we were left last time.
+    Scan operations may take a while.
     """
 
     assert is_ethereum_network(config.network)
@@ -509,7 +528,7 @@ def token_scan(config: BoardCommmadConfiguration, token_address, start_block, en
 @click.option('--order-by', required=False, help="How cap table is sorted", default="balance", type=click.Choice(["balance", "name", "updated", "address"]))
 @click.option('--order-direction', required=False, help="Sort direction", default="desc", type=click.Choice(["asc", "desc"]))
 @click.option('--include-empty', required=False, help="Sort direction", default=False, type=bool)
-@click.option('--max-entries', required=False, help="Print only first N entries", default=None, type=int)
+@click.option('--max-entries', required=False, help="Print only first N entries", default=5000, type=int)
 @click.option('--accuracy', required=False, help="How many decimals include in balance output", default=2, type=int)
 @click.pass_obj
 def cap_table(config: BoardCommmadConfiguration, token_address, identity_file, order_by, order_direction, include_empty, max_entries, accuracy):
@@ -549,17 +568,15 @@ def cap_table(config: BoardCommmadConfiguration, token_address, identity_file, o
     print_cap_table(cap_table, max_entries, accuracy)
 
 
+@cli.command(name="reference")
+@click.pass_obj
+def reference(config: BoardCommmadConfiguration):
+    """Print out the command line reference for the documentation."""
+
+    from sto.generic.reference import generate_reference
+    generate_reference(cli)
+
+
 def main():
     # https://github.com/pallets/click/issues/204#issuecomment-270012917
     cli.main(max_content_width=200, terminal_width=200)
-
-    # import cProfile
-    # pr = cProfile.Profile()
-    # try:
-    #     pr.runcall(cli)
-    # except:
-    #     pass
-    #
-    # import pstats
-    # stats =  pstats.Stats(pr)
-    # stats.sort_stats('cumulative').print_stats(50)

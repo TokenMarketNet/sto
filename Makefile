@@ -65,3 +65,7 @@ release: clean
 dist: clean
 	python setup.py sdist bdist_wheel
 	ls -l dist
+
+reference:
+	sto reference > docs/source/command-line-reference.rst
+

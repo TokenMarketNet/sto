@@ -18,3 +18,8 @@ You will get a list of Ethereum transactions needed to perform this operation::
             waiting         4  0xDE5bC059aA433D72F25846bdFfe96434b406FA85  0x3cD6f4004e310c0E5Ae7eaf5B698386ccF1d78F2  Creating 10000 initial shares for Mikko's magic corp
 
 Next see how to :doc:`broadcast created transactions <broadcast>`.
+
+Further information
+-------------------
+
+See :ref:`issue`.

@@ -40,7 +40,11 @@ class TokenScanner:
 
         # This should not exceed the reply size where Infura timeouts when it tries to dump
         # Tranfer events over this many blocks
-        self.max_scan_chunk_size = 10000
+        if network == "kovan":
+            # Hack to speed up test token scans
+            self.max_scan_chunk_size = 500000
+        else:
+            self.max_scan_chunk_size = 10000
 
         # Factor how fast we increase the chunk size if results are found
         # # (slow down scan after starting to get hits)
@@ -118,6 +122,10 @@ class TokenScanner:
     def get_suggested_scan_end_block(self):
         """Get the last mined block."""
         return self.web3.eth.blockNumber
+
+    def get_last_scanned_block(self):
+        status = self.get_or_create_status()
+        return status.end_block
 
     def delete_potentially_forked_block_data(self, after_block: int):
         """Purge old data in the case of a rescan."""

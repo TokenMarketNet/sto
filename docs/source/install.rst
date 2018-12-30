@@ -12,6 +12,8 @@ Skills needed
 
 * Command line usage experience
 
+* Ethereum and smart contract experience
+
 Software or services needed
 
 * Ethereum node, for example a local Parity installation or Infura-node-as-a-service - see :doc:`how to install <setup>`

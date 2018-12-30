@@ -41,10 +41,19 @@ def token_scan(logger: Logger,
     if end_block is None:
         end_block = scanner.get_suggested_scan_end_block()
 
-    last_block = web3.eth.blockNumber
-    logger.info("Current last block for chain %s: %s%s%s", network, colorama.Fore.LIGHTGREEN_EX, last_block, colorama.Fore.RESET)
+    last_scanned_block = scanner.get_last_scanned_block()
 
+    status = scanner.get_or_create_status()
+    token_name = status.name
+
+    last_block = web3.eth.blockNumber
+    logger.info("Scanning token: %s%s%s", colorama.Fore.LIGHTGREEN_EX, token_name, colorama.Fore.RESET)
+    logger.info("Current last block for chain %s: %s%s%s", network, colorama.Fore.LIGHTGREEN_EX, last_block, colorama.Fore.RESET)
     logger.info("Scanning blocks: %s%d%s - %s%d%s", colorama.Fore.LIGHTGREEN_EX, start_block, colorama.Fore.RESET, colorama.Fore.LIGHTGREEN_EX, end_block, colorama.Fore.RESET)
+
+    if last_scanned_block:
+        logger.info("Last scan ended at block: %s%d%s", colorama.Fore.LIGHTGREEN_EX, last_scanned_block, colorama.Fore.RESET)
+
     total = end_block - start_block
     with tqdm(total=total) as progress_bar:
         def _update_progress(start, end, current, chunk_size):
