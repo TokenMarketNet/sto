@@ -38,7 +38,7 @@ Get started
 
 * `Read an introduction for security tokens <https://tokenmarket.net/news/security-tokens/what-are-security-tokens/>`_
 
-* `Read the documentation <https://tokenmarket.net/news/security-tokens/what-are-security-tokens/>`_
+* `Read the documentation <https://docs.tokenmarket.net/>`_
 
 Links
 =====

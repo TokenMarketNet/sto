@@ -29,7 +29,6 @@ h1,h2,.rst-content .toctree-wrapper p.caption,h3,h4,h5,h6,legend {
     text-transform: uppercase;
     font-size: 10px;
     font-weight: bold;
-    font-variant: small-caps;
     letter-spacing: 2px;
 }
 
