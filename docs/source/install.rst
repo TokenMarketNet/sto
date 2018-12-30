@@ -23,14 +23,14 @@ Software or services needed
 Normal users
 ------------
 
-This tool is for command line users and developers only. We do not provide an end user application as open source. `For a managed service please contact TokenMarket business representatives <https://tokenmarket.net/security-token-offering>`_.
+This tool is for command line users and developers only. We do not provide an end user application as open source. `For business services please contact TokenMarket business representatives <https://tokenmarket.net/security-token-offering>`_.
 
 Advanced users
 --------------
 
-The `sto` command line application is provided as a `Docker image <https://hub.docker.com/r/miohtama/sto/>`_ to minimize the issues with painful native dependency set up for your operating system. To use `sto` we will set up a command line alias, as Docker command itself is quite long.
+The ``sto`` command line application is provided as a `Docker image <https://hub.docker.com/r/miohtama/sto/>`_ to minimize the issues with painful native dependency set up for your operating system. To use `sto` we will set up a command line alias, as Docker command itself is quite long.
 
-Install `Docker <https://www.docker.com/products/docker-desktop>`_.
+Install `Docker <https://www.docker.com/products/docker-desktop>`_ (Windows, OSX).
 
 OSX and Linux
 ~~~~~~~~~~~~~

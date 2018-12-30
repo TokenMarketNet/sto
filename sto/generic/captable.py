@@ -106,6 +106,7 @@ def generate_cap_table(logger: Logger,
             name = id_check.name
         else:
             name = no_name
+
         decimal_balance = holder.get_decimal_balance()
 
         entry = CapTableEntry(name, holder.address, decimal_balance, holder.last_block_updated_at)
@@ -113,7 +114,9 @@ def generate_cap_table(logger: Logger,
         if entry.updated_at > last_token_transfer_at:
             last_token_transfer_at = entry.updated_at
         results.append(entry)
-        total_balance += decimal_balance
+
+        if  decimal_balance > 0:  # Ignore cases where we cannot detect mint transaction
+            total_balance += decimal_balance
 
     sort_entries(results, order_by, order_direction)
 
@@ -151,17 +154,18 @@ def print_cap_table(info: CapTableInfo, max_entries: int, accuracy: int):
     percent_q = Decimal("0.01")
 
     # Tuplify
-    for entry in print_entries:
+    for idx, entry in enumerate(print_entries, start=1):
         table.append((
+            idx,
             entry.name,
             entry.address,
             entry.updated_at,
-            str(entry.balance.quantize(balance_q)),
-            str((entry.percent * Decimal(100)).quantize(percent_q)),
+            "{:,}".format(entry.balance.quantize(balance_q)),
+            str(((entry.percent or 0) * Decimal(100)).quantize(percent_q)),
         ))
 
     from tabulate import tabulate  # https://bitbucket.org/astanin/python-tabulate
-    output = tabulate(table, headers=["Name", "Address", "Last transfer", "Balance", "%"], disable_numparse=True)
+    output = tabulate(table, headers=["#", "Name", "Address", "Last transfer", "Balance", "%"], disable_numparse=True)
     print(output)
 
 
