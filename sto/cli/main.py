@@ -46,6 +46,8 @@ def is_ethereum_network(network: str):
 INTRO_TEXT = """{}TokenMarket{} security token management tool.
 
     {}Manage tokenised equity for things like issuing out new, distributing and revoking shares.{}
+    
+    For full documentation see https://docs.tokenmarket.net/
 """.format(colorama.Fore.LIGHTGREEN_EX, colorama.Fore.RESET, colorama.Fore.BLUE, colorama.Fore.RESET)
 
 
