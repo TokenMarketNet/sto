@@ -5,11 +5,11 @@ The command line tool supports a simple CSV import to distribute shares to share
 
 * Shares are moved to a hot wallet account, as configured above. (In the future, smart contract based and optimised distribution methods are supported.)
 
-* `sto` reads a CSV file with investor info (see example CSV file for colums)
+* ``sto`` command reads a CSV file with investor info - see example CSV file below for column information
 
 * Transactions are prepared for broadcasting
 
-* Transactions are broadcasted and a log file is written
+* Transactions are broadcasted and an audit log is written to the database
 
 Each imported transaction must have an unique `external_id` attribute, so that we can track which distribution transaction corresponds incoming payment transaction.
 

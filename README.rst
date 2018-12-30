@@ -45,7 +45,7 @@ Links
 
 `TokenMarket website <https://tokenmarket.net>`_
 
-`Documentation <https://security-token.readthedocs.io/en/latest/>`_
+`Documentation <https://docs.tokenmarket.net/>`_
 
 `Github Source code and issue tracker <https://github.com/tokenmarketnet/sto>`_
 
