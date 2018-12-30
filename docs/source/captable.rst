@@ -21,7 +21,7 @@ Here we print out the cap table
 
 * For security token :doc:`we issued earlier <issuance>`
 
-* Distributed to the share holders in the example file :doc:`we issued earlier <distribute>`
+* Distributed to the share holders in the example file :doc:`we used earlier <distribute>`
 
 First we download the file that contain read world identities of token holder addresses:
 
