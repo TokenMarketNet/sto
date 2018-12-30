@@ -64,8 +64,8 @@ release: clean
 publish-docker:
 	if [ -z "$(VERSION)" ] ; then echo "No VERSION env var set" ; exit 1 ; fi
 	docker build -t miohtama/sto:latest .
-	# Test run
-	docker run -p 8545:8545 -v `pwd`:`pwd` -w `pwd` miohtama/sto:latest --version
+	# Test run - smoke test will probably exit non-zero if Python dependencies failed
+	echo "Docker local version is now " && docker run -p 8545:8545 -v `pwd`:`pwd` -w `pwd` miohtama/sto:latest version
 	# Push the release to hub
 	docker tag miohtama/sto:latest miohtama/sto:$VERSION
 	docker push miohtama/sto:$VERSION && docker push miohtama/sto:latest

@@ -15,7 +15,7 @@ Here is a quick tutorial how to print out the token holders of `Reality Clash <h
 
 First create a INI configuration while that connects to `Infura Ethereum mainnet node <http://infura.io/>`_ or your local mainnet node.
 
-``mainnet.ini`` example`:
+``mainnet.ini`` example:
 
 .. code-block:: ini
 

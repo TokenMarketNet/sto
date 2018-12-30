@@ -19,13 +19,10 @@ Then push out new Docker:
 
 .. code-block:: shell
 
+    # Build and upload PyPi egg
     VERSION=0.2.0
+    make release
+
+    # Build docker image
     docker login --username=miohtama
-    docker build -t miohtama/sto:latest .
-
-    # Test run
-    docker run -p 8545:8545 -v `pwd`:`pwd` -w `pwd` miohtama/sto:latest --help
-
-    # Push the release to hub
-    docker tag miohtama/sto:latest miohtama/sto:$VERSION
-    docker push miohtama/sto:$VERSION && docker push miohtama/sto:latest
+    make publish-docker
