@@ -95,25 +95,34 @@ def cli(ctx, config_file, **kwargs):
     sa_logger = logging.getLogger("sqlalchemy")
     sa_logger.setLevel(logging.WARN)
 
+    # TODO: No idea how to peek into click internals to figure out upcoming subcommand
+    prelude = True
+    if sys.argv[-1] == "version":
+        # Mute generic prelude
+        prelude = False
+
     # Print out the info
     dbfile = os.path.abspath(config.database_file)
     version = pkg_resources.require("sto")[0].version
-    copyright = "Copyright TokenMarket Ltd. 2018 - 2019"
-    logger.info("STO tool, version %s%s%s - %s", colorama.Fore.LIGHTCYAN_EX, version, colorama.Fore.RESET, copyright)
-    logger.info("Using database %s%s%s", colorama.Fore.LIGHTCYAN_EX, dbfile, colorama.Fore.RESET)
+    config.version = version
 
-    config.dbsession, new_db = setup_database(logger, dbfile)
-    if new_db:
-        if config.auto_restart_nonce and config.ethereum_private_key:
-            logger.info("Automatically fetching the initial nonce for the deployment account from blockchain")
-            from sto.ethereum.nonce import restart_nonce
-            restart_nonce(logger,
-                          config.dbsession,
-                          config.network,
-                          ethereum_node_url=config.ethereum_node_url,
-                          ethereum_private_key=config.ethereum_private_key,
-                          ethereum_gas_limit=config.ethereum_gas_limit,
-                          ethereum_gas_price=config.ethereum_gas_price)
+    if prelude:
+        copyright = "Copyright TokenMarket Ltd. 2018 - 2019"
+        logger.info("STO tool, version %s%s%s - %s", colorama.Fore.LIGHTCYAN_EX, version, colorama.Fore.RESET, copyright)
+        logger.info("Using database %s%s%s", colorama.Fore.LIGHTCYAN_EX, dbfile, colorama.Fore.RESET)
+
+        config.dbsession, new_db = setup_database(logger, dbfile)
+        if new_db:
+            if config.auto_restart_nonce and config.ethereum_private_key:
+                logger.info("Automatically fetching the initial nonce for the deployment account from blockchain")
+                from sto.ethereum.nonce import restart_nonce
+                restart_nonce(logger,
+                              config.dbsession,
+                              config.network,
+                              ethereum_node_url=config.ethereum_node_url,
+                              ethereum_private_key=config.ethereum_private_key,
+                              ethereum_gas_limit=config.ethereum_gas_limit,
+                              ethereum_gas_price=config.ethereum_gas_price)
 
     ctx.obj = config
 
@@ -580,6 +589,14 @@ def reference(config: BoardCommmadConfiguration):
 
     from sto.generic.reference import generate_reference
     generate_reference(cli)
+
+
+@cli.command(name="version")
+@click.pass_obj
+def version(config: BoardCommmadConfiguration):
+    """Print version number and exit."""
+    print(config.version)
+
 
 
 def main():

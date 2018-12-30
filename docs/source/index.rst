@@ -61,4 +61,6 @@ Links
 
 `Smart contracts repository <http://github.com/tokenmarketnet/ico>`_
 
+`Change history <https://github.com/TokenMarketNet/sto/blob/master/CHANGES.rst>`_
+
 

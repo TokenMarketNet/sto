@@ -56,11 +56,19 @@ x-release: clean
 	git config commit.gpgSign "$(CURRENT_SIGN_SETTING)"
 
 release: clean
-	echo $(bump)
-	bumpversion $(bump)
+	if [ -z "$(VERSION)" ] ; then echo "No VERSION env var set" ; exit 1 ; fi
+	bumpversion --new-version $(VERSION) devnum
 	git push origin && git push origin --tags
 	python setup.py sdist bdist_wheel upload
 
+publish-docker:
+	if [ -z "$(VERSION)" ] ; then echo "No VERSION env var set" ; exit 1 ; fi
+	docker build -t miohtama/sto:latest .
+	# Test run
+	docker run -p 8545:8545 -v `pwd`:`pwd` -w `pwd` miohtama/sto:latest --version
+	# Push the release to hub
+	docker tag miohtama/sto:latest miohtama/sto:$VERSION
+	docker push miohtama/sto:$VERSION && docker push miohtama/sto:latest
 
 dist: clean
 	python setup.py sdist bdist_wheel

@@ -48,7 +48,7 @@ source_suffix = '.rst'
 master_doc = 'index'
 
 # General information about the project.
-project = 'Security token management tool'
+project = 'Security token documentation'
 copyright = '2018-2019, TokenMarket Ltd.'
 author = 'Mikko Ohtamaa'
 
@@ -143,7 +143,7 @@ latex_documents = [
 # One entry per manual page. List of tuples
 # (source start file, name, description, authors, manual section).
 man_pages = [
-    (master_doc, 'icosmartcontracts', 'ICO smart contracts Documentation',
+    (master_doc, 'icosmartcontracts', 'STO smart contracts Documentation',
      [author], 1)
 ]
 
@@ -154,7 +154,7 @@ man_pages = [
 # (source start file, target name, title, author,
 #  dir menu entry, description, category)
 texinfo_documents = [
-    (master_doc, 'ICOsmartcontracts', 'ICO smart contracts Documentation',
+    (master_doc, 'ICOsmartcontracts', 'STO smart contracts Documentation',
      author, 'ICOsmartcontracts', 'One line description of project.',
      'Miscellaneous'),
 ]
