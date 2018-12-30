@@ -258,7 +258,7 @@ def distribute_multiple(config: BoardCommmadConfiguration, csv_input, address):
 @click.option('--amount', required=True, help="Amount of tokens as a decimal number")
 @click.pass_obj
 def distribute_single(config: BoardCommmadConfiguration, token_address, to_address, external_id, email, name, amount):
-    """Send tokens to one individual shareholder."""
+    """Send out tokens to one individual shareholder."""
 
     logger = config.logger
 
@@ -293,7 +293,10 @@ def distribute_single(config: BoardCommmadConfiguration, token_address, to_addre
 @cli.command()
 @click.pass_obj
 def diagnose(config: BoardCommmadConfiguration):
-    """Show your node and account status."""
+    """Check your node and account status.
+
+    This command will print out if you are properly connected to Ethereum network and your management account has enough Ether balance.
+    """
 
     # Run Ethereum diagnostics
     if is_ethereum_network(config.network):
@@ -523,7 +526,7 @@ def token_scan(config: BoardCommmadConfiguration, token_address, start_block, en
 
 
 @cli.command(name="cap-table")
-@click.option('--identity-file', required=False, help="CSV file containing address real world identities", default=None)
+@click.option('--identity-file', required=False, help="CSV file containing address real world identities", default=None, type=click.Path())
 @click.option('--token-address', required=True, help="Token contract address", default=None)
 @click.option('--order-by', required=False, help="How cap table is sorted", default="balance", type=click.Choice(["balance", "name", "updated", "address"]))
 @click.option('--order-direction', required=False, help="Sort direction", default="desc", type=click.Choice(["asc", "desc"]))
@@ -550,7 +553,7 @@ def cap_table(config: BoardCommmadConfiguration, token_address, identity_file, o
     dbsession = config.dbsession
 
     if identity_file:
-        entries = read_csv(identity_file)
+        entries = read_csv(logger, identity_file)
         provider = CSVIdentityProvider(entries)
     else:
         provider = NullIdentityProvider()

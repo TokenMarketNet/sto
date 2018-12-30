@@ -9,7 +9,7 @@ from .models.implementation import Base
 
 
 def setup_database(logger, db_filename) -> Tuple[Session, bool]:
-    """Create new SQLite daabase and set up conneciton"""
+    """Create new SQLite daabase and set up connection"""
 
     # https://docs.sqlalchemy.org/en/latest/dialects/sqlite.html
     url = "sqlite+pysqlite:///" + db_filename

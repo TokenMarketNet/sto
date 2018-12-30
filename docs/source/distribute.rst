@@ -20,15 +20,26 @@ Example how to import CSV. `We use an example file from the source code reposito
 .. code-block:: shell
 
      # Download example CSV file provided with source code repository
-    curl -O https://github.com/TokenMarketNet/sto/raw/master/docs/source/example-distribution.csv
+    curl -O "https://raw.githubusercontent.com/TokenMarketNet/sto/master/docs/source/example-distribution.csv"
 
     # Your token contract address goes here
-    sto --config-file=myconfig.ini distribute-multiple --csv-input=example-distribution.csv --address==0x....
+    sto --config-file=myconfig.ini distribute-multiple --csv-input=example-distribution.csv --address=0x....
 
-This should output::
+This should output:
+
+.. code-block:: text
 
     Distribution created 2 new transactions and there was already 0 old transactions in the database
 
 Now you can broadcast your distribution transactions with ``sto tx-broadcast`` (see :doc:`broadcasting <broadcast>`).
 
+Next reading
+------------
+
+See how to :doc:`scan token balances and print out cap table of shareholders <scanner>`
+
+Further information
+-------------------
+
+See :ref:`distribute-multiple` command.
 

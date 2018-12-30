@@ -38,6 +38,7 @@ New to tokens and securities? `Read an introduction for security tokens <https:/
    distribute
    scanner
    captable
+   erc-20-holders
    etherscan
    protocols
    command-line-reference

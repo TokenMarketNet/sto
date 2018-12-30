@@ -61,9 +61,9 @@ When running ``sto --help`` you get list of settings and subcommands:
 
    Commands:
      cap-table                Print out token holder cap table.
-     diagnose                 Show your node and account status.
+     diagnose                 Check your node and account status.
      distribute-multiple      Distribute shares to multiple shareholders whose address info is read from a file.
-     distribute-single        Send tokens to one individual shareholder.
+     distribute-single        Send out tokens to one individual shareholder.
      ethereum-create-account  Creates a new Ethereum account.
      issue                    Issue out a new security token.
      issue-logs               Print out transactions of for tokens issued in the past.
@@ -103,7 +103,7 @@ You can supply optional CSV file that contains Ethereum address mappings to indi
       to individual token holder names.
 
     Options:
-      --identity-file TEXT            CSV file containing address real world
+      --identity-file PATH            CSV file containing address real world
                                       identities
       --token-address TEXT            Token contract address  [required]
       --order-by [balance|name|updated|address]
@@ -122,13 +122,18 @@ You can supply optional CSV file that contains Ethereum address mappings to indi
 diagnose
 -------------------------------------
 
-Show your node and account status.
+Check your node and account status.
+
+This command will print out if you are properly connected to Ethereum network and your management account has enough Ether balance.
 
 .. code-block:: text
 
     Usage: sto diagnose [OPTIONS]
 
-      Show your node and account status.
+      Check your node and account status.
+
+      This command will print out if you are properly connected to Ethereum
+      network and your management account has enough Ether balance.
 
     Options:
       --help  Show this message and exit.
@@ -163,13 +168,13 @@ Distribute shares to multiple shareholders whose address info is read from a fil
 distribute-single
 -------------------------------------
 
-Send tokens to one individual shareholder.
+Send out tokens to one individual shareholder.
 
 .. code-block:: text
 
     Usage: sto distribute-single [OPTIONS]
 
-      Send tokens to one individual shareholder.
+      Send out tokens to one individual shareholder.
 
     Options:
       --token-address TEXT  Token contract address  [required]

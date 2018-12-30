@@ -10,56 +10,43 @@ Cap table output may contain the real world identities of the owners, if supplie
 Scanning token holders first
 ----------------------------
 
-To print the cap table, first you need to build the local database of token transactions. See :doc:`token scanner <scanner>` for details.
+To print out the cap table, first you need to build the local database of token transactions. See :doc:`token scanner <scanner>` for details.
 
 Printing out the token holder cap table
 ---------------------------------------
 
-Use ``sto cap-table`` command to print out differen views on the table.
+Use ``sto cap-table`` command to print out different views on the table.
 
 Here we print out the cap table
 
-Cap table for any ERC-20 token
-------------------------------
+* For security token :doc:`we issued earlier <issuance>`
 
-``sto token-scan`` and ``sto cap-table`` command support creating token holder database of any ERC-20 token, not just security tokens. If you need to use token holder or transfer data in your application you can read it directly from ``sto`` SQLite database.
+* Distributed to the share holders in the example file :doc:`we issued earlier <distribute>`
 
-Here is a quick tutorial how to print out the token holders of `Reality Clash <https://realityclash.com>` token.
-
-First create a INI configuration while that connects to `Infura Ethereum mainnet node <http://infura.io/>`_ or your local mainnet node.
-
-`mainnet.ini` example:
-
-.. code-block:: ini
-
-    # Network we are using
-    network = ethereum
-
-    # Get this from your Infura dashboard
-    ethereum-node-url = https://mainnet.infura.io/v3/453...
-
-Then scan all RCC token transactions of all time. Please note that the scan process may take anywhere between 15 minutes to few hours depening on how fast your connection to the node and computer are.
+First we download the file that contain read world identities of token holder addresses:
 
 .. code-block:: shell
 
-    sto --config-file=mainnet.ini token-scan --token-address=0x9b6443b0fb9c241a7fdac375595cea13e6b7807a
+    # Download example CSV file provided with source code repository
+    curl -O "https://raw.githubusercontent.com/TokenMarketNet/sto/master/docs/source/example-ids.csv"
 
-.. image:: screenshots/help.png
+Then we can use this file and our local token transfer database to print out the current cap table:
+
+.. code-block:: shell
+
+    sto --config-file=myconfig.ini cap-table \
+        --identity-file=example-ids.csv \
+        --token-address=0xAEFafd1Ae9b0e9acFF2b22596C40da3FFD8dff99
+
+Cap table looks like this:
+
+.. image:: screenshots/captable.png
     :width: 500 px
 
-.. note::
+Further information
+-------------------
 
-    If the scan is interrupted it will pick up where it was left last time. You can also manually interrupt the application with CTRL+C.
-
-Now you can print out the cap table. Here is how to print out top 50 token holders:
-
-.. code-block:: shell
-
-    sto --config-file=mainnet.init cap-table \
-        --token-address=0x9b6443b0fb9c241a7fdac375595cea13e6b7807a \
-        --order-by=balance \
-        --order-direction=desc \
-        --max-entries=50
+See :ref:`cap-table` command for ordering and formatting options.
 
 
 

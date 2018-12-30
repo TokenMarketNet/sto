@@ -8,7 +8,6 @@ from sqlalchemy.orm import Session, Query
 from typing import Optional, List
 
 from sto.identityprovider import IdentityProvider
-from sto.models.implementation import TokenHolderAccount
 from sto.models.tokenscan import _TokenScanStatus
 from sto.time import friendly_time
 
@@ -93,7 +92,7 @@ def generate_cap_table(logger: Logger,
 
     status = dbsession.query(TokenScanStatus).filter_by(address=token_address).one_or_none()  # type: TokenScanStatus
     if not status or status.end_block is None:
-        raise NeedsTokenScan("No token holder balances available in the local database. Please run sto token-scan first.")
+        raise NeedsTokenScan("No token {} balances available in the local database. Please run sto token-scan first.".format(token_address))
 
     q = status.get_accounts(include_empty)
 
@@ -102,8 +101,10 @@ def generate_cap_table(logger: Logger,
     last_token_transfer_at = datetime.datetime(1970, 1, 1, tzinfo=datetime.timezone.utc)
     for holder in q:
 
-        name = identity_provider.get_identity(holder.address)
-        if not name:
+        id_check = identity_provider.get_identity(holder.address)
+        if id_check:
+            name = id_check.name
+        else:
             name = no_name
         decimal_balance = holder.get_decimal_balance()
 
