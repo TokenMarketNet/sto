@@ -13,7 +13,7 @@ First send out PyPi release:
 .. code-block:: shell
 
     # Build and upload PyPi egg
-    VERSION=0.2.0
+    export VERSION=0.2.0
     make release
 
 Then push out new Docker:
