@@ -1,4 +1,4 @@
-Security Token Manager is an open source project that provides a command line tool and API library to interact and integrate security tokens to your business systems.
+Security Token Manager is an open source project that provides a command line tool and API library to interact and integrate tokens to your business systems.
 
 
 .. image:: https://badges.gitter.im/TokenMarketNet/sto.svg

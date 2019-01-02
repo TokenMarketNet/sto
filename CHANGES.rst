@@ -1,6 +1,11 @@
 Changes
 =======
 
+0.3.3
+-----
+
+* bdist was still broken, it assumes Python 2 style __init__.py files everywhere
+
 0.3.2
 -----
 
