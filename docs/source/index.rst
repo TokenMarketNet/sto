@@ -12,7 +12,7 @@ Security Token Manager supports operations for security token governance includi
 
 * Printing out cap table
 
-* Managing bad transactions and lost privat keys
+* Managing bad transactions and lost private keys
 
 * Paying dividends and interest
 
