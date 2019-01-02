@@ -1,12 +1,10 @@
 
-Security token documentation
-============================
+Security Token Manager documentation
+====================================
 
-Here is a documentation for TokenMarket Security Token.
+Here is a documentation for TokenMarket Security Token Manager. Security Token Manager is an open source project that provides a command line tool and API library to interact and integrate security tokens to your business systems.
 
-``sto`` open source project provides a command line tool and Python library to manage and integrate security tokens.
-
-Operations include e.g.
+Security Token Manager provides technical operations for corporate governance including e.g.
 
 * Issue out new stock series as security tokens
 
@@ -22,7 +20,7 @@ Operations include e.g.
 
 * Maintaining audit logs of delivered actions
 
-The command line tool is locally installed via Docker and available for Windows, OSX and Linux.
+The command line tool is locally installed via Docker and available for Windows, OSX and Linux. The API is written in Python programming language.
 
 New to tokens and securities? `Read an introduction for security tokens <https://tokenmarket.net/news/security-tokens/what-are-security-tokens/>`_
 
@@ -48,6 +46,8 @@ Links
 =====
 
 `TokenMarket website <https://tokenmarket.net>`_
+
+`Twitter <http://twitter.com/tokenmarkett>`_
 
 `Documentation <https://docs.tokenmarket.net/>`_
 

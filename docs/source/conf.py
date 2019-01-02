@@ -48,7 +48,7 @@ source_suffix = '.rst'
 master_doc = 'index'
 
 # General information about the project.
-project = 'Security token documentation'
+project = 'Security Token Manager'
 copyright = '2018-2019, TokenMarket Ltd.'
 author = 'Mikko Ohtamaa'
 

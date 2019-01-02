@@ -1,4 +1,4 @@
-A tool and Python library for issuing out and integrating security tokens.
+Security Token Manager is an open source project that provides a command line tool and API library to interact and integrate security tokens to your business systems.
 
 
 .. image:: https://badges.gitter.im/TokenMarketNet/sto.svg
@@ -9,29 +9,26 @@ A tool and Python library for issuing out and integrating security tokens.
         :target: https://travis-ci.org/TokenMarketNet/sto
 
 
-Benefits
-========
+TokenMarket Security Token Manager
+==================================
 
-An open source tool ensures your company can manage its security tokens now and in the far future without vendor lock in. A good documentation ensures any capable technical advisory can pick up the work and assist you.
+Security Token Manager provides technical operations for corporate governance including e.g.
 
-Features
-========
+* Issue out new stock series as security tokens
 
-This is a command line tool and Python library to manage and integrate security tokens:
-
-* Issue out new stock series
+* Distributing shares to primary market investors
 
 * Printing out cap table
 
-* Printing out my portfolio
-
 * Managing bad transactions and lost privat keys
 
-* Paying dividends
+* Paying dividends and interest
 
 * Delivering voting ballots
 
-The command line tool is locally installed via Docker and available for Windows, OSX and Linux.
+* Maintaining audit logs of delivered actions
+
+The command line tool is locally installed via Docker and available for Windows, OSX and Linux. The API is written in Python programming language.
 
 Get started
 ===========
@@ -44,6 +41,8 @@ Links
 =====
 
 `TokenMarket website <https://tokenmarket.net>`_
+
+`Twitter <http://twitter.com/tokenmarkett>`_
 
 `Documentation <https://docs.tokenmarket.net/>`_
 
@@ -58,6 +57,7 @@ Links
 `Smart contracts repository <http://github.com/tokenmarketnet/ico>`_
 
 `Change history <https://github.com/TokenMarketNet/sto/blob/master/CHANGES.rst>`_
+
 
 
 
