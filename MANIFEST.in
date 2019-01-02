@@ -1,0 +1,8 @@
+recursive-include sto *.py *.json
+include *.rst
+include *.txt
+exclude docs
+exclude tests
+
+
+

@@ -1,7 +1,4 @@
-try:
-    from setuptools import setup
-except ImportError:
-    from distutils.core import setup
+from setuptools import setup, find_packages
 
 
 with open('README.rst') as readme_file:
@@ -10,6 +7,7 @@ with open('README.rst') as readme_file:
 
 requirements = [
     'eth-typing<2',
+    'eth-abi<1.3',
     'web3[tester]',  # Cannot have more specific web3 settings separately in test_requirements
     'coloredlogs',
     'colorama',
@@ -19,6 +17,7 @@ requirements = [
     'configobj',
     'click',
     'arrow',
+    'pysha3<2.0.0',
 ]
 
 test_requirements = [
@@ -30,6 +29,7 @@ dev_requirements = [
     "wheel",
     "sphinx",
     "sphinx_rtd_theme==0.4.2",
+    "setuptools",
 ]
 
 setup(
@@ -40,12 +40,13 @@ setup(
     author="TokenMarket Ltd.",
     author_email='mikko@tokenmarket.net',
     url='https://tokenmarket.net',
-    packages=[
-        'sto',
-    ],
-    package_dir={'sto':
-                 'sto'},
-    include_package_data=True,
+    #packages=[
+    #    'sto',
+    #],
+    #package_dir={'sto':
+    #             'sto'},
+    #include_package_data=True,
+    packages=find_packages(exclude=['docs', 'tests', 'venv', 'venv2', '.*']),
     install_requires=requirements,
     license="Apache 2.0",
     zip_safe=False,
