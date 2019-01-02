@@ -57,8 +57,8 @@ x-release: clean
 
 release: clean
 	if [ -z "$(VERSION)" ] ; then echo "No VERSION env var set" ; exit 1 ; fi
-	bumpversion --new-version $(VERSION) devnum
-	if [ "$(VERSION)" != `sto --version`] ; then echo "bumpversion failed us" ; exit 1 ; fi
+	# bumpversion --new-version $(VERSION) devnum
+	# if [ "$(VERSION)" != `sto --version`] ; then echo "bumpversion failed us" ; exit 1 ; fi
 	git push origin && git push origin --tags
 	python setup.py sdist bdist_wheel upload
 
