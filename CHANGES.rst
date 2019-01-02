@@ -1,6 +1,11 @@
 Changes
 =======
 
+0.3.2
+-----
+
+* Fix package pindowns and compatibility < eth-abi==1.3.0
+
 0.3.1
 -----
 
