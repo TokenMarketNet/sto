@@ -2,11 +2,11 @@
 Security Token Manager documentation
 ====================================
 
-Here is a documentation for TokenMarket Security Token Manager. Security Token Manager is an open source project that provides a command line tool and API library to interact and integrate security tokens to your business systems.
+This is the documentation for Security Token Manager open source project. The project provides command line tools and programming interfaces to interact and integrate security tokens.
 
-Security Token Manager provides technical operations for corporate governance including e.g.
+Security Token Manager supports operations for security token governance including e.g.
 
-* Issue out new stock series as security tokens
+* Issue out new stock or bond series as security tokens
 
 * Distributing shares to primary market investors
 

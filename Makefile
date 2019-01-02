@@ -60,7 +60,8 @@ release: clean
 	# bumpversion --new-version $(VERSION) devnum
 	# if [ "$(VERSION)" != `sto --version`] ; then echo "bumpversion failed us" ; exit 1 ; fi
 	git push origin && git push origin --tags
-	python setup.py sdist bdist_wheel upload
+	python setup.py sdist bdist_wheel
+	twine upload --repository-url https://upload.pypi.org/legacy/ dist/*
 
 publish-docker:
 	if [ -z "$(VERSION)" ] ; then echo "No VERSION env var set" ; exit 1 ; fi
