@@ -29,7 +29,7 @@ Then scan all RCC token transactions of all time. Please note that the scan proc
 
 .. code-block:: shell
 
-    sto --config-file=mainnet.ini token-scan --token-address=0x9b6443b0fb9c241a7fdac375595cea13e6b7807a
+    sto --config=mainnet.ini token-scan --token-address=0x9b6443b0fb9c241a7fdac375595cea13e6b7807a
 
 .. image:: screenshots/scan-reality-clash.png
     :width: 500 px
@@ -42,7 +42,7 @@ Now you can print out the cap table. Here is how to print out top 10 token holde
 
 .. code-block:: shell
 
-    sto --config-file=mainnet.init cap-table \
+    sto --config=mainnet.init cap-table \
         --token-address=0x9b6443b0fb9c241a7fdac375595cea13e6b7807a \
         --order-by=balance \
         --order-direction=desc \

@@ -45,8 +45,10 @@ When running ``sto --help`` you get list of settings and subcommands:
 
      Manage tokenised equity for things like issuing out new, distributing and revoking shares.
 
+     For full documentation see https://docs.tokenmarket.net/
+
    Options:
-     --config-file PATH            INI file where to read options from
+     --config, --config-file PATH  INI file where to read options from
      --database-file PATH          SQLite file that persists transaction broadcast status
      --network TEXT                Network name. Either 'ethereum' or 'kovan' are supported for now.
      --ethereum-node-url TEXT      Parity or Geth JSON-RPC to connect for Ethereum network access
@@ -76,6 +78,7 @@ When running ``sto --help`` you get list of settings and subcommands:
      tx-restart-nonce         Resets the broadcasting account nonce.
      tx-update                Update transaction status.
      tx-verify                Verify source code of contract deployment transactions on EtherScan.
+     version                  Print version number and exit.
 
 
 
@@ -462,6 +465,25 @@ Users EtherScan API to verify all deployed contracts from the management account
 
       Users EtherScan API to verify all deployed contracts from the management
       account.
+
+    Options:
+      --help  Show this message and exit.
+
+
+
+
+.. _version:
+
+version
+-------------------------------------
+
+Print version number and exit.
+
+.. code-block:: text
+
+    Usage: sto version [OPTIONS]
+
+      Print version number and exit.
 
     Options:
       --help  Show this message and exit.

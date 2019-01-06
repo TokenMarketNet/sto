@@ -7,7 +7,7 @@ Using a local database and locally generated nonces ensures we can always safely
 
 To broadcast::
 
-    sto --config-file=myconfig.ini tx-broadcast
+    sto --config=myconfig.ini tx-broadcast
 
 Transactions are send out to Ethereum network and they get a transaction id. You will see `txid` in output::
 
@@ -31,7 +31,7 @@ Blockchain transactions are asynchronous. First the transactions are broadcasted
 
 To check your transaction status::
 
-    sto --config-file=myconfig.ini tx-update
+    sto --config=myconfig.ini tx-update
 
 After a while repeating this command you should see all your transactions included in blockchain with `success` status::
 

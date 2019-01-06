@@ -79,7 +79,7 @@ Diagnose and test run
 
 Use `sto diagnose` command to check your account has balance and your Ethereum node works::
 
-    sto --config-file=myconfig.ini diagnose
+    sto --config=myconfig.ini diagnose
 
 This should output:
 

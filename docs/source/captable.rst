@@ -34,7 +34,7 @@ Then we can use this file and our local token transfer database to print out the
 
 .. code-block:: shell
 
-    sto --config-file=myconfig.ini cap-table \
+    sto --config=myconfig.ini cap-table \
         --identity-file=example-ids.csv \
         --token-address=0xAEFafd1Ae9b0e9acFF2b22596C40da3FFD8dff99
 

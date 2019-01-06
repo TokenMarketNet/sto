@@ -12,7 +12,7 @@ To scan all transactions of your security token use ``token-scan`` command. Use 
 
 .. code-block:: console
 
-    sto --config-file=myconfig.ini token-scan --token-address=0x1091aA1ED6070eDEDFdf46f665C1eD78Bd2c7431
+    sto --config=myconfig.ini token-scan --token-address=0x1091aA1ED6070eDEDFdf46f665C1eD78Bd2c7431
 
 Scan may take few minutes, as the operation walks through the whole blockchian. In the end, it should print:
 

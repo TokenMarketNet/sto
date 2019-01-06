@@ -400,9 +400,9 @@ def verify_on_etherscan(logger: Logger, network: str, tx: _PreparedTransaction, 
     Uses https://etherscan.io/apis#contracts
     """
 
-    assert network in ("ethereum", "kovan")
-    if network == "kovan":
-        url = "https://api-kovan.etherscan.io/api"
+    assert network in ("ethereum", "kovan", "ropsten", "rinkerby")
+    if network != "ethereum":
+        url = "https://api-{}.etherscan.io/api".format(network)
     else:
         url = "https://api.etherscan.io/api"
 

@@ -3,7 +3,7 @@ Viewing token summary
 
 After all your transactions have been pushed out and are succesfully included in blocks, you can view the token status by entering the contract address::
 
-    sto --config-file=myconfig.ini token-status --address=0xa2016C64D4687Ad4184bA1dA98711e83a36eD1c2
+    sto --config=myconfig.ini token-status --address=0xa2016C64D4687Ad4184bA1dA98711e83a36eD1c2
 
 This outputs::
 

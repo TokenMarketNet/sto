@@ -24,7 +24,7 @@ Now you can run verify:
 
 .. code-block:: shell
 
-    sto --config-file=myconfig.ini tx-verify
+    sto --config=myconfig.ini tx-verify
 
 Further information
 -------------------

@@ -52,8 +52,9 @@ INTRO_TEXT = """{}TokenMarket{} security token management tool.
 
 
 
+# --config-file = legacy option name
 @click.group(help=INTRO_TEXT)
-@click.option('--config-file', required=False, default=None, help="INI file where to read options from", type=click.Path())
+@click.option('--config', '--config-file', required=False, default=None, help="INI file where to read options from", type=click.Path())
 @click.option('--database-file', required=False, default="transactions.sqlite", help="SQLite file that persists transaction broadcast status", type=click.Path())
 @click.option('--network', required=False, default="ethereum", help="Network name. Either 'ethereum' or 'kovan' are supported for now.")
 @click.option('--ethereum-node-url', required=False, default="http://localhost:8545", help="Parity or Geth JSON-RPC to connect for Ethereum network access")
@@ -65,7 +66,9 @@ INTRO_TEXT = """{}TokenMarket{} security token management tool.
 @click.option('--log-level', default="INFO", help="Python logging level to tune the verbosity of the command")
 @click.option('--auto-restart-nonce', default=True, help="Automatically restart nonce for the deployment account if starting with a fresh database", type=bool)
 @click.pass_context
-def cli(ctx, config_file, **kwargs):
+def cli(ctx, config: str, **kwargs):
+
+    config_file = config
 
     # Fill in arguments from the configuration file
     if config_file:
