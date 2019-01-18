@@ -13,6 +13,9 @@ from web3.utils.filters import construct_event_filter_params
 from eth_utils import keccak, to_checksum_address, to_bytes, is_hex_address, is_checksum_address
 from web3.utils.contracts import encode_abi
 
+from sto.cli.main import is_ethereum_network
+
+
 class NoNodeConfigured(Exception):
     pass
 
@@ -163,5 +166,85 @@ def getLogs(self,
         yield get_event_data(abi, entry)
 
 
+def deploy_contract(
+        network,
+        dbsession,
+        ethereum_abi_file,
+        ethereum_private_key,
+        ethereum_node_url,
+        ethereum_gas_limit,
+        ethereum_gas_price,
+        contract_name,
+        contructor_args=()
+):
+    from sto.ethereum.txservice import EthereumStoredTXService
+    from sto.models.implementation import BroadcastAccount, PreparedTransaction
+
+    assert is_ethereum_network(network)
+
+    check_good_private_key(ethereum_private_key)
+
+    abi = get_abi(ethereum_abi_file)
+
+    web3 = create_web3(ethereum_node_url)
+
+    service = EthereumStoredTXService(
+        network,
+        dbsession,
+        web3,
+        ethereum_private_key,
+        ethereum_gas_price,
+        ethereum_gas_limit,
+        BroadcastAccount,
+        PreparedTransaction
+    )
+    note = "Deploying token contract for {}".format(contract_name)
+    service.deploy_contract(
+        contract_name=contract_name,
+        abi=abi,
+        note=note,
+        constructor_args=contructor_args
+    )
 
 
+def get_kyc_deployed_tx(dbsession):
+    from sto.models.implementation import PreparedTransaction
+    # FIXME: fix this query
+    # return dbsession.query(PreparedTransaction).filter(PreparedTransaction.contract_name == 'BasicKYC').first()
+    txs = dbsession.query(PreparedTransaction).all()
+    for tx in txs:
+        if tx.contract_name == 'BasicKYC':
+            return tx
+
+
+def whitelist_kyc_address(
+        dbsession,
+        ethereum_private_key,
+        ethereum_abi_file,
+        ethereum_node_url,
+        address,
+        nonce
+):
+    from sto.ethereum.utils import get_kyc_deployed_tx
+    from web3.middleware.signing import construct_sign_and_send_raw_middleware
+    from eth_account import Account
+    tx = get_kyc_deployed_tx(dbsession)
+    if not tx:
+        raise Exception(
+            'BasicKyc contract is not deployed. '
+            'invoke command kyc_deploy to deploy the smart contract'
+        )
+
+    check_good_private_key(ethereum_private_key)
+
+    abi = get_abi(ethereum_abi_file)
+    abi = abi['BasicKYC']['abi']
+
+    w3 = create_web3(ethereum_node_url)
+
+    contract = w3.eth.contract(address=tx.contract_address, abi=abi)
+    w3.middleware_stack.add(construct_sign_and_send_raw_middleware(ethereum_private_key))
+    account = Account.privateKeyToAccount(ethereum_private_key)
+    tx_hash = contract.functions.whitelistUser(address, nonce).transact({'from': account.address})
+    receipt = w3.eth.waitForTransactionReceipt(tx_hash)
+    assert receipt['status'] == 1, "failed to whitelist address"

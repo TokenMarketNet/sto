@@ -601,6 +601,63 @@ def version(config: BoardCommmadConfiguration):
     print(config.version)
 
 
+@cli.command(name="kyc-deploy")
+@click.pass_obj
+def kyc_deploy(config: BoardCommmadConfiguration):
+    """
+    Deploys Kyc contract to desired ethereum network
+    network, ethereum-abi-file, ethereum-private-key, ethereum-node-url are required args
+    """
+    from sto.ethereum.utils import deploy_contract, get_kyc_deployed_tx
+    tx = get_kyc_deployed_tx(config.dbsession)
+    if tx:
+        config.logger.error(
+            'contract already deployed at address: {}'.format(tx.contract_address)
+        )
+        return
+    deploy_contract(
+        network=config.network,
+        dbsession=config.dbsession,
+        ethereum_abi_file=config.ethereum_abi_file,
+        ethereum_private_key=config.ethereum_private_key,
+        ethereum_node_url=config.ethereum_node_url,
+        ethereum_gas_limit=config.ethereum_gas_limit,
+        ethereum_gas_price=config.ethereum_gas_price,
+        contract_name='BasicKYC',
+        contructor_args=()
+    )
+    # Write database
+    dbsession = config.dbsession
+    dbsession.commit()
+    tx = get_kyc_deployed_tx(dbsession)
+    config.logger.info(
+        'contract deployed successfully at address: {}'.format(tx.contract_address)
+    )
+
+
+@cli.command(name="kyc-manage")
+@click.option('--whitelist-address', required=True, help="address to whitelist", type=str)
+@click.option('--nonce', required=False, help="Print only first N entries", default=0, type=int)
+@click.pass_obj
+def kyc_manage(config: BoardCommmadConfiguration, whitelist_address, nonce):
+    """
+    Whitelist a address in KYC smart contract
+    network, ethereum-abi-file, ethereum-private-key, ethereum-node-url are required args
+    """
+    from sto.ethereum.utils import whitelist_kyc_address, get_kyc_deployed_tx
+    whitelist_kyc_address(
+        dbsession=config.dbsession,
+        ethereum_private_key=config.ethereum_private_key,
+        ethereum_abi_file=config.ethereum_abi_file,
+        ethereum_node_url=config.ethereum_node_url,
+        address=whitelist_address,
+        nonce=nonce
+    )
+    tx = get_kyc_deployed_tx(config.dbsession)
+    config.logger.info(
+        'whitelisted address: {} sucessfully'.format(tx.contract_address)
+    )
+
 
 def main():
     # https://github.com/pallets/click/issues/204#issuecomment-270012917
