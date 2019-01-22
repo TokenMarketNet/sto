@@ -5,6 +5,7 @@ from typing import Optional
 
 import rlp
 from eth_abi import encode_abi
+from eth_utils import keccak
 from web3 import Web3, HTTPProvider
 from web3.contract import Contract
 from web3.utils.abi import get_constructor_abi, merge_args_and_kwargs
@@ -54,6 +55,9 @@ def create_web3(url: str) -> Web3:
     else:
         return Web3(HTTPProvider(url))
 
+
+def integer_hash(number: int):
+    return int(keccak(int).hex(), 16)
 
 
 def mk_contract_address(sender: str, nonce: int) -> str:
@@ -166,7 +170,35 @@ def getLogs(self,
         yield get_event_data(abi, entry)
 
 
-def deploy_contract(
+def deploy_contract(config, contract_name, constructor_args=()):
+    from sto.ethereum.utils import deploy_contract, get_kyc_deployed_tx
+    tx = get_kyc_deployed_tx(config.dbsession)
+    if tx:
+        config.logger.error(
+            'contract already deployed at address: {}'.format(tx.contract_address)
+        )
+        return
+    _deploy_contract(
+        network=config.network,
+        dbsession=config.dbsession,
+        ethereum_abi_file=config.ethereum_abi_file,
+        ethereum_private_key=config.ethereum_private_key,
+        ethereum_node_url=config.ethereum_node_url,
+        ethereum_gas_limit=config.ethereum_gas_limit,
+        ethereum_gas_price=config.ethereum_gas_price,
+        contract_name=contract_name,
+        contructor_args=constructor_args
+    )
+    # Write database
+    dbsession = config.dbsession
+    dbsession.commit()
+    tx = get_kyc_deployed_tx(dbsession)
+    config.logger.info(
+        'contract deployed successfully at address: {}'.format(tx.contract_address)
+    )
+
+
+def _deploy_contract(
         network,
         dbsession,
         ethereum_abi_file,

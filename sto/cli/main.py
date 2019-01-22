@@ -608,43 +608,23 @@ def kyc_deploy(config: BoardCommmadConfiguration):
     Deploys Kyc contract to desired ethereum network
     network, ethereum-abi-file, ethereum-private-key, ethereum-node-url are required args
     """
-    from sto.ethereum.utils import deploy_contract, get_kyc_deployed_tx
-    tx = get_kyc_deployed_tx(config.dbsession)
-    if tx:
-        config.logger.error(
-            'contract already deployed at address: {}'.format(tx.contract_address)
-        )
-        return
-    deploy_contract(
-        network=config.network,
-        dbsession=config.dbsession,
-        ethereum_abi_file=config.ethereum_abi_file,
-        ethereum_private_key=config.ethereum_private_key,
-        ethereum_node_url=config.ethereum_node_url,
-        ethereum_gas_limit=config.ethereum_gas_limit,
-        ethereum_gas_price=config.ethereum_gas_price,
-        contract_name='BasicKYC',
-        contructor_args=()
-    )
-    # Write database
-    dbsession = config.dbsession
-    dbsession.commit()
-    tx = get_kyc_deployed_tx(dbsession)
-    config.logger.info(
-        'contract deployed successfully at address: {}'.format(tx.contract_address)
-    )
+    from sto.ethereum.utils import deploy_contract
+    deploy_contract(config, contract_name='BasicKYC')
 
 
 @cli.command(name="kyc-manage")
 @click.option('--whitelist-address', required=True, help="address to whitelist", type=str)
-@click.option('--nonce', required=False, help="Print only first N entries", default=0, type=int)
 @click.pass_obj
-def kyc_manage(config: BoardCommmadConfiguration, whitelist_address, nonce):
+def kyc_manage(config: BoardCommmadConfiguration, whitelist_address):
     """
     Whitelist a address in KYC smart contract
     network, ethereum-abi-file, ethereum-private-key, ethereum-node-url are required args
     """
-    from sto.ethereum.utils import whitelist_kyc_address, get_kyc_deployed_tx
+    from sto.ethereum.utils import whitelist_kyc_address, get_kyc_deployed_tx, create_web3
+
+    w3 = create_web3(config.ethereum_node_url)
+    nonce = w3.eth.getTransactionCount(whitelist_address)
+
     whitelist_kyc_address(
         dbsession=config.dbsession,
         ethereum_private_key=config.ethereum_private_key,
@@ -657,6 +637,41 @@ def kyc_manage(config: BoardCommmadConfiguration, whitelist_address, nonce):
     config.logger.info(
         'whitelisted address: {} sucessfully'.format(tx.contract_address)
     )
+
+
+@cli.command(name="voting-deploy")
+@click.option('--token-address', required=True, help="address of token contract", type=str)
+@click.option('--kyc-address', required=True, help="address of kyc contract", type=str)
+@click.option('--voting-name', required=True, help="name of the voting,", type=str)
+@click.option('--uri', required=True, help="announcement uri", type=str)
+@click.option('--type', required=True, help="announcement type", type=int)
+@click.option('--options', required=False, help="additional voting contract options", type=list)
+@click.pass_obj
+def voting_deploy(
+        config: BoardCommmadConfiguration,
+        token_address,
+        kyc_address,
+        voting_name,
+        uri,
+        type,
+        options
+):
+    """
+    Deploys Voting contract to desired ethereum network
+    network, ethereum-abi-file, ethereum-private-key, ethereum-node-url are required args
+    """
+    from sto.ethereum.utils import deploy_contract, integer_hash
+    from eth_utils import to_bytes
+    args = (
+        token_address,
+        kyc_address,
+        to_bytes(voting_name),
+        to_bytes(uri),
+        type,
+        integer_hash(type),
+        [to_bytes(i) for i in options]
+    )
+    deploy_contract(config, contract_name='VotingContract', constructor_args=args)
 
 
 def main():
