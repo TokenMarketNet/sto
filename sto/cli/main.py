@@ -623,7 +623,7 @@ def kyc_manage(config: BoardCommmadConfiguration, whitelist_address):
     from sto.ethereum.utils import whitelist_kyc_address, get_kyc_deployed_tx, create_web3
 
     w3 = create_web3(config.ethereum_node_url)
-    nonce = w3.eth.getTransactionCount(whitelist_address)
+    nonce = w3.eth.getTransactionCount(whitelist_address) + 1
 
     whitelist_kyc_address(
         dbsession=config.dbsession,
