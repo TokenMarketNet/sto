@@ -2,12 +2,14 @@ import logging
 import os
 
 import pytest
+
 from sto.distribution import read_csv
 from sto.ethereum.broadcast import broadcast
 from sto.ethereum.distribution import distribute_tokens
 from sto.ethereum.issuance import deploy_token_contracts, contract_status
 from sto.ethereum.status import update_status
-from sto.models.broadcastaccount import _PreparedTransaction
+from sto.cli.main import cli
+from sto.ethereum.utils import get_kyc_deployed_tx, get_abi
 
 
 def test_issuance(logger, dbsession, web3, private_key_hex):
@@ -164,9 +166,48 @@ def test_distribute(logger, dbsession, web3, private_key_hex, sample_csv_file):
     assert old_distributes == 2
 
 
+def test_kyc_deploy(dbsession, private_key_hex, db_path, monkeypatch_create_web3, click_runner):
+    result = click_runner.invoke(
+        cli,
+        [
+            '--database-file', db_path,
+            '--ethereum-private-key', private_key_hex,
+            'kyc-deploy'
+        ]
+    )
+    assert result.exit_code == 0
+    assert 'contract deployed successfully at address' in result.output
+    tx = get_kyc_deployed_tx(dbsession)
+    assert tx.contract_name == 'BasicKYC'
+    assert tx.contract_address is not None
 
 
+def test_kyc_manage(dbsession, private_key_hex, web3, db_path, monkeypatch_create_web3, click_runner):
+    result = click_runner.invoke(
+        cli,
+        [
+            '--database-file', db_path,
+            '--ethereum-private-key', private_key_hex,
+            'kyc-deploy'
+        ]
+    )
+    assert result.exit_code == 0
+    tx = get_kyc_deployed_tx(dbsession)
+    abi = get_abi(None)
+    kyc_contract = web3.eth.contract(address=tx.contract_address, abi=abi['BasicKYC']['abi'])
 
+    eth_address = web3.eth.account.create().address
 
+    result = click_runner.invoke(
+        cli,
+        [
+            '--database-file', db_path,
+            '--ethereum-private-key', private_key_hex,
+            'kyc-manage',
+            '--whitelist-address', eth_address
+        ]
+    )
 
+    assert result.exit_code == 0
+    assert 'whitelisted address' in result.output
 

@@ -9,15 +9,20 @@ from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 from sto.models.implementation import Base
 
+from click.testing import CliRunner
 from web3 import Web3, EthereumTesterProvider
 
 
-@pytest.fixture
-def dbsession():
-    """We use sqlite in-memory for testing."""
+@pytest.fixture()
+def db_path(tmp_path):
+    return str(tmp_path / 'db_file.sql')
 
+
+@pytest.fixture
+def dbsession(db_path):
+    """We use sqlite in-memory for testing."""
     # https://docs.sqlalchemy.org/en/latest/dialects/sqlite.html
-    url = "sqlite+pysqlite:///" + ":memory:"
+    url = "sqlite+pysqlite:///" + db_path
 
     engine = create_engine(url, echo=False)
     Base.metadata.create_all(engine)
@@ -71,3 +76,13 @@ def private_key_hex(web3_test_provider, web3):
     assert balance > 0
     return private_key_hex
 
+
+@pytest.fixture
+def click_runner():
+    return CliRunner()
+
+
+@pytest.fixture
+def monkeypatch_create_web3(monkeypatch, web3):
+    from sto.ethereum import utils
+    monkeypatch.setattr(utils, 'create_web3', lambda _: web3)
