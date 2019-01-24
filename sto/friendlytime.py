@@ -1,17 +1,24 @@
+import datetime
 
 
 # https://stackoverflow.com/a/1551394/315168
-def pretty_date(time=False):
+def pretty_date(time=None, default_timezone=datetime.timezone.utc):
     """
     Get a datetime object or a int() Epoch timestamp and return a
     pretty string like 'an hour ago', 'Yesterday', '3 months ago',
     'just now', etc
     """
-    from datetime import datetime
-    now = datetime.utcnow()
+
+    # Assumes all timezone naive dates are UTC
+    if time.tzinfo is None or time.tzinfo.utcoffset(time) is None:
+        if default_timezone:
+            time = time.replace(tzinfo=default_timezone)
+
+    now = datetime.datetime.utcnow().replace(tzinfo=datetime.timezone.utc)
+
     if type(time) is int:
         diff = now - datetime.fromtimestamp(time)
-    elif isinstance(time,datetime):
+    elif isinstance(time, datetime.datetime):
         diff = now - time
     elif not time:
         diff = now - now
