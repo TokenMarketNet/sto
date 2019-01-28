@@ -9,7 +9,7 @@ from sto.ethereum.distribution import distribute_tokens
 from sto.ethereum.issuance import deploy_token_contracts, contract_status
 from sto.ethereum.status import update_status
 from sto.cli.main import cli
-from sto.ethereum.utils import get_contract_deployed_tx, get_abi
+from sto.ethereum.utils import get_abi
 
 
 @pytest.fixture
@@ -205,6 +205,7 @@ def test_kyc_deploy(
         db_path,
         monkeypatch_create_web3,
         monkeypatch_get_contract_deployed_tx,
+        get_contract_deployed_tx,
         web3,
         click_runner
 ):
@@ -230,6 +231,7 @@ def test_kyc_manage(
         db_path,
         monkeypatch_create_web3,
         monkeypatch_get_contract_deployed_tx,
+        get_contract_deployed_tx,
         click_runner
 ):
     result = click_runner.invoke(
