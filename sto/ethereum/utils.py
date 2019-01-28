@@ -287,36 +287,38 @@ def get_contract_deployed_tx(dbsession, contract_name):
     ).first()
 
 
-def whitelist_kyc_address(
-        dbsession,
-        ethereum_private_key,
-        ethereum_abi_file,
-        ethereum_node_url,
-        ethereum_gas_limit,
-        address
-):
-    from web3.middleware.signing import construct_sign_and_send_raw_middleware
-    from eth_account import Account
-    tx = get_contract_deployed_tx(dbsession, 'BasicKYC')
+def whitelist_kyc_address(config, address):
+    from sto.ethereum.txservice import EthereumStoredTXService
+    from sto.models.implementation import BroadcastAccount, PreparedTransaction
+
+    tx = get_contract_deployed_tx(config.dbsession, 'BasicKYC')
     if not tx:
         raise Exception(
             'BasicKyc contract is not deployed. '
             'invoke command kyc_deploy to deploy the smart contract'
         )
 
-    check_good_private_key(ethereum_private_key)
+    web3 = create_web3(config.ethereum_node_url)
 
-    abi = get_abi(ethereum_abi_file)
-    abi = abi['BasicKYC']['abi']
-
-    w3 = create_web3(ethereum_node_url)
-
-    contract = w3.eth.contract(address=tx.contract_address, abi=abi)
-    w3.middleware_stack.add(construct_sign_and_send_raw_middleware(ethereum_private_key))
-    account = Account.privateKeyToAccount(ethereum_private_key)
-    tx_hash = contract.functions.whitelistUser(address, True).transact(
-        {'from': account.address, 'gas': ethereum_gas_limit}
+    service = EthereumStoredTXService(
+        config.network,
+        config.dbsession,
+        web3,
+        config.ethereum_private_key,
+        config.ethereum_gas_price,
+        config.ethereum_gas_limit,
+        BroadcastAccount,
+        PreparedTransaction
     )
-    receipt = w3.eth.waitForTransactionReceipt(tx_hash)
-    assert receipt['status'] == 1, "failed to whitelist address"
-    assert contract.functions.isWhitelisted(address).call() == True, "isWhitelisted failed"
+    abi = get_abi(config.ethereum_abi_file)
+
+    service.interact_with_contract(
+        contract_name='BasicKYC',
+        abi=abi,
+        address=tx.contract_address,
+        note='whitelisting address {0}'.format(address),
+        func_name='whitelistUser',
+        args={'who': address, 'status': True}
+    )
+    broadcast(config)
+

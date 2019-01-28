@@ -600,11 +600,7 @@ def kyc_manage(config: BoardCommmadConfiguration, whitelist_address):
     """
     from sto.ethereum.utils import whitelist_kyc_address
     whitelist_kyc_address(
-        dbsession=config.dbsession,
-        ethereum_private_key=config.ethereum_private_key,
-        ethereum_abi_file=config.ethereum_abi_file,
-        ethereum_node_url=config.ethereum_node_url,
-        ethereum_gas_limit=config.ethereum_gas_limit,
+        config=config,
         address=whitelist_address
     )
 
