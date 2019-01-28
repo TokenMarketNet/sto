@@ -605,6 +605,46 @@ def kyc_manage(config: BoardCommmadConfiguration, whitelist_address):
     )
 
 
+@cli.command(name="voting-deploy")
+@click.option('--token-address', required=True, help="address of security token contract", type=str)
+@click.option('--kyc-address', required=False, default=None, help="address of kyc contract", type=str)
+@click.option('--voting-name', required=True, help="name of the voting,", type=str)
+@click.option('--uri', required=True, help="announcement uri", type=str)
+@click.option('--type', required=True, help="announcement type", type=int)
+@click.option('--options', required=False, default=[], help="additional voting contract options", type=list)
+@click.pass_obj
+def voting_deploy(
+        config: BoardCommmadConfiguration,
+        token_address,
+        kyc_address,
+        voting_name,
+        uri,
+        type,
+        options
+):
+    """
+    Deploys Voting contract to desired ethereum network
+    network, ethereum-abi-file, ethereum-private-key, ethereum-node-url are required args
+    """
+    from sto.ethereum.utils import deploy_contract, integer_hash, get_contract_deployed_tx
+    from eth_utils import to_bytes
+    if kyc_address is None:
+        tx = get_contract_deployed_tx(config.dbsession, 'BasicKYC')
+        if not tx:
+            raise Exception('BasicKYC contract not deployed. Please call ')
+        kyc_address = tx.contract_address
+    args = (
+        token_address,
+        kyc_address,
+        to_bytes(text=voting_name),
+        to_bytes(text=uri),
+        type,
+        integer_hash(type),
+        [to_bytes(i) for i in options]
+    )
+    deploy_contract(config, contract_name='VotingContract', constructor_args=args)
+
+
 def main():
     # https://github.com/pallets/click/issues/204#issuecomment-270012917
     cli.main(max_content_width=200, terminal_width=200)
