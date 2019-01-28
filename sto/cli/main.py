@@ -344,30 +344,8 @@ def broadcast(config: BoardCommmadConfiguration):
     Send all management account transactions to Ethereum network.
     After a while, transactions are picked up by miners and included in the blockchain.
     """
-
-    assert is_ethereum_network(config.network)
-
-    logger = config.logger
-
-    from sto.ethereum.broadcast import broadcast
-
-    dbsession = config.dbsession
-
-    txs = broadcast(logger,
-                          dbsession,
-                          config.network,
-                          ethereum_node_url=config.ethereum_node_url,
-                          ethereum_private_key=config.ethereum_private_key,
-                          ethereum_gas_limit=config.ethereum_gas_limit,
-                          ethereum_gas_price=config.ethereum_gas_price)
-
-    if txs:
-        from sto.ethereum.txservice import EthereumStoredTXService
-        EthereumStoredTXService.print_transactions(txs)
-        logger.info("Run %ssto tx-update%s to monitor your transaction propagation status", colorama.Fore.LIGHTCYAN_EX, colorama.Fore.RESET)
-
-    # Write database
-    dbsession.commit()
+    from sto.ethereum.utils import broadcast as _broadcast
+    _broadcast(config)
 
 
 @cli.command(name="tx-update")
@@ -600,6 +578,31 @@ def version(config: BoardCommmadConfiguration):
     """Print version number and exit."""
     print(config.version)
 
+
+@cli.command(name="kyc-deploy")
+@click.pass_obj
+def kyc_deploy(config: BoardCommmadConfiguration):
+    """
+    Deploys Kyc contract to desired ethereum network
+    network, ethereum-abi-file, ethereum-private-key, ethereum-node-url are required args
+    """
+    from sto.ethereum.utils import deploy_contract
+    deploy_contract(config, contract_name='BasicKYC')
+
+
+@cli.command(name="kyc-manage")
+@click.option('--whitelist-address', required=True, help="address to whitelist", type=str)
+@click.pass_obj
+def kyc_manage(config: BoardCommmadConfiguration, whitelist_address):
+    """
+    Whitelist a address in KYC smart contract
+    network, ethereum-abi-file, ethereum-private-key, ethereum-node-url are required args
+    """
+    from sto.ethereum.utils import whitelist_kyc_address
+    whitelist_kyc_address(
+        config=config,
+        address=whitelist_address
+    )
 
 
 def main():

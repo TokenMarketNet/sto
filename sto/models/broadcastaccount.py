@@ -179,3 +179,8 @@ class _PreparedTransaction(TimeStampedBaseModel):
         """
         return self.contract_name in ("SecurityToken",)
 
+    @classmethod
+    def filter_by_contract_name(cls, contract_name):
+        return sa.cast(
+            cls.other_data['abi']['name'], sa.String
+        ) == '"{0}"'.format(contract_name)

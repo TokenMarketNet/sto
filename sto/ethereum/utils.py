@@ -3,6 +3,7 @@ import os
 
 from typing import Optional
 
+import colorama
 import rlp
 from eth_abi import encode_abi
 from web3 import Web3, HTTPProvider
@@ -13,13 +14,15 @@ from web3.utils.filters import construct_event_filter_params
 from eth_utils import keccak, to_checksum_address, to_bytes, is_hex_address, is_checksum_address
 from web3.utils.contracts import encode_abi
 
+from sto.cli.main import is_ethereum_network
+
+
 class NoNodeConfigured(Exception):
     pass
 
 
 class NeedPrivateKey(Exception):
     pass
-
 
 
 def check_good_node_url(node_url: str):
@@ -51,6 +54,9 @@ def create_web3(url: str) -> Web3:
     else:
         return Web3(HTTPProvider(url))
 
+
+def integer_hash(number: int):
+    return int(keccak(number).hex(), 16)
 
 
 def mk_contract_address(sender: str, nonce: int) -> str:
@@ -163,5 +169,156 @@ def getLogs(self,
         yield get_event_data(abi, entry)
 
 
+def priv_key_to_address(private_key):
+    from eth_account import Account
+    acc = Account.privateKeyToAccount(private_key)
+    return acc.address
 
+
+def deploy_contract(config, contract_name, constructor_args=()):
+    tx = get_contract_deployed_tx(config.dbsession, contract_name)
+    if tx:
+        config.logger.error(
+            'contract already deployed at address: {}'.format(tx.contract_address)
+        )
+        return
+
+    from sto.ethereum.txservice import EthereumStoredTXService
+    from sto.models.implementation import BroadcastAccount, PreparedTransaction
+
+    assert is_ethereum_network(config.network)
+
+    check_good_private_key(config.ethereum_private_key)
+
+    abi = get_abi(config.ethereum_abi_file)
+
+    web3 = create_web3(config.ethereum_node_url)
+
+    service = EthereumStoredTXService(
+        config.network,
+        config.dbsession,
+        web3,
+        config.ethereum_private_key,
+        config.ethereum_gas_price,
+        config.ethereum_gas_limit,
+        BroadcastAccount,
+        PreparedTransaction
+    )
+    note = "Deploying contract {}".format(contract_name)
+    service.deploy_contract(
+        contract_name=contract_name,
+        abi=abi,
+        note=note,
+        constructor_args=constructor_args
+    )
+    # Write database
+    dbsession = config.dbsession
+    dbsession.commit()
+    # deploy on ethereum network
+    broadcast(config)
+
+
+def broadcast(config):
+    # extracted this out as a separate method so that
+    # this code can be re used elsewhere
+    assert is_ethereum_network(config.network)
+
+    logger = config.logger
+
+    from sto.ethereum.broadcast import broadcast
+
+    dbsession = config.dbsession
+
+    txs = broadcast(logger,
+                    dbsession,
+                    config.network,
+                    ethereum_node_url=config.ethereum_node_url,
+                    ethereum_private_key=config.ethereum_private_key,
+                    ethereum_gas_limit=config.ethereum_gas_limit,
+                    ethereum_gas_price=config.ethereum_gas_price)
+
+    if txs:
+        from sto.ethereum.txservice import EthereumStoredTXService
+        EthereumStoredTXService.print_transactions(txs)
+        logger.info("Run %ssto tx-update%s to monitor your transaction propagation status", colorama.Fore.LIGHTCYAN_EX,
+                    colorama.Fore.RESET)
+
+    # Write database
+    dbsession.commit()
+
+
+def deploy_contract_on_eth_network(
+        web3,
+        abi,
+        bytecode,
+        bytecode_runtime,
+        private_key,
+        ethereum_gas_limit,
+        ethereum_gas_price,
+        constructor_args
+):
+    from web3.middleware.signing import construct_sign_and_send_raw_middleware
+    # the following code helps deploying using infura
+    web3.middleware_stack.add(construct_sign_and_send_raw_middleware(private_key))
+
+    contract = web3.eth.contract(
+        abi=abi,
+        bytecode=bytecode,
+        bytecode_runtime=bytecode_runtime
+    )
+    tx_kwargs = {
+        'from': priv_key_to_address(private_key)
+    }
+    if ethereum_gas_limit:
+        tx_kwargs['gas'] = ethereum_gas_limit
+    if ethereum_gas_price:
+        tx_kwargs['gasPrice'] = ethereum_gas_price
+
+    tx_hash = contract.constructor(*constructor_args).transact(tx_kwargs)
+    receipt = web3.eth.waitForTransactionReceipt(tx_hash)
+    assert receipt['status'] == 1, "failed to deploy contract"
+    return receipt['contractAddress']
+
+
+def get_contract_deployed_tx(dbsession, contract_name):
+    from sto.models.implementation import PreparedTransaction
+    return dbsession.query(PreparedTransaction).filter(
+        PreparedTransaction.filter_by_contract_name(contract_name)
+    ).first()
+
+
+def whitelist_kyc_address(config, address):
+    from sto.ethereum.txservice import EthereumStoredTXService
+    from sto.models.implementation import BroadcastAccount, PreparedTransaction
+
+    tx = get_contract_deployed_tx(config.dbsession, 'BasicKYC')
+    if not tx:
+        raise Exception(
+            'BasicKyc contract is not deployed. '
+            'invoke command kyc_deploy to deploy the smart contract'
+        )
+
+    web3 = create_web3(config.ethereum_node_url)
+
+    service = EthereumStoredTXService(
+        config.network,
+        config.dbsession,
+        web3,
+        config.ethereum_private_key,
+        config.ethereum_gas_price,
+        config.ethereum_gas_limit,
+        BroadcastAccount,
+        PreparedTransaction
+    )
+    abi = get_abi(config.ethereum_abi_file)
+
+    service.interact_with_contract(
+        contract_name='BasicKYC',
+        abi=abi,
+        address=tx.contract_address,
+        note='whitelisting address {0}'.format(address),
+        func_name='whitelistUser',
+        args={'who': address, 'status': True}
+    )
+    broadcast(config)
 
