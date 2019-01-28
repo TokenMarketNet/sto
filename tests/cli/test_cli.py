@@ -9,7 +9,7 @@ from sto.ethereum.distribution import distribute_tokens
 from sto.ethereum.issuance import deploy_token_contracts, contract_status
 from sto.ethereum.status import update_status
 from sto.cli.main import cli
-from sto.ethereum.utils import get_kyc_deployed_tx, get_abi
+from sto.ethereum.utils import get_contract_deployed_tx, get_abi
 
 
 @pytest.fixture
@@ -24,6 +24,8 @@ def security_token(web3, private_key_hex):
         abi['bytecode'],
         abi['bytecode_runtime'],
         private_key_hex,
+        None,
+        None,
         constructor_args=args
     )
 
@@ -39,7 +41,7 @@ def kyc_contract(click_runner, dbsession, db_path, private_key_hex):
         ]
     )
     assert result.exit_code == 0
-    tx = get_kyc_deployed_tx(dbsession)
+    tx = get_contract_deployed_tx(dbsession, 'BasicKYC')
     return tx.contract_address
 
 
@@ -197,7 +199,7 @@ def test_distribute(logger, dbsession, web3, private_key_hex, sample_csv_file):
     assert old_distributes == 2
 
 
-def test_kyc_deploy(dbsession, private_key_hex, db_path, monkeypatch_create_web3, click_runner):
+def test_kyc_deploy(dbsession, private_key_hex, db_path, monkeypatch_create_web3, web3, click_runner):
     result = click_runner.invoke(
         cli,
         [
@@ -207,10 +209,10 @@ def test_kyc_deploy(dbsession, private_key_hex, db_path, monkeypatch_create_web3
         ]
     )
     assert result.exit_code == 0
-    assert 'contract deployed successfully at address' in result.output
-    tx = get_kyc_deployed_tx(dbsession)
+    tx = get_contract_deployed_tx(dbsession, 'BasicKYC')
     assert tx.contract_name == 'BasicKYC'
     assert tx.contract_address is not None
+    assert web3.eth.getCode(tx.contract_address) not in ['0x', None]
 
 
 def test_kyc_manage(dbsession, private_key_hex, web3, db_path, monkeypatch_create_web3, click_runner):
@@ -223,7 +225,7 @@ def test_kyc_manage(dbsession, private_key_hex, web3, db_path, monkeypatch_creat
         ]
     )
     assert result.exit_code == 0
-    tx = get_kyc_deployed_tx(dbsession)
+    tx = get_contract_deployed_tx(dbsession, 'BasicKYC')
     abi = get_abi(None)
     kyc_contract = web3.eth.contract(address=tx.contract_address, abi=abi['BasicKYC']['abi'])
 
@@ -234,31 +236,10 @@ def test_kyc_manage(dbsession, private_key_hex, web3, db_path, monkeypatch_creat
         [
             '--database-file', db_path,
             '--ethereum-private-key', private_key_hex,
+            '--ethereum-gas-limit', 80000,
             'kyc-manage',
             '--whitelist-address', eth_address
         ]
     )
-
     assert result.exit_code == 0
-    assert 'whitelisted address' in result.output
     assert kyc_contract.functions.isWhitelisted(eth_address).call() == True
-
-
-@pytest.mark.skip("ico code not merged, which is needed to generate contracts-flattened.json")
-def test_voting_deploy(private_key_hex, db_path, monkeypatch_create_web3, click_runner, security_token, kyc_contract):
-    result = click_runner.invoke(
-        cli,
-        [
-            '--database-file', db_path,
-            '--ethereum-private-key', private_key_hex,
-            '--ethereum-gas-price', 9999999,
-            'voting-deploy',
-            '--token-address', security_token,
-            '--kyc-address', kyc_contract,
-            '--voting-name', 'abcd',
-            '--uri', 'http://tokenmarket.net',
-            '--type', 0
-        ]
-    )
-    assert result.exit_code == 0
-    assert 'contract deployed successfully at address' in result.output
