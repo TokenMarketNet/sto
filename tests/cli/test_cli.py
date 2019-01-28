@@ -199,7 +199,15 @@ def test_distribute(logger, dbsession, web3, private_key_hex, sample_csv_file):
     assert old_distributes == 2
 
 
-def test_kyc_deploy(dbsession, private_key_hex, db_path, monkeypatch_create_web3, web3, click_runner):
+def test_kyc_deploy(
+        dbsession,
+        private_key_hex,
+        db_path,
+        monkeypatch_create_web3,
+        monkeypatch_get_contract_deployed_tx,
+        web3,
+        click_runner
+):
     result = click_runner.invoke(
         cli,
         [
@@ -215,7 +223,15 @@ def test_kyc_deploy(dbsession, private_key_hex, db_path, monkeypatch_create_web3
     assert web3.eth.getCode(tx.contract_address) not in ['0x', None]
 
 
-def test_kyc_manage(dbsession, private_key_hex, web3, db_path, monkeypatch_create_web3, click_runner):
+def test_kyc_manage(
+        dbsession,
+        private_key_hex,
+        web3,
+        db_path,
+        monkeypatch_create_web3,
+        monkeypatch_get_contract_deployed_tx,
+        click_runner
+):
     result = click_runner.invoke(
         cli,
         [

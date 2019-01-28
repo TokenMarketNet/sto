@@ -93,3 +93,19 @@ def monkeypatch_create_web3(monkeypatch, web3):
     from sto.ethereum import utils, broadcast
     monkeypatch.setattr(utils, 'create_web3', lambda _: web3)
     monkeypatch.setattr(broadcast, 'create_web3', lambda _: web3)
+
+
+@pytest.fixture
+def monkeypatch_get_contract_deployed_tx(monkeypatch):
+    """
+    This feature is needed becuase jsonb is not supported on travis sqlite
+    """
+    from sto.ethereum import utils
+
+    def _get_contract_deployed_tx(dbsession, contract_name):
+        from sto.models.implementation import PreparedTransaction
+        txs = dbsession.query(PreparedTransaction).all()
+        for tx in txs:
+            if tx.contract_name == contract_name:
+                return tx
+    monkeypatch.setattr(utils, 'get_contract_deployed_tx', _get_contract_deployed_tx)
