@@ -474,13 +474,15 @@ def next_nonce(config: BoardCommmadConfiguration):
 
     dbsession = config.dbsession
 
-    txs = next_nonce(logger,
-                          dbsession,
-                          config.network,
-                          ethereum_node_url=config.ethereum_node_url,
-                          ethereum_private_key=config.ethereum_private_key,
-                          ethereum_gas_limit=config.ethereum_gas_limit,
-                          ethereum_gas_price=config.ethereum_gas_price)
+    txs = next_nonce(
+          logger,
+          dbsession,
+          config.network,
+          ethereum_node_url=config.ethereum_node_url,
+          ethereum_private_key=config.ethereum_private_key,
+          ethereum_gas_limit=config.ethereum_gas_limit,
+          ethereum_gas_price=config.ethereum_gas_price
+    )
 
 
 @cli.command(name="token-scan")
