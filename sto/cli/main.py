@@ -633,15 +633,15 @@ def voting_deploy(
         if not tx:
             raise Exception('BasicKYC contract not deployed. Please call ')
         kyc_address = tx.contract_address
-    args = (
-        token_address,
-        kyc_address,
-        to_bytes(text=voting_name),
-        to_bytes(text=uri),
-        type,
-        integer_hash(type),
-        [to_bytes(i) for i in options]
-    )
+    args = {
+        '_token': token_address,
+        '_KYC': kyc_address,
+        'name': to_bytes(text=voting_name),
+        'URI': to_bytes(text=uri),
+        '_type': type,
+        '_hash': integer_hash(type),
+        '_options': [to_bytes(i) for i in options]
+    }
     deploy_contract(config, contract_name='VotingContract', constructor_args=args)
 
 
