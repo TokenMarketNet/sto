@@ -9,7 +9,7 @@ from sto.ethereum.distribution import distribute_tokens
 from sto.ethereum.issuance import deploy_token_contracts, contract_status
 from sto.ethereum.status import update_status
 from sto.cli.main import cli
-from sto.ethereum.utils import get_abi
+from sto.ethereum.utils import get_abi, get_contract_deployed_tx
 
 
 @pytest.fixture
@@ -261,3 +261,43 @@ def test_kyc_manage(
     )
     assert result.exit_code == 0
     assert kyc_contract.functions.isWhitelisted(eth_address).call() == True
+
+
+@pytest.mark.skip("ico code not merged, which is needed to generate contracts-flattened.json")
+def test_voting_deploy(private_key_hex, db_path, monkeypatch_create_web3, click_runner, security_token, kyc_contract):
+    result = click_runner.invoke(
+        cli,
+        [
+            '--database-file', db_path,
+            '--ethereum-private-key', private_key_hex,
+            '--ethereum-gas-price', 9999999,
+            'voting-deploy',
+            '--token-address', security_token,
+            '--kyc-address', kyc_contract,
+            '--voting-name', 'abcd',
+            '--uri', 'http://tokenmarket.net',
+            '--type', 0
+        ]
+    )
+    assert result.exit_code == 0
+    assert 'contract deployed successfully at address' in result.output
+
+
+@pytest.mark.skip("ico code not merged, which is needed to generate contracts-flattened.json")
+def test_payment_deploy(private_key_hex, db_path, monkeypatch_create_web3, click_runner, security_token, kyc_contract):
+    result = click_runner.invoke(
+        cli,
+        [
+            '--database-file', db_path,
+            '--ethereum-private-key', private_key_hex,
+            '--ethereum-gas-price', 9999999,
+            'voting-deploy',
+            '--token-address', security_token,
+            '--kyc-address', kyc_contract,
+            '--voting-name', 'abcd',
+            '--uri', 'http://tokenmarket.net',
+            '--type', 0
+        ]
+    )
+    assert result.exit_code == 0
+    assert 'contract deployed successfully at address' in result.output
