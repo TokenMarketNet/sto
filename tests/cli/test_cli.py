@@ -327,7 +327,7 @@ def test_voting_deploy(
     assert contract.functions.blockNumber().call() == web3.eth.blockNumber
 
 
-def test_payment_deploy(
+def test_payout_deploy(
         private_key_hex,
         db_path,
         monkeypatch_create_web3,
@@ -344,7 +344,7 @@ def test_payment_deploy(
             '--database-file', db_path,
             '--ethereum-private-key', private_key_hex,
             '--ethereum-gas-price', 9999999,
-            'payment-deploy',
+            'payout-deploy',
             '--token-address', security_token,
             '--payout-token-address', test_token,
             '--kyc-address', kyc_contract,
@@ -357,3 +357,4 @@ def test_payment_deploy(
     abi = get_abi(None)['PayoutContract']
     tx = get_contract_deployed_tx(dbsession, 'PayoutContract')
     contract = web3.eth.contract(address=tx.contract_address, abi=abi['abi'], bytecode=abi['bytecode'])
+    assert contract.functions.blockNumber().call() == web3.eth.blockNumber

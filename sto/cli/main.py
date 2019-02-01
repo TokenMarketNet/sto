@@ -723,20 +723,6 @@ def payout_deposit(config: BoardCommmadConfiguration):
     _broadcast(config)
 
 
-@cli.command(name="deploy-crowdsale")
-@click.pass_obj
-def deploy_crowdsale(config):
-    from sto.ethereum.utils import deploy_contract
-    args = {
-        "_name": 'test_token',
-        "_symbol": 'TEST',
-        "_initialSupply": 900000000,
-        "_decimals": 18,
-        "_mintable": True
-    }
-    deploy_contract(config, contract_name='CrowdsaleToken', constructor_args=args)
-
-
 def main():
     # https://github.com/pallets/click/issues/204#issuecomment-270012917
     cli.main(max_content_width=200, terminal_width=200)
