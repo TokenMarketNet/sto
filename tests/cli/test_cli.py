@@ -1,6 +1,3 @@
-import logging
-import os
-
 import pytest
 
 from sto.distribution import read_csv
@@ -64,6 +61,20 @@ def security_token(deploy, dbsession):
     }
     deploy('SecurityToken', args)
     tx = get_contract_deployed_tx(dbsession, 'SecurityToken')
+    return tx.contract_address
+
+
+@pytest.fixture
+def test_token(deploy, dbsession):
+    args = {
+        "_name": 'test_token',
+        "_symbol": 'TEST',
+        "_initialSupply": 900000000,
+        "_decimals": 18,
+        "_mintable": True
+    }
+    deploy('CrowdsaleToken', args)
+    tx = get_contract_deployed_tx(dbsession, 'CrowdsaleToken')
     return tx.contract_address
 
 
@@ -316,21 +327,33 @@ def test_voting_deploy(
     assert contract.functions.blockNumber().call() == web3.eth.blockNumber
 
 
-@pytest.mark.skip("ico code not merged, which is needed to generate contracts-flattened.json")
-def test_payment_deploy(private_key_hex, db_path, monkeypatch_create_web3, click_runner, security_token, kyc_contract):
+def test_payment_deploy(
+        private_key_hex,
+        db_path,
+        monkeypatch_create_web3,
+        click_runner,
+        dbsession,
+        web3,
+        security_token,
+        kyc_contract,
+        test_token
+):
     result = click_runner.invoke(
         cli,
         [
             '--database-file', db_path,
             '--ethereum-private-key', private_key_hex,
             '--ethereum-gas-price', 9999999,
-            'voting-deploy',
+            'payment-deploy',
             '--token-address', security_token,
+            '--payout-token-address', test_token,
             '--kyc-address', kyc_contract,
-            '--voting-name', 'abcd',
+            '--payout-name', 'Pay X',
             '--uri', 'http://tokenmarket.net',
             '--type', 0
         ]
     )
     assert result.exit_code == 0
-    assert 'contract deployed successfully at address' in result.output
+    abi = get_abi(None)['PayoutContract']
+    tx = get_contract_deployed_tx(dbsession, 'PayoutContract')
+    contract = web3.eth.contract(address=tx.contract_address, abi=abi['abi'], bytecode=abi['bytecode'])

@@ -103,7 +103,6 @@ def get_constructor_arguments(contract: Contract, args: Optional[list]=None, kwa
     """
 
     # return contract._encode_constructor_data(args=args, kwargs=kwargs)
-
     constructor_abi = get_constructor_abi(contract.abi)
 
     if args is not None:
@@ -175,6 +174,30 @@ def priv_key_to_address(private_key):
     return acc.address
 
 
+def _link_bytecode(dbession, bytecode, link_references):
+    """
+    Return the fully linked contract bytecode.
+
+    Note: This *must* use `get_contract` and **not** `get_contract_address`
+    for resolution of link dependencies.  If it merely uses
+    `get_contract_address` then the bytecode of sub-dependencies is not
+    verified.
+    """
+    from sto.ethereum.linking import link_bytecode
+    resolved_link_references = tuple(
+        (
+            link_reference,
+            get_contract_deployed_tx(dbession, link_reference['name']).contract_address
+        )
+        for link_reference
+        in link_references
+    )
+
+    linked_bytecode = link_bytecode(bytecode, resolved_link_references)
+
+    return linked_bytecode
+
+
 def deploy_contract(config, contract_name, constructor_args=()):
     tx = get_contract_deployed_tx(config.dbsession, contract_name)
     if tx:
@@ -191,6 +214,15 @@ def deploy_contract(config, contract_name, constructor_args=()):
     check_good_private_key(config.ethereum_private_key)
 
     abi = get_abi(config.ethereum_abi_file)
+    for dependency in abi[contract_name]['ordered_full_dependencies']:
+        deploy_contract(config, dependency)
+
+    abi[contract_name]['bytecode'] = _link_bytecode(
+        config.dbsession,
+        abi[contract_name]['bytecode'],
+        abi[contract_name]['linkrefs']
+    )
+
 
     web3 = create_web3(config.ethereum_node_url)
     service = EthereumStoredTXService(
