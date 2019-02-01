@@ -13,24 +13,6 @@ from sto.ethereum.utils import get_abi, get_contract_deployed_tx
 
 
 @pytest.fixture
-def security_token(web3, private_key_hex):
-    from sto.ethereum.utils import deploy_contract_on_eth_network, get_abi
-    args = ["SecurityToken", "SEC", "http://tokenmarket.net/"]  # Owner set
-    abi = get_abi(None)['SecurityToken']
-
-    return deploy_contract_on_eth_network(
-        web3,
-        abi['abi'],
-        abi['bytecode'],
-        abi['bytecode_runtime'],
-        private_key_hex,
-        None,
-        None,
-        constructor_args=args
-    )
-
-
-@pytest.fixture
 def kyc_contract(click_runner, dbsession, db_path, private_key_hex):
     result = click_runner.invoke(
         cli,
@@ -42,6 +24,45 @@ def kyc_contract(click_runner, dbsession, db_path, private_key_hex):
     )
     assert result.exit_code == 0
     tx = get_contract_deployed_tx(dbsession, 'BasicKYC')
+    return tx.contract_address
+
+
+@pytest.fixture
+def deploy(click_runner, db_path, private_key_hex):
+    import click
+    from sto.ethereum.utils import deploy_contract
+
+    def _deploy_contract(name, contract_args={}):
+        @cli.command(name="contract-deploy")
+        @click.option('--contract-name', required=True, type=str)
+        @click.option('--args', required=True, type=dict)
+        @click.pass_obj
+        def contract_deploy(config, contract_name, args):
+            deploy_contract(config, contract_name, constructor_args=args)
+
+        result = click_runner.invoke(
+            cli,
+            [
+                '--database-file', db_path,
+                '--ethereum-private-key', private_key_hex,
+                'contract-deploy',
+                '--contract-name', name,
+                '--args', contract_args,
+            ]
+        )
+        assert result.exit_code == 0
+    return _deploy_contract
+
+
+@pytest.fixture
+def security_token(deploy, dbsession):
+    args = {
+        "_name": "SecurityToken",
+        "_symbol": "SEC",
+        "_url": "http://tokenmarket.net/"
+    }
+    deploy('SecurityToken', args)
+    tx = get_contract_deployed_tx(dbsession, 'SecurityToken')
     return tx.contract_address
 
 
@@ -263,24 +284,39 @@ def test_kyc_manage(
     assert kyc_contract.functions.isWhitelisted(eth_address).call() == True
 
 
-@pytest.mark.skip("ico code not merged, which is needed to generate contracts-flattened.json")
-def test_voting_deploy(private_key_hex, db_path, monkeypatch_create_web3, click_runner, security_token, kyc_contract):
-    result = click_runner.invoke(
-        cli,
-        [
-            '--database-file', db_path,
-            '--ethereum-private-key', private_key_hex,
-            '--ethereum-gas-price', 9999999,
-            'voting-deploy',
-            '--token-address', security_token,
-            '--kyc-address', kyc_contract,
-            '--voting-name', 'abcd',
-            '--uri', 'http://tokenmarket.net',
-            '--type', 0
-        ]
-    )
-    assert result.exit_code == 0
-    assert 'contract deployed successfully at address' in result.output
+def test_voting_deploy(private_key_hex, db_path, monkeypatch_create_web3, click_runner, security_token, kyc_contract, web3):
+    # result = click_runner.invoke(
+    #     cli,
+    #     [
+    #         '--database-file', db_path,
+    #         '--ethereum-private-key', private_key_hex,
+    #         '--ethereum-gas-price', 9999999,
+    #         'voting-deploy',
+    #         '--token-address', security_token,
+    #         '--kyc-address', kyc_contract,
+    #         '--voting-name', 'abcd',
+    #         '--uri', 'http://tokenmarket.net',
+    #         '--type', 0
+    #     ]
+    # )
+    # assert result.exit_code == 0
+    # assert 'contract deployed successfully at address' in result.output
+    from eth_utils import to_bytes
+    from sto.ethereum.utils import get_abi, priv_key_to_address
+    args = [
+        security_token,
+        kyc_contract,
+        to_bytes(text="Voting X"),
+        to_bytes(text="http://tokenmarket.net"),
+        123,
+        0,
+        [to_bytes(text="Vested for voting")]
+    ]
+    abi = get_abi(None)
+    contract = web3.eth.contract(abi=abi['VotingContract']['abi'], bytecode=abi['VotingContract']['bytecode'])
+    tx_hash = contract.constructor(*args).transact({'from': priv_key_to_address(private_key_hex)})
+    tx = web3.eth.getTransactionReceipt(tx_hash)
+    # contract = contract(address=tx.contractAddress)
 
 
 @pytest.mark.skip("ico code not merged, which is needed to generate contracts-flattened.json")

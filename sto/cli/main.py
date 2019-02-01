@@ -697,7 +697,6 @@ def payout_deposit(config: BoardCommmadConfiguration):
     from sto.ethereum.txservice import EthereumStoredTXService
     from sto.models.implementation import BroadcastAccount, PreparedTransaction
 
-    dbsession = config.dbsession
     tx = get_contract_deployed_tx(config.dbsession, 'PayoutContract')
     if not tx:
         raise Exception('PayoutContract not found. Call payout-deploy to deploy PayoutContract')
