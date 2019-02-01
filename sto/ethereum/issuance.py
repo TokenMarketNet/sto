@@ -32,6 +32,7 @@ def deploy_token_contracts(logger: Logger,
                           ethereum_gas_price: Optional[int],
                           name: str,
                           symbol: str,
+                          url: str,
                           amount: int,
                           transfer_restriction: str):
     """Issue out a new Ethereum token."""
@@ -52,17 +53,17 @@ def deploy_token_contracts(logger: Logger,
 
     # Deploy security token
     note = "Deploying token contract for {}".format(name)
-    deploy_tx1 = service.deploy_contract("SecurityToken", abi, note, constructor_args={"_name": name, "_symbol": symbol})  # See SecurityToken.sol
+    deploy_tx1 = service.deploy_contract("SecurityToken", abi, note, constructor_args={"_name": name, "_symbol": symbol, "_url": url})  # See SecurityToken.sol
 
     # Deploy transfer agent
     note = "Deploying unrestricted transfer policy for {}".format(name)
     deploy_tx2 = service.deploy_contract("UnrestrictedTransferAgent", abi, note)
 
     # Set transfer agent
-    note = "Whitelisting deployment account for {} issuer control".format(name)
-    contract_address = deploy_tx1.contract_address
-    update_tx1 = service.interact_with_contract("SecurityToken", abi, contract_address, note, "addAddressToWhitelist", {"addr": deploy_tx1.get_from()})
-    assert update_tx1.contract_deployment == False
+    # note = "Whitelisting deployment account for {} issuer control".format(name)
+    # contract_address = deploy_tx1.contract_address
+    # update_tx1 = service.interact_with_contract("SecurityToken", abi, contract_address, note, "addAddressToWhitelist", {"addr": deploy_tx1.get_from()})
+    # assert update_tx1.contract_deployment == False
 
     # Set transfer agent
     note = "Making transfer restriction policy for {} effective".format(name)
@@ -77,7 +78,7 @@ def deploy_token_contracts(logger: Logger,
 
     logger.info("Prepared transactions for broadcasting for network %s", network)
     logger.info("STO token contract address will be %s%s%s", colorama.Fore.LIGHTGREEN_EX, deploy_tx1.contract_address, colorama.Fore.RESET)
-    return [deploy_tx1, deploy_tx2, update_tx1, update_tx2, update_tx3]
+    return [deploy_tx1, deploy_tx2, update_tx2, update_tx3]
 
 
 def contract_status(logger: Logger,
