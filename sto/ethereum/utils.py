@@ -193,7 +193,6 @@ def deploy_contract(config, contract_name, constructor_args=()):
     abi = get_abi(config.ethereum_abi_file)
 
     web3 = create_web3(config.ethereum_node_url)
-
     service = EthereumStoredTXService(
         config.network,
         config.dbsession,
@@ -225,17 +224,19 @@ def broadcast(config):
 
     logger = config.logger
 
-    from sto.ethereum.broadcast import broadcast
+    from sto.ethereum.broadcast import broadcast as _broadcast
 
     dbsession = config.dbsession
 
-    txs = broadcast(logger,
-                    dbsession,
-                    config.network,
-                    ethereum_node_url=config.ethereum_node_url,
-                    ethereum_private_key=config.ethereum_private_key,
-                    ethereum_gas_limit=config.ethereum_gas_limit,
-                    ethereum_gas_price=config.ethereum_gas_price)
+    txs = _broadcast(
+        logger,
+        dbsession,
+        config.network,
+        ethereum_node_url=config.ethereum_node_url,
+        ethereum_private_key=config.ethereum_private_key,
+        ethereum_gas_limit=config.ethereum_gas_limit,
+        ethereum_gas_price=config.ethereum_gas_price
+    )
 
     if txs:
         from sto.ethereum.txservice import EthereumStoredTXService
