@@ -89,7 +89,7 @@ def test_issuance(logger, dbsession, web3, private_key_hex):
         web3,
         ethereum_abi_file=None,
         ethereum_private_key=private_key_hex,
-        ethereum_gas_limit=None,
+        ethereum_gas_limit=99999999,
         ethereum_gas_price=None,
         name="Moo Corp",
         symbol="MOO",
@@ -149,93 +149,104 @@ def test_distribute(logger, dbsession, web3, private_key_hex, sample_csv_file):
     """Distribute tokens."""
 
     # Creating transactions
-    txs = deploy_token_contracts(logger, dbsession, "testing", web3,
-                           ethereum_abi_file=None,
-                           ethereum_private_key=private_key_hex,
-                           ethereum_gas_limit=None,
-                           ethereum_gas_price=None,
-                           name="Moo Corp",
-                           symbol="MOO",
-                           amount=9999,
-                           transfer_restriction="unrestricted")
+    txs = deploy_token_contracts(
+       logger, dbsession, "testing", web3,
+       ethereum_abi_file=None,
+       ethereum_private_key=private_key_hex,
+       ethereum_gas_limit=99999999,
+       ethereum_gas_price=None,
+       name="Moo Corp",
+       symbol="MOO",
+       url="https://tokenmarket.net",
+       amount=9999,
+       transfer_restriction="unrestricted"
+    )
 
     token_address = txs[0].contract_address
 
     # Deploy contract transactions to emphmereal test chain
-    broadcast(logger,
-                    dbsession,
-                    "testing",
-                    web3,
-                   ethereum_private_key=private_key_hex,
-                   ethereum_gas_limit=None,
-                   ethereum_gas_price=None,
-                   )
+    broadcast(
+        logger,
+        dbsession,
+        "testing",
+        web3,
+        ethereum_private_key=private_key_hex,
+        ethereum_gas_limit=None,
+        ethereum_gas_price=None,
+    )
 
     # Check that we can view the token status
-    status = contract_status(logger,
-                             dbsession,
-                             "testing",
-                             web3,
-                             ethereum_abi_file=None,
-                             ethereum_private_key=private_key_hex,
-                             ethereum_gas_limit=None,
-                             ethereum_gas_price=None,
-                             token_contract=token_address,
-                             )
+    status = contract_status(
+        logger,
+        dbsession,
+        "testing",
+        web3,
+        ethereum_abi_file=None,
+        ethereum_private_key=private_key_hex,
+        ethereum_gas_limit=None,
+        ethereum_gas_price=None,
+        token_contract=token_address,
+    )
 
     assert status["name"] == "Moo Corp"
     assert status["totalSupply"] == 9999 * 10 ** 18
 
     entries = read_csv(logger, sample_csv_file)
 
-    new_distributes, old_distributes = distribute_tokens(logger,
-                    dbsession,
-                    "testing",
-                    web3,
-                   ethereum_abi_file=None,
-                   ethereum_private_key=private_key_hex,
-                   ethereum_gas_limit=None,
-                   ethereum_gas_price=None,
-                   token_address=token_address,
-                   dists=entries)
+    new_distributes, old_distributes = distribute_tokens(
+        logger,
+        dbsession,
+        "testing",
+        web3,
+        ethereum_abi_file=None,
+        ethereum_private_key=private_key_hex,
+        ethereum_gas_limit=None,
+        ethereum_gas_price=None,
+        token_address=token_address,
+        dists=entries
+    )
 
     assert new_distributes == 2
     assert old_distributes == 0
 
     # Check they got mined
     # Send transactions to emphmereal test chain
-    txs = broadcast(logger,
-                    dbsession,
-                    "testing",
-                    web3,
-                   ethereum_private_key=private_key_hex,
-                   ethereum_gas_limit=None,
-                   ethereum_gas_price=None,
-                   )
+    txs = broadcast(
+        logger,
+        dbsession,
+        "testing",
+        web3,
+        ethereum_private_key=private_key_hex,
+        ethereum_gas_limit=None,
+        ethereum_gas_price=None,
+    )
     # Check they got mined
-    txs = update_status(logger,
-                    dbsession,
-                    "testing",
-                    web3,
-                   ethereum_private_key=private_key_hex,
-                   ethereum_gas_limit=None,
-                   ethereum_gas_price=None,
-                   )
-    assert len(txs) == 7
+    txs = update_status(
+        logger,
+        dbsession,
+        "testing",
+        web3,
+        ethereum_private_key=private_key_hex,
+        ethereum_gas_limit=None,
+        ethereum_gas_price=None,
+    )
+    assert len(txs) == 6
     for tx in txs:  # type: PreparedTransaction
         assert tx.result_transaction_success
 
     # Check that rerun does not recreate txs
-    new_distributes, old_distributes = distribute_tokens(logger,
-                    dbsession,
-                    "testing",
-                    web3,
-                   ethereum_abi_file=None,
-                   ethereum_private_key=private_key_hex,
-                   ethereum_gas_limit=None,
-                   ethereum_gas_price=None,
-                   token_address=token_address,
-                   dists=entries)
+    new_distributes, old_distributes = distribute_tokens(
+        logger,
+        dbsession,
+        "testing",
+        web3,
+        ethereum_abi_file=None,
+        ethereum_private_key=private_key_hex,
+        ethereum_gas_limit=None,
+        ethereum_gas_price=None,
+        token_address=token_address,
+        dists=entries
+    )
 
     assert new_distributes == 0
     assert old_distributes == 2

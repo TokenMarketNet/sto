@@ -60,25 +60,19 @@ def deploy_token_contracts(logger: Logger,
     deploy_tx2 = service.deploy_contract("UnrestrictedTransferAgent", abi, note)
 
     # Set transfer agent
-    # note = "Whitelisting deployment account for {} issuer control".format(name)
-    # contract_address = deploy_tx1.contract_address
-    # update_tx1 = service.interact_with_contract("SecurityToken", abi, contract_address, note, "addAddressToWhitelist", {"addr": deploy_tx1.get_from()})
-    # assert update_tx1.contract_deployment == False
-
-    # Set transfer agent
     note = "Making transfer restriction policy for {} effective".format(name)
     contract_address = deploy_tx1.contract_address
-    update_tx2 = service.interact_with_contract("SecurityToken", abi, contract_address, note, "setTransactionVerifier", {"newVerifier": deploy_tx2.contract_address})
+    update_tx1 = service.interact_with_contract("SecurityToken", abi, contract_address, note, "setTransactionVerifier", {"newVerifier": deploy_tx2.contract_address})
 
     # Issue out initial shares
     note = "Creating {} initial shares for {}".format(amount, name)
     contract_address = deploy_tx1.contract_address
     amount_18 = int(amount * 10**decimals)
-    update_tx3 = service.interact_with_contract("SecurityToken", abi, contract_address, note, "issueTokens", {"value": amount_18})
+    update_tx2 = service.interact_with_contract("SecurityToken", abi, contract_address, note, "issueTokens", {"value": amount_18})
 
     logger.info("Prepared transactions for broadcasting for network %s", network)
     logger.info("STO token contract address will be %s%s%s", colorama.Fore.LIGHTGREEN_EX, deploy_tx1.contract_address, colorama.Fore.RESET)
-    return [deploy_tx1, deploy_tx2, update_tx2, update_tx3]
+    return [deploy_tx1, deploy_tx2, update_tx1, update_tx2]
 
 
 def contract_status(logger: Logger,

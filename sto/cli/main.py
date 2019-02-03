@@ -133,10 +133,11 @@ def cli(ctx, config: str, **kwargs):
 @cli.command()
 @click.option('--symbol', required=True)
 @click.option('--name', required=True)
+@click.option('--url', required=True)
 @click.option('--amount', required=True, type=int)
 @click.option('--transfer-restriction', required=False, default="unrestricted")
 @click.pass_obj
-def issue(config: BoardCommmadConfiguration, symbol, name, amount, transfer_restriction):
+def issue(config: BoardCommmadConfiguration, symbol, name, url, amount, transfer_restriction):
     """Issue out a new security token.
 
     * Creates a new share series
@@ -155,18 +156,21 @@ def issue(config: BoardCommmadConfiguration, symbol, name, amount, transfer_rest
 
     dbsession = config.dbsession
 
-    txs = deploy_token_contracts(logger,
-                          dbsession,
-                          config.network,
-                          ethereum_node_url=config.ethereum_node_url,
-                          ethereum_abi_file=config.ethereum_abi_file,
-                          ethereum_private_key=config.ethereum_private_key,
-                          ethereum_gas_limit=config.ethereum_gas_limit,
-                          ethereum_gas_price=config.ethereum_gas_price,
-                          name=name,
-                          symbol=symbol,
-                          amount=amount,
-                          transfer_restriction=transfer_restriction)
+    txs = deploy_token_contracts(
+        logger,
+        dbsession,
+        config.network,
+        ethereum_node_url=config.ethereum_node_url,
+        ethereum_abi_file=config.ethereum_abi_file,
+        ethereum_private_key=config.ethereum_private_key,
+        ethereum_gas_limit=config.ethereum_gas_limit,
+        ethereum_gas_price=config.ethereum_gas_price,
+        name=name,
+        symbol=symbol,
+        uel=url,
+        amount=amount,
+        transfer_restriction=transfer_restriction
+    )
 
     EthereumStoredTXService.print_transactions(txs)
 
