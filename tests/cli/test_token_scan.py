@@ -313,7 +313,7 @@ def test_token_scan_incremental(logger, dbsession, network, private_key_hex, sam
     assert balances == correct_result
 
     # Check that result match when start from the middle
-    balances = token_scan(logger, dbsession, network, web3, None, sample_token, start_block=8, end_block=web3.eth.blockNumber)
+    balances = token_scan(logger, dbsession, network, web3, None, sample_token, start_block=7, end_block=web3.eth.blockNumber)
     correct_result = {
         '0xDE5bC059aA433D72F25846bdFfe96434b406FA85': 9565 * 10**18,
         test_account_1: 0,
