@@ -38,15 +38,21 @@ def sample_token(logger, dbsession, web3, private_key_hex, sample_csv_file):
     """Create a security token used in these tests."""
 
     # Creating transactions
-    txs = deploy_token_contracts(logger, dbsession, "testing", web3,
-                                 ethereum_abi_file=None,
-                                 ethereum_private_key=private_key_hex,
-                                 ethereum_gas_limit=None,
-                                 ethereum_gas_price=None,
-                                 name="Moo Corp",
-                                 symbol="MOO",
-                                 amount=9999,
-                                 transfer_restriction="unrestricted")
+    txs = deploy_token_contracts(
+        logger,
+        dbsession,
+        "testing",
+        web3,
+        ethereum_abi_file=None,
+        ethereum_private_key=private_key_hex,
+        ethereum_gas_limit=9999999,
+        ethereum_gas_price=None,
+        name="Moo Corp",
+        symbol="MOO",
+        url="https://tokenmarket.net",
+        amount=9999,
+        transfer_restriction="unrestricted"
+    )
 
     token_address = txs[0].contract_address
 
@@ -220,12 +226,12 @@ def test_simple_token_balance_scan(logger, dbsession, network, sample_distributi
 
     last_balance_a6 = token_status.get_accounts().filter_by(address="0x0bdcc26C4B8077374ba9DB82164B77d6885b92a6").one()
     assert last_balance_a6.get_balance_uint() == 300 * 10**18
-    assert last_balance_a6.last_block_num == 7
+    assert last_balance_a6.last_block_num == 6
     assert last_balance_a6.last_block_updated_at is not None
 
     last_balance_d2 = token_status.get_accounts().filter_by(address="0xE738f7A6Eb317b8B286c27296cD982445c9D8cd2").one()
     assert last_balance_d2.get_balance_uint() == 500 * 10**18
-    assert last_balance_d2.last_block_num == 8
+    assert last_balance_d2.last_block_num == 7
     assert last_balance_d2.last_block_updated_at is not None
 
     # Rescan should be ok, yield to same results
@@ -234,7 +240,7 @@ def test_simple_token_balance_scan(logger, dbsession, network, sample_distributi
     assert all_balances == rescanned_all_balances
 
     assert token_status.start_block == 1
-    assert token_status.end_block == 8
+    assert token_status.end_block == 7
 
 
 def test_token_scan_incremental(logger, dbsession, network, private_key_hex, sample_token, web3, test_account_1, test_account_2, test_account_3, token_contract):
@@ -307,7 +313,7 @@ def test_token_scan_incremental(logger, dbsession, network, private_key_hex, sam
     assert balances == correct_result
 
     # Check that result match when start from the middle
-    balances = token_scan(logger, dbsession, network, web3, None, sample_token, start_block=8, end_block=web3.eth.blockNumber)
+    balances = token_scan(logger, dbsession, network, web3, None, sample_token, start_block=7, end_block=web3.eth.blockNumber)
     correct_result = {
         '0xDE5bC059aA433D72F25846bdFfe96434b406FA85': 9565 * 10**18,
         test_account_1: 0,

@@ -11,7 +11,14 @@ from web3.contract import Contract
 from web3.utils.abi import get_constructor_abi, merge_args_and_kwargs
 from web3.utils.events import get_event_data
 from web3.utils.filters import construct_event_filter_params
-from eth_utils import keccak, to_checksum_address, to_bytes, is_hex_address, is_checksum_address
+from eth_utils import (
+    keccak,
+    to_checksum_address,
+    to_bytes,
+    is_hex_address,
+    is_checksum_address,
+    to_hex
+)
 from web3.utils.contracts import encode_abi
 
 from sto.cli.main import is_ethereum_network
@@ -103,8 +110,11 @@ def get_constructor_arguments(contract: Contract, args: Optional[list]=None, kwa
     """
 
     # return contract._encode_constructor_data(args=args, kwargs=kwargs)
-
     constructor_abi = get_constructor_abi(contract.abi)
+
+    # constructor_abi can be none in case of libraries
+    if constructor_abi is None:
+        return to_hex(contract.bytecode)
 
     if args is not None:
         return contract._encode_abi(constructor_abi, args)[2:]  # No 0x
@@ -175,6 +185,30 @@ def priv_key_to_address(private_key):
     return acc.address
 
 
+def _link_bytecode(dbession, bytecode, link_references):
+    """
+    Return the fully linked contract bytecode.
+
+    Note: This *must* use `get_contract` and **not** `get_contract_address`
+    for resolution of link dependencies.  If it merely uses
+    `get_contract_address` then the bytecode of sub-dependencies is not
+    verified.
+    """
+    from sto.ethereum.linking import link_bytecode
+    resolved_link_references = tuple(
+        (
+            link_reference,
+            get_contract_deployed_tx(dbession, link_reference['name']).contract_address
+        )
+        for link_reference
+        in link_references
+    )
+
+    linked_bytecode = link_bytecode(bytecode, resolved_link_references)
+
+    return linked_bytecode
+
+
 def deploy_contract(config, contract_name, constructor_args=()):
     tx = get_contract_deployed_tx(config.dbsession, contract_name)
     if tx:
@@ -192,8 +226,22 @@ def deploy_contract(config, contract_name, constructor_args=()):
 
     abi = get_abi(config.ethereum_abi_file)
 
-    web3 = create_web3(config.ethereum_node_url)
+    for dependency in abi[contract_name]['ordered_full_dependencies']:
+        deploy_contract(config, dependency, None)
 
+    abi[contract_name]['bytecode'] = _link_bytecode(
+        config.dbsession,
+        abi[contract_name]['bytecode'],
+        abi[contract_name]['linkrefs']
+    )
+    abi[contract_name]['bytecode_runtime'] = _link_bytecode(
+        config.dbsession,
+        abi[contract_name]['bytecode_runtime'],
+        abi[contract_name]['linkrefs_runtime'],
+    )
+
+
+    web3 = create_web3(config.ethereum_node_url)
     service = EthereumStoredTXService(
         config.network,
         config.dbsession,
@@ -225,17 +273,19 @@ def broadcast(config):
 
     logger = config.logger
 
-    from sto.ethereum.broadcast import broadcast
+    from sto.ethereum.broadcast import broadcast as _broadcast
 
     dbsession = config.dbsession
 
-    txs = broadcast(logger,
-                    dbsession,
-                    config.network,
-                    ethereum_node_url=config.ethereum_node_url,
-                    ethereum_private_key=config.ethereum_private_key,
-                    ethereum_gas_limit=config.ethereum_gas_limit,
-                    ethereum_gas_price=config.ethereum_gas_price)
+    txs = _broadcast(
+        logger,
+        dbsession,
+        config.network,
+        ethereum_node_url=config.ethereum_node_url,
+        ethereum_private_key=config.ethereum_private_key,
+        ethereum_gas_limit=config.ethereum_gas_limit,
+        ethereum_gas_price=config.ethereum_gas_price
+    )
 
     if txs:
         from sto.ethereum.txservice import EthereumStoredTXService

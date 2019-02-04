@@ -133,10 +133,11 @@ def cli(ctx, config: str, **kwargs):
 @cli.command()
 @click.option('--symbol', required=True)
 @click.option('--name', required=True)
+@click.option('--url', required=True)
 @click.option('--amount', required=True, type=int)
 @click.option('--transfer-restriction', required=False, default="unrestricted")
 @click.pass_obj
-def issue(config: BoardCommmadConfiguration, symbol, name, amount, transfer_restriction):
+def issue(config: BoardCommmadConfiguration, symbol, name, url, amount, transfer_restriction):
     """Issue out a new security token.
 
     * Creates a new share series
@@ -155,18 +156,21 @@ def issue(config: BoardCommmadConfiguration, symbol, name, amount, transfer_rest
 
     dbsession = config.dbsession
 
-    txs = deploy_token_contracts(logger,
-                          dbsession,
-                          config.network,
-                          ethereum_node_url=config.ethereum_node_url,
-                          ethereum_abi_file=config.ethereum_abi_file,
-                          ethereum_private_key=config.ethereum_private_key,
-                          ethereum_gas_limit=config.ethereum_gas_limit,
-                          ethereum_gas_price=config.ethereum_gas_price,
-                          name=name,
-                          symbol=symbol,
-                          amount=amount,
-                          transfer_restriction=transfer_restriction)
+    txs = deploy_token_contracts(
+        logger,
+        dbsession,
+        config.network,
+        ethereum_node_url=config.ethereum_node_url,
+        ethereum_abi_file=config.ethereum_abi_file,
+        ethereum_private_key=config.ethereum_private_key,
+        ethereum_gas_limit=config.ethereum_gas_limit,
+        ethereum_gas_price=config.ethereum_gas_price,
+        name=name,
+        symbol=symbol,
+        uel=url,
+        amount=amount,
+        transfer_restriction=transfer_restriction
+    )
 
     EthereumStoredTXService.print_transactions(txs)
 
@@ -474,13 +478,15 @@ def next_nonce(config: BoardCommmadConfiguration):
 
     dbsession = config.dbsession
 
-    txs = next_nonce(logger,
-                          dbsession,
-                          config.network,
-                          ethereum_node_url=config.ethereum_node_url,
-                          ethereum_private_key=config.ethereum_private_key,
-                          ethereum_gas_limit=config.ethereum_gas_limit,
-                          ethereum_gas_price=config.ethereum_gas_price)
+    txs = next_nonce(
+          logger,
+          dbsession,
+          config.network,
+          ethereum_node_url=config.ethereum_node_url,
+          ethereum_private_key=config.ethereum_private_key,
+          ethereum_gas_limit=config.ethereum_gas_limit,
+          ethereum_gas_price=config.ethereum_gas_price
+    )
 
 
 @cli.command(name="token-scan")
@@ -603,6 +609,122 @@ def kyc_manage(config: BoardCommmadConfiguration, whitelist_address):
         config=config,
         address=whitelist_address
     )
+
+
+@cli.command(name="voting-deploy")
+@click.option('--token-address', required=True, help="address of security token contract", type=str)
+@click.option('--kyc-address', required=False, default=None, help="address of kyc contract", type=str)
+@click.option('--voting-name', required=True, help="name of the voting,", type=str)
+@click.option('--uri', required=True, help="announcement uri", type=str)
+@click.option('--type', required=True, help="announcement type", type=int)
+@click.option('--options', required=False, default=[], help="additional voting contract options", type=list)
+@click.pass_obj
+def voting_deploy(
+        config: BoardCommmadConfiguration,
+        token_address,
+        kyc_address,
+        voting_name,
+        uri,
+        type,
+        options
+):
+    """
+    Deploys Voting contract to desired ethereum network
+    network, ethereum-abi-file, ethereum-private-key, ethereum-node-url are required args
+    """
+    from sto.ethereum.utils import deploy_contract, integer_hash, get_contract_deployed_tx
+    from eth_utils import to_bytes
+    if kyc_address is None:
+        tx = get_contract_deployed_tx(config.dbsession, 'BasicKYC')
+        if not tx:
+            raise Exception('BasicKYC contract not deployed. Please call ')
+        kyc_address = tx.contract_address
+    args = {
+        '_token': token_address,
+        '_KYC': kyc_address,
+        'name': to_bytes(text=voting_name),
+        'URI': to_bytes(text=uri),
+        '_type': type,
+        '_hash': integer_hash(type),
+        '_options': [to_bytes(i) for i in options]
+    }
+    deploy_contract(config, contract_name='VotingContract', constructor_args=args)
+
+
+@cli.command(name="payout-deploy")
+@click.option('--token-address', required=True, help="address of security token contract", type=str)
+@click.option('--payout-token-address', required=True, help="address of payout token contract", type=str)
+@click.option('--kyc-address', required=False, default=None, help="address of kyc contract", type=str)
+@click.option('--payout-name', required=True, help="name of the payout,", type=str)
+@click.option('--uri', required=True, help="announcement uri", type=str)
+@click.option('--type', required=True, help="announcement type", type=int)
+@click.option('--options', required=False, default=[], help="additional payout contract options", type=list)
+@click.pass_obj
+def payout_deploy(
+        config: BoardCommmadConfiguration,
+        token_address,
+        payout_token_address,
+        kyc_address,
+        payout_name,
+        uri,
+        type,
+        options
+):
+    """
+    Deploys Voting contract to desired ethereum network
+    network, ethereum-abi-file, ethereum-private-key, ethereum-node-url are required args
+    """
+    from sto.ethereum.utils import deploy_contract, integer_hash, get_contract_deployed_tx
+    from eth_utils import to_bytes
+    if kyc_address is None:
+        tx = get_contract_deployed_tx(config.dbsession, 'BasicKYC')
+        if not tx:
+            raise Exception('BasicKYC contract not deployed. Please call ')
+        kyc_address = tx.contract_address
+    args = {
+        '_token': token_address,
+        '_payoutToken': payout_token_address,
+        '_KYC': kyc_address,
+        'name': to_bytes(text=payout_name),
+        'URI': to_bytes(text=uri),
+        '_type': type,
+        '_hash': integer_hash(type),
+        '_options': [to_bytes(i) for i in options]
+    }
+    deploy_contract(config, contract_name='PayoutContract', constructor_args=args)
+
+
+@cli.command(name="payout-deposit")
+@click.pass_obj
+def payout_deposit(config: BoardCommmadConfiguration):
+    from sto.ethereum.utils import get_contract_deployed_tx, create_web3, get_abi, broadcast as _broadcast
+    from sto.ethereum.txservice import EthereumStoredTXService
+    from sto.models.implementation import BroadcastAccount, PreparedTransaction
+
+    tx = get_contract_deployed_tx(config.dbsession, 'PayoutContract')
+    if not tx:
+        raise Exception('PayoutContract not found. Call payout-deploy to deploy PayoutContract')
+    web3 = create_web3(config.ethereum_node_url)
+    service = EthereumStoredTXService(
+        config.network,
+        config.dbsession,
+        web3,
+        config.ethereum_private_key,
+        config.ethereum_gas_price,
+        config.ethereum_gas_limit,
+        BroadcastAccount,
+        PreparedTransaction
+    )
+    abi = get_abi(config.ethereum_abi_file)
+    service.interact_with_contract(
+        contract_name='PayoutContract',
+        abi=abi,
+        address=tx.contract_address,
+        note='calling fetchTokens',
+        func_name='fetchTokens',
+        args={}
+    )
+    _broadcast(config)
 
 
 def main():

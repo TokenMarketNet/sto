@@ -16,15 +16,21 @@ def sample_token(logger, dbsession, web3, private_key_hex, sample_csv_file):
     """Create a security token used in these tests."""
 
     # Creating transactions
-    txs = deploy_token_contracts(logger, dbsession, "testing", web3,
-                                 ethereum_abi_file=None,
-                                 ethereum_private_key=private_key_hex,
-                                 ethereum_gas_limit=None,
-                                 ethereum_gas_price=None,
-                                 name="Moo Corp",
-                                 symbol="MOO",
-                                 amount=9999,
-                                 transfer_restriction="unrestricted")
+    txs = deploy_token_contracts(
+        logger,
+        dbsession,
+        "testing",
+        web3,
+        ethereum_abi_file=None,
+        ethereum_private_key=private_key_hex,
+        ethereum_gas_limit=9999999,
+        ethereum_gas_price=None,
+        name="Moo Corp",
+        symbol="MOO",
+        url="https://tokenmarket.net",
+        amount=9999,
+        transfer_restriction="unrestricted"
+    )
 
     token_address = txs[0].contract_address
 
