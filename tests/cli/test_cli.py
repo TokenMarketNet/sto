@@ -6,11 +6,18 @@ from sto.ethereum.distribution import distribute_tokens
 from sto.ethereum.issuance import deploy_token_contracts, contract_status
 from sto.ethereum.status import update_status
 from sto.cli.main import cli
-from sto.ethereum.utils import get_abi, get_contract_deployed_tx
+from sto.ethereum.utils import get_abi
 
 
 @pytest.fixture
-def kyc_contract(click_runner, dbsession, db_path, private_key_hex):
+def kyc_contract(
+        click_runner,
+        dbsession,
+        db_path,
+        private_key_hex,
+        monkeypatch_get_contract_deployed_tx,
+        get_contract_deployed_tx
+):
     result = click_runner.invoke(
         cli,
         [
@@ -53,7 +60,7 @@ def deploy(click_runner, db_path, private_key_hex):
 
 
 @pytest.fixture
-def security_token(deploy, dbsession):
+def security_token(deploy, dbsession, monkeypatch_get_contract_deployed_tx, get_contract_deployed_tx):
     args = {
         "_name": "SecurityToken",
         "_symbol": "SEC",
@@ -65,7 +72,7 @@ def security_token(deploy, dbsession):
 
 
 @pytest.fixture
-def test_token(deploy, dbsession):
+def test_token(deploy, dbsession, monkeypatch_get_contract_deployed_tx, get_contract_deployed_tx):
     args = {
         "_name": 'test_token',
         "_symbol": 'TEST',
@@ -321,6 +328,7 @@ def test_voting_deploy(
         db_path,
         monkeypatch_create_web3,
         monkeypatch_get_contract_deployed_tx,
+        get_contract_deployed_tx,
         click_runner,
         security_token,
         kyc_contract,
@@ -353,6 +361,7 @@ def test_payout_deploy(
         db_path,
         monkeypatch_create_web3,
         monkeypatch_get_contract_deployed_tx,
+        get_contract_deployed_tx,
         click_runner,
         dbsession,
         web3,
