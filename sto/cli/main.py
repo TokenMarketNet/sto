@@ -490,8 +490,8 @@ def next_nonce(config: BoardCommmadConfiguration):
 
 
 @cli.command(name="token-scan")
-@click.option('--start-block', required=False, help="The first block where we start (re)scan", default=None)
-@click.option('--end-block', required=False, help="Until which block we scan, also can be 'latest'", default=None)
+@click.option('--start-block', required=False, help="The first block where we start (re)scan", type=int, default=None)
+@click.option('--end-block', required=False, help="Until which block we scan, also can be 'latest'", type=int, default=None)
 @click.option('--token-address', required=True, help="Token contract address", default=None)
 @click.pass_obj
 def token_scan(config: BoardCommmadConfiguration, token_address, start_block, end_block):
@@ -502,7 +502,7 @@ def token_scan(config: BoardCommmadConfiguration, token_address, start_block, en
     If start block and end block information are omitted, continue the scan where we were left last time.
     Scan operations may take a while.
     """
-
+    
     assert is_ethereum_network(config.network)
 
     logger = config.logger
@@ -511,14 +511,16 @@ def token_scan(config: BoardCommmadConfiguration, token_address, start_block, en
 
     dbsession = config.dbsession
 
-    updated_addresses = token_scan(logger,
-                          dbsession,
-                          config.network,
-                          ethereum_node_url=config.ethereum_node_url,
-                          ethereum_abi_file=config.ethereum_abi_file,
-                          token_address=token_address,
-                          start_block=start_block,
-                          end_block=end_block)
+    updated_addresses = token_scan(
+      logger,
+      dbsession,
+      config.network,
+      ethereum_node_url=config.ethereum_node_url,
+      ethereum_abi_file=config.ethereum_abi_file,
+      token_address=token_address,
+      start_block=start_block,
+      end_block=end_block
+    )
 
     logger.info("Updated %d token holder balances", len(updated_addresses))
 
