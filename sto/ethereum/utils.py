@@ -372,3 +372,12 @@ def whitelist_kyc_address(config, address):
     )
     broadcast(config)
 
+
+def get_contract_factory_by_name(tx_service, ethereum_abi_file, dbsession, contract_name):
+    tx = get_contract_deployed_tx(dbsession, contract_name)
+    abi = get_abi(ethereum_abi_file)
+    return tx_service.get_contract_proxy(
+        contract_name=contract_name,
+        abi=abi,
+        address=tx.contract_address
+    )

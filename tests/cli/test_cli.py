@@ -72,7 +72,12 @@ def security_token(deploy, dbsession, monkeypatch_get_contract_deployed_tx, get_
 
 
 @pytest.fixture
-def test_token(deploy, dbsession, monkeypatch_get_contract_deployed_tx, get_contract_deployed_tx):
+def test_token_name():
+    return "CrowdsaleToken"
+
+
+@pytest.fixture
+def test_token(deploy, dbsession, monkeypatch_get_contract_deployed_tx, get_contract_deployed_tx, test_token_name):
     args = {
         "_name": 'test_token',
         "_symbol": 'TEST',
@@ -80,8 +85,8 @@ def test_token(deploy, dbsession, monkeypatch_get_contract_deployed_tx, get_cont
         "_decimals": 18,
         "_mintable": True
     }
-    deploy('CrowdsaleToken', args)
-    tx = get_contract_deployed_tx(dbsession, 'CrowdsaleToken')
+    deploy(test_token_name, args)
+    tx = get_contract_deployed_tx(dbsession, test_token_name)
     return tx.contract_address
 
 
@@ -378,6 +383,7 @@ def test_payout_deploy(
             'payout-deploy',
             '--token-address', security_token,
             '--payout-token-address', test_token,
+            '--payout-token-name', test_token_name,
             '--kyc-address', kyc_contract,
             '--payout-name', 'Pay X',
             '--uri', 'http://tokenmarket.net',
@@ -389,3 +395,46 @@ def test_payout_deploy(
     tx = get_contract_deployed_tx(dbsession, 'PayoutContract')
     contract = web3.eth.contract(address=tx.contract_address, abi=abi['abi'], bytecode=abi['bytecode'])
     assert contract.functions.blockNumber().call() == web3.eth.blockNumber
+
+
+def test_payout_deposit(
+        private_key_hex,
+        db_path,
+        monkeypatch_create_web3,
+        monkeypatch_get_contract_deployed_tx,
+        get_contract_deployed_tx,
+        click_runner,
+        dbsession,
+        web3,
+        security_token,
+        kyc_contract,
+        test_token,
+        test_token_name
+):
+    result = click_runner.invoke(
+        cli,
+        [
+            '--database-file', db_path,
+            '--ethereum-private-key', private_key_hex,
+            '--ethereum-gas-price', 9999999,
+            'payout-deploy',
+            '--token-address', security_token,
+            '--payout-token-address', test_token,
+            '--payout-token-name', test_token_name,
+            '--kyc-address', kyc_contract,
+            '--payout-name', 'Pay X',
+            '--uri', 'http://tokenmarket.net',
+            '--type', 0
+        ]
+    )
+    assert result.exit_code == 0
+    result = click_runner.invoke(
+        cli,
+        [
+            '--database-file', db_path,
+            '--ethereum-private-key', private_key_hex,
+            '--ethereum-gas-price', 9999999,
+            'payout-deposit'
+        ]
+    )
+    assert result.exit_code == 0

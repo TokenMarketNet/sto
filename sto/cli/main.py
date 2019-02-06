@@ -654,8 +654,9 @@ def voting_deploy(
 
 
 @cli.command(name="payout-deploy")
-@click.option('--token-address', required=True, help="address of security token contract", type=str)
-@click.option('--payout-token-address', required=True, help="address of payout token contract", type=str)
+@click.option('--token-address', required=False, default=None, help="address of security token contract", type=str)
+@click.option('--payout-token-address', required=False, default=None, help="address of payout token contract", type=str)
+@click.option('--payout-token-name', required=True, help="name of the payout smart contract", type=str)
 @click.option('--kyc-address', required=False, default=None, help="address of kyc contract", type=str)
 @click.option('--payout-name', required=True, help="name of the payout,", type=str)
 @click.option('--uri', required=True, help="announcement uri", type=str)
@@ -666,6 +667,7 @@ def payout_deploy(
         config: BoardCommmadConfiguration,
         token_address,
         payout_token_address,
+        payout_token_name,
         kyc_address,
         payout_name,
         uri,
@@ -699,7 +701,13 @@ def payout_deploy(
 @cli.command(name="payout-deposit")
 @click.pass_obj
 def payout_deposit(config: BoardCommmadConfiguration):
-    from sto.ethereum.utils import get_contract_deployed_tx, create_web3, get_abi, broadcast as _broadcast
+    from sto.ethereum.utils import (
+        get_contract_deployed_tx,
+        create_web3,
+        get_abi,
+        broadcast as _broadcast,
+        get_contract_factory_by_name
+    )
     from sto.ethereum.txservice import EthereumStoredTXService
     from sto.models.implementation import BroadcastAccount, PreparedTransaction
 
@@ -718,6 +726,7 @@ def payout_deposit(config: BoardCommmadConfiguration):
         PreparedTransaction
     )
     abi = get_abi(config.ethereum_abi_file)
+    get_contract_factory_by_name
     service.interact_with_contract(
         contract_name='PayoutContract',
         abi=abi,
