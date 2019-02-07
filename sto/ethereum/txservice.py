@@ -217,9 +217,9 @@ class EthereumStoredTXService:
         contract_class = Contract.factory(
             web3=self.web3,
             abi=abi_data["abi"],
-            bytecode=abi_data["bytecode"],
-            bytecode_runtime=abi_data["bytecode_runtime"],
-            )
+            # bytecode=abi_data["bytecode"],
+            # bytecode_runtime=abi_data["bytecode_runtime"],
+        )
 
         return contract_class(address=to_checksum_address(address))
 
@@ -236,8 +236,7 @@ class EthereumStoredTXService:
 
         next_nonce = self.get_next_nonce()
 
-        func = getattr(contract.functions, func_name)
-
+        func = contract.get_function_by_name(func_name)
         tx_data = self.generate_tx_data(next_nonce)
         constructed_txn = func(**args).buildTransaction(tx_data)
 

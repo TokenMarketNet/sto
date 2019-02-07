@@ -203,7 +203,7 @@ def past_issuances(config: BoardCommmadConfiguration):
 
 
 @cli.command(name="token-status")
-@click.option('--address', required=True, help="Token contract addrss")
+@click.option('--address', required=True, help="Token contract address")
 @click.pass_obj
 def status(config: BoardCommmadConfiguration, address):
     """Print token contract status."""
@@ -656,7 +656,7 @@ def voting_deploy(
 @cli.command(name="payout-deploy")
 @click.option('--token-address', required=False, default=None, help="address of security token contract", type=str)
 @click.option('--payout-token-address', required=False, default=None, help="address of payout token contract", type=str)
-@click.option('--payout-token-name', required=True, help="name of the payout smart contract", type=str)
+@click.option('--payout-token-name', required=False, default=None, help="name of the payout smart contract", type=str)
 @click.option('--kyc-address', required=False, default=None, help="address of kyc contract", type=str)
 @click.option('--payout-name', required=True, help="name of the payout,", type=str)
 @click.option('--uri', required=True, help="announcement uri", type=str)
@@ -685,6 +685,15 @@ def payout_deploy(
         if not tx:
             raise Exception('BasicKYC contract not deployed. Please call ')
         kyc_address = tx.contract_address
+    if payout_token_name:
+        tx = get_contract_deployed_tx(config.dbsession, payout_token_name)
+        payout_token_address = tx.contract_address
+    if payout_token_address is None:
+        raise Exception(
+            '''
+            Either payout token is not deployed or --payout-token-address not provided
+            '''
+        )
     args = {
         '_token': token_address,
         '_payoutToken': payout_token_address,
@@ -698,15 +707,34 @@ def payout_deploy(
     deploy_contract(config, contract_name='PayoutContract', constructor_args=args)
 
 
-@cli.command(name="payout-deposit")
+@cli.command(name="deploy-crowdsale-token")
 @click.pass_obj
-def payout_deposit(config: BoardCommmadConfiguration):
+def deploy_crowdsale_token(config: BoardCommmadConfiguration):
+    """
+    Command to be used only for testing
+    """
+    from sto.ethereum.utils import deploy_contract
+    args = {
+        "_name": 'test_token',
+        "_symbol": 'TEST',
+        "_initialSupply": 900000000,
+        "_decimals": 18,
+        "_mintable": True
+    }
+    deploy_contract(config, contract_name='CrowdsaleToken', constructor_args=args)
+
+
+@cli.command(name="payout-deposit")
+@click.option('--payout-token-address', required=False, default=None, help="address of payout token contract", type=str)
+@click.option('--payout-token-name', required=True, help="name of the payout token smart contract", type=str)
+@click.pass_obj
+def payout_deposit(config: BoardCommmadConfiguration, payout_token_address: str, payout_token_name: str):
     from sto.ethereum.utils import (
         get_contract_deployed_tx,
         create_web3,
         get_abi,
         broadcast as _broadcast,
-        get_contract_factory_by_name
+        priv_key_to_address
     )
     from sto.ethereum.txservice import EthereumStoredTXService
     from sto.models.implementation import BroadcastAccount, PreparedTransaction
@@ -714,6 +742,15 @@ def payout_deposit(config: BoardCommmadConfiguration):
     tx = get_contract_deployed_tx(config.dbsession, 'PayoutContract')
     if not tx:
         raise Exception('PayoutContract not found. Call payout-deploy to deploy PayoutContract')
+    if payout_token_name:
+        tx = get_contract_deployed_tx(config.dbsession, payout_token_name)
+        payout_token_address = tx.contract_address
+    if payout_token_address is None:
+        raise Exception(
+            '''
+            Either payout token is not deployed or --payout-token-address not provided
+            '''
+        )
     web3 = create_web3(config.ethereum_node_url)
     service = EthereumStoredTXService(
         config.network,
@@ -726,7 +763,19 @@ def payout_deposit(config: BoardCommmadConfiguration):
         PreparedTransaction
     )
     abi = get_abi(config.ethereum_abi_file)
-    get_contract_factory_by_name
+    payout_token_contract = service.get_contract_proxy(payout_token_name, abi, payout_token_address)
+
+    value = payout_token_contract.functions.balanceOf(priv_key_to_address(config.ethereum_private_key)).call()
+    service.interact_with_contract(
+        payout_token_name,
+        abi,
+        payout_token_address,
+        'approving tokens',
+        'approve',
+        args={'_spender': payout_token_address, '_value': value}
+    )
+    _broadcast(config)
+
     service.interact_with_contract(
         contract_name='PayoutContract',
         abi=abi,

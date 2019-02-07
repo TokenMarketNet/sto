@@ -434,7 +434,8 @@ def test_payout_deposit(
             '--database-file', db_path,
             '--ethereum-private-key', private_key_hex,
             '--ethereum-gas-price', 9999999,
-            'payout-deposit'
+            'payout-deposit',
+            '--payout-token-name', test_token_name,
         ]
     )
     assert result.exit_code == 0
