@@ -639,7 +639,7 @@ def voting_deploy(
     if kyc_address is None:
         tx = get_contract_deployed_tx(config.dbsession, 'BasicKYC')
         if not tx:
-            raise Exception('BasicKYC contract not deployed. Please call ')
+            raise Exception('BasicKYC contract not deployed. Please call kyc-deploy')
         kyc_address = tx.contract_address
     args = {
         '_token': token_address,
@@ -687,6 +687,8 @@ def payout_deploy(
         kyc_address = tx.contract_address
     if payout_token_name:
         tx = get_contract_deployed_tx(config.dbsession, payout_token_name)
+        if not tx:
+            raise Exception('{0} contract not deployed.'.format(payout_token_name))
         payout_token_address = tx.contract_address
     if payout_token_address is None:
         raise Exception(
@@ -772,7 +774,8 @@ def payout_deposit(config: BoardCommmadConfiguration, payout_token_address: str,
         payout_token_address,
         'approving tokens',
         'approve',
-        args={'_spender': payout_token_address, '_value': value}
+        args={'_spender': payout_token_address, '_value': value},
+        use_bytecode=False
     )
     _broadcast(config)
 

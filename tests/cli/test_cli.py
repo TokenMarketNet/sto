@@ -372,7 +372,8 @@ def test_payout_deploy(
         web3,
         security_token,
         kyc_contract,
-        test_token
+        test_token,
+        test_token_name
 ):
     result = click_runner.invoke(
         cli,
