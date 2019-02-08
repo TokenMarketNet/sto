@@ -8,7 +8,7 @@ from tqdm import tqdm
 
 from sto.ethereum.txservice import EthereumStoredTXService, verify_on_etherscan
 
-from sto.ethereum.utils import get_abi, check_good_private_key, create_web3
+from sto.ethereum.utils import get_abi, check_good_private_key, create_web3, get_contract_deployed_tx
 from sto.ethereum.exceptions import BadContractException
 
 from sto.models.implementation import BroadcastAccount, PreparedTransaction
@@ -46,8 +46,6 @@ def deploy_token_contracts(logger: Logger,
 
     web3 = create_web3(ethereum_node_url)
 
-    # We do not have anything else implemented yet
-    assert transfer_restriction == "unrestricted"
 
     service = EthereumStoredTXService(network, dbsession, web3, ethereum_private_key, ethereum_gas_price, ethereum_gas_limit, BroadcastAccount, PreparedTransaction)
 
@@ -56,8 +54,18 @@ def deploy_token_contracts(logger: Logger,
     deploy_tx1 = service.deploy_contract("SecurityToken", abi, note, constructor_args={"_name": name, "_symbol": symbol, "_url": url})  # See SecurityToken.sol
 
     # Deploy transfer agent
-    note = "Deploying unrestricted transfer policy for {}".format(name)
-    deploy_tx2 = service.deploy_contract("UnrestrictedTransferAgent", abi, note)
+    if transfer_restriction == "unrestricted":
+        note = "Deploying unrestricted transfer policy for {}".format(name)
+        deploy_tx2 = service.deploy_contract("UnrestrictedTransferAgent", abi, note)
+    else:
+        note = "Deploying restricted transfer policy for {}".format(name)
+        tx = get_contract_deployed_tx(dbsession, 'BasicKYC')
+        if not tx:
+            raise Exception(
+                'BasicKyc contract is not deployed. '
+                'invoke command kyc-deploy to deploy the smart contract'
+            )
+        deploy_tx2 = service.deploy_contract("RestrictedTransferAgent", abi, note, constructor_args={'_KYC': tx.contract_address})
 
     # Set transfer agent
     note = "Making transfer restriction policy for {} effective".format(name)
