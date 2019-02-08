@@ -20,6 +20,7 @@ from eth_utils import (
     to_hex
 )
 from web3.utils.contracts import encode_abi
+from sqlalchemy import and_
 
 from sto.cli.main import is_ethereum_network
 
@@ -333,7 +334,10 @@ def deploy_contract_on_eth_network(
 def get_contract_deployed_tx(dbsession, contract_name):
     from sto.models.implementation import PreparedTransaction
     return dbsession.query(PreparedTransaction).filter(
-        PreparedTransaction.filter_by_contract_name(contract_name)
+        and_(
+            PreparedTransaction.contract_deployment == True,
+            PreparedTransaction.filter_by_contract_name(contract_name)
+        )
     ).first()
 
 

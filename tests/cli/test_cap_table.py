@@ -26,6 +26,19 @@ def sample_token(
         request
 ):
     """Create a security token used in these tests."""
+    if request.param == 'restricted':
+        from sto.ethereum.utils import priv_key_to_address
+        result = click_runner.invoke(
+            cli,
+            [
+                '--database-file', db_path,
+                '--ethereum-private-key', private_key_hex,
+                '--ethereum-gas-limit', 999999999,
+                'kyc-manage',
+                '--whitelist-address', priv_key_to_address(private_key_hex)
+            ]
+        )
+        assert result.exit_code == 0
 
     result = click_runner.invoke(
         cli,
@@ -41,6 +54,7 @@ def sample_token(
             '--transfer-restriction', request.param
         ]
     )
+
     assert result.exit_code == 0
     result = click_runner.invoke(
         cli,

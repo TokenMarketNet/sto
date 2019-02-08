@@ -103,7 +103,7 @@ def get_contract_deployed_tx():
         from sto.models.implementation import PreparedTransaction
         txs = dbsession.query(PreparedTransaction).all()
         for tx in txs:
-            if tx.contract_name == contract_name:
+            if tx.contract_deployment and tx.contract_name == contract_name:
                 return tx
     return _get_contract_deployed_tx
 
