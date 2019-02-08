@@ -112,8 +112,9 @@ def monkeypatch_get_contract_deployed_tx(monkeypatch, get_contract_deployed_tx):
     """
     This feature is needed becuase jsonb is not supported on travis sqlite
     """
-    from sto.ethereum import utils
+    from sto.ethereum import utils, issuance
     monkeypatch.setattr(utils, 'get_contract_deployed_tx', get_contract_deployed_tx)
+    monkeypatch.setattr(issuance, 'get_contract_deployed_tx', get_contract_deployed_tx)
 
 
 @pytest.fixture

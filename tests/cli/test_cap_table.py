@@ -23,6 +23,7 @@ def sample_token(
         click_runner,
         get_contract_deployed_tx,
         kyc_contract,
+        monkeypatch_get_contract_deployed_tx,
         request
 ):
     """Create a security token used in these tests."""
