@@ -12,8 +12,19 @@ from sto.identityprovider import NullIdentityProvider
 from sto.cli.main import cli
 
 
-@pytest.fixture
-def sample_token(logger, dbsession, web3, private_key_hex, sample_csv_file, db_path, click_runner, get_contract_deployed_tx, kyc_contract):
+@pytest.fixture(params=['unrestricted', 'restricted'])
+def sample_token(
+        logger,
+        dbsession,
+        web3,
+        private_key_hex,
+        sample_csv_file,
+        db_path,
+        click_runner,
+        get_contract_deployed_tx,
+        kyc_contract,
+        request
+):
     """Create a security token used in these tests."""
 
     result = click_runner.invoke(
@@ -27,7 +38,7 @@ def sample_token(logger, dbsession, web3, private_key_hex, sample_csv_file, db_p
             '--symbol', "MOO",
             '--url', "https://tokenmarket.net",
             '--amount', 9999,
-            '--transfer-restriction', "unrestricted"
+            '--transfer-restriction', request.param
         ]
     )
     assert result.exit_code == 0
