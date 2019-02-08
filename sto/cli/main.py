@@ -167,7 +167,7 @@ def issue(config: BoardCommmadConfiguration, symbol, name, url, amount, transfer
         ethereum_gas_price=config.ethereum_gas_price,
         name=name,
         symbol=symbol,
-        uel=url,
+        url=url,
         amount=amount,
         transfer_restriction=transfer_restriction
     )
@@ -178,6 +178,7 @@ def issue(config: BoardCommmadConfiguration, symbol, name, url, amount, transfer
     dbsession.commit()
 
     logger.info("Run %ssto tx-broadcast%s to write this to blockchain", colorama.Fore.LIGHTCYAN_EX, colorama.Fore.RESET)
+
 
 
 @cli.command(name="issue-logs")

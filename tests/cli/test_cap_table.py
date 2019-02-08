@@ -9,40 +9,41 @@ from sto.ethereum.tokenscan import token_scan
 from sto.generic.captable import generate_cap_table, print_cap_table
 from sto.models.implementation import TokenScanStatus, TokenHolderAccount
 from sto.identityprovider import NullIdentityProvider
+from sto.cli.main import cli
 
 
 @pytest.fixture
-def sample_token(logger, dbsession, web3, private_key_hex, sample_csv_file):
+def sample_token(logger, dbsession, web3, private_key_hex, sample_csv_file, db_path, click_runner, get_contract_deployed_tx, kyc_contract):
     """Create a security token used in these tests."""
 
-    # Creating transactions
-    txs = deploy_token_contracts(
-        logger,
-        dbsession,
-        "testing",
-        web3,
-        ethereum_abi_file=None,
-        ethereum_private_key=private_key_hex,
-        ethereum_gas_limit=9999999,
-        ethereum_gas_price=None,
-        name="Moo Corp",
-        symbol="MOO",
-        url="https://tokenmarket.net",
-        amount=9999,
-        transfer_restriction="unrestricted"
+    result = click_runner.invoke(
+        cli,
+        [
+            '--database-file', db_path,
+            '--ethereum-private-key', private_key_hex,
+            '--ethereum-gas-limit', 999999999,
+            'issue',
+            '--name', "Moo Corp",
+            '--symbol', "MOO",
+            '--url', "https://tokenmarket.net",
+            '--amount', 9999,
+            '--transfer-restriction', "unrestricted"
+        ]
     )
+    assert result.exit_code == 0
+    result = click_runner.invoke(
+        cli,
+        [
+            '--database-file', db_path,
+            '--ethereum-private-key', private_key_hex,
+            '--ethereum-gas-limit', 999999999,
+            'tx-broadcast',
 
-    token_address = txs[0].contract_address
+        ]
+    )
+    assert result.exit_code == 0
 
-    # Deploy contract transactions to emphmereal test chain
-    broadcast(logger,
-              dbsession,
-              "testing",
-              web3,
-              ethereum_private_key=private_key_hex,
-              ethereum_gas_limit=None,
-              ethereum_gas_price=None,
-              )
+    token_address = get_contract_deployed_tx(dbsession, "SecurityToken").contract_address
 
     # Check that we can view the token status
     status = contract_status(logger,
@@ -63,7 +64,7 @@ def sample_token(logger, dbsession, web3, private_key_hex, sample_csv_file):
 
 
 @pytest.fixture
-def scanned_distribution(logger, dbsession, web3, private_key_hex, sample_csv_file, sample_token):
+def scanned_distribution(logger, dbsession, web3, private_key_hex, sample_csv_file, sample_token, click_runner, db_path):
     """Create some sample transactions so we can scan the token holder balances."""
 
     token_address = sample_token
@@ -86,36 +87,43 @@ def scanned_distribution(logger, dbsession, web3, private_key_hex, sample_csv_fi
 
     # Check they got mined
     # Send transactions to emphmereal test chain
-    txs = broadcast(logger,
-                    dbsession,
-                    "testing",
-                    web3,
-                    ethereum_private_key=private_key_hex,
-                    ethereum_gas_limit=None,
-                    ethereum_gas_price=None,
-                    )
+    result = click_runner.invoke(
+        cli,
+        [
+            '--database-file', db_path,
+            '--ethereum-private-key', private_key_hex,
+            '--ethereum-gas-limit', 999999999,
+            'tx-broadcast',
+
+        ]
+    )
+    assert result.exit_code == 0
+
     # Check they got mined
-    txs = update_status(logger,
-                        dbsession,
-                        "testing",
-                        web3,
-                        ethereum_private_key=private_key_hex,
-                        ethereum_gas_limit=None,
-                        ethereum_gas_price=None,
-                        )
+    txs = update_status(
+        logger,
+        dbsession,
+        "testing",
+        web3,
+        ethereum_private_key=private_key_hex,
+        ethereum_gas_limit=None,
+        ethereum_gas_price=None,
+    )
 
 
     # Check that rerun does not recreate txs
-    new_distributes, old_distributes = distribute_tokens(logger,
-                                                         dbsession,
-                                                         "testing",
-                                                         web3,
-                                                         ethereum_abi_file=None,
-                                                         ethereum_private_key=private_key_hex,
-                                                         ethereum_gas_limit=None,
-                                                         ethereum_gas_price=None,
-                                                         token_address=token_address,
-                                                         dists=entries)
+    new_distributes, old_distributes = distribute_tokens(
+         logger,
+         dbsession,
+         "testing",
+         web3,
+         ethereum_abi_file=None,
+         ethereum_private_key=private_key_hex,
+         ethereum_gas_limit=None,
+         ethereum_gas_price=None,
+         token_address=token_address,
+         dists=entries
+    )
 
     assert new_distributes == 0
     assert old_distributes == 2

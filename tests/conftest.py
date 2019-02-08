@@ -8,6 +8,7 @@ from eth_utils import to_wei
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 from sto.models.implementation import Base
+from sto.cli.main import cli
 
 from click.testing import CliRunner
 from web3 import Web3, EthereumTesterProvider
@@ -90,9 +91,10 @@ def click_runner():
 
 @pytest.fixture
 def monkeypatch_create_web3(monkeypatch, web3):
-    from sto.ethereum import utils, broadcast
+    from sto.ethereum import utils, broadcast, issuance
     monkeypatch.setattr(utils, 'create_web3', lambda _: web3)
     monkeypatch.setattr(broadcast, 'create_web3', lambda _: web3)
+    monkeypatch.setattr(issuance, 'create_web3', lambda _: web3)
 
 
 @pytest.fixture
@@ -112,3 +114,27 @@ def monkeypatch_get_contract_deployed_tx(monkeypatch, get_contract_deployed_tx):
     """
     from sto.ethereum import utils
     monkeypatch.setattr(utils, 'get_contract_deployed_tx', get_contract_deployed_tx)
+
+
+@pytest.fixture
+def kyc_contract(
+        click_runner,
+        dbsession,
+        db_path,
+        private_key_hex,
+        monkeypatch_get_contract_deployed_tx,
+        monkeypatch_create_web3,
+        get_contract_deployed_tx
+):
+    result = click_runner.invoke(
+        cli,
+        [
+            '--database-file', db_path,
+            '--ethereum-private-key', private_key_hex,
+            'kyc-deploy'
+        ]
+    )
+    assert result.exit_code == 0
+    tx = get_contract_deployed_tx(dbsession, 'BasicKYC')
+    return tx.contract_address
+

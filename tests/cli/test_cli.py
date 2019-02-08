@@ -9,27 +9,6 @@ from sto.cli.main import cli
 from sto.ethereum.utils import get_abi, priv_key_to_address
 
 
-@pytest.fixture
-def kyc_contract(
-        click_runner,
-        dbsession,
-        db_path,
-        private_key_hex,
-        monkeypatch_get_contract_deployed_tx,
-        get_contract_deployed_tx
-):
-    result = click_runner.invoke(
-        cli,
-        [
-            '--database-file', db_path,
-            '--ethereum-private-key', private_key_hex,
-            'kyc-deploy'
-        ]
-    )
-    assert result.exit_code == 0
-    tx = get_contract_deployed_tx(dbsession, 'BasicKYC')
-    return tx.contract_address
-
 
 @pytest.fixture
 def deploy(click_runner, db_path, private_key_hex):
