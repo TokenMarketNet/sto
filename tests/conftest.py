@@ -9,6 +9,7 @@ from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 from sto.models.implementation import Base
 from sto.cli.main import cli
+from sto.ethereum.utils import priv_key_to_address
 
 from click.testing import CliRunner
 from web3 import Web3, EthereumTesterProvider
@@ -119,6 +120,16 @@ def monkeypatch_get_contract_deployed_tx(monkeypatch, get_contract_deployed_tx):
 
 
 @pytest.fixture
+def customer_private_key():
+    from eth_keys import KeyAPI
+    from eth_utils import int_to_big_endian
+    keys = KeyAPI()
+    pk_bytes = int_to_big_endian(2).rjust(32, b'\x00')
+    private_key = keys.PrivateKey(pk_bytes)
+    return private_key
+
+
+@pytest.fixture
 def kyc_contract(
         click_runner,
         dbsession,
@@ -126,7 +137,8 @@ def kyc_contract(
         private_key_hex,
         monkeypatch_get_contract_deployed_tx,
         monkeypatch_create_web3,
-        get_contract_deployed_tx
+        get_contract_deployed_tx,
+        customer_private_key
 ):
     result = click_runner.invoke(
         cli,
@@ -138,5 +150,29 @@ def kyc_contract(
     )
     assert result.exit_code == 0
     tx = get_contract_deployed_tx(dbsession, 'BasicKYC')
+
+    # whitelist customer
+    result = click_runner.invoke(
+        cli,
+        [
+            '--database-file', db_path,
+            '--ethereum-private-key', private_key_hex,
+            '--ethereum-gas-limit', 80000,
+            'kyc-manage',
+            '--whitelist-address', priv_key_to_address(private_key_hex)
+        ]
+    )
+    assert result.exit_code == 0
+    result = click_runner.invoke(
+        cli,
+        [
+            '--database-file', db_path,
+            '--ethereum-private-key', private_key_hex,
+            '--ethereum-gas-limit', 80000,
+            'kyc-manage',
+            '--whitelist-address', priv_key_to_address(customer_private_key)
+        ]
+    )
+    assert result.exit_code == 0
     return tx.contract_address
 

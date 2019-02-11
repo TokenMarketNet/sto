@@ -713,21 +713,61 @@ def payout_deploy(
     deploy_contract(config, contract_name='PayoutContract', constructor_args=args)
 
 
-@cli.command(name="deploy-crowdsale-token")
+@cli.command(name="payout-approve")
+@click.option('--payout-token-address', required=False, default=None, help="address of payout token contract", type=str)
+@click.option('--payout-token-name', required=True, help="name of the payout token smart contract", type=str)
+@click.option('--customer-address', required=True, help="name of the payout token smart contract", type=str)
+@click.option('--transfer-value', required=True, help="name of the payout token smart contract", type=int)
 @click.pass_obj
-def deploy_crowdsale_token(config: BoardCommmadConfiguration):
-    """
-    Command to be used only for testing
-    """
-    from sto.ethereum.utils import deploy_contract
-    args = {
-        "_name": 'test_token',
-        "_symbol": 'TEST',
-        "_initialSupply": 900000000,
-        "_decimals": 18,
-        "_mintable": True
-    }
-    deploy_contract(config, contract_name='CrowdsaleToken', constructor_args=args)
+def payout_approve(
+        config: BoardCommmadConfiguration,
+        payout_token_address: str,
+        payout_token_name: str,
+        customer_address: str,
+        transfer_value: int
+):
+    from sto.ethereum.utils import (
+        get_contract_deployed_tx,
+        create_web3,
+        get_abi,
+        broadcast as _broadcast
+    )
+    from sto.ethereum.txservice import EthereumStoredTXService
+    from sto.models.implementation import BroadcastAccount, PreparedTransaction
+    tx = get_contract_deployed_tx(config.dbsession, 'PayoutContract')
+    if not tx:
+        raise Exception('PayoutContract not found. Call payout-deploy to deploy PayoutContract')
+    if payout_token_name:
+        tx = get_contract_deployed_tx(config.dbsession, payout_token_name)
+        payout_token_address = tx.contract_address
+    if payout_token_address is None:
+        raise Exception(
+            '''
+            Either payout token is not deployed or --payout-token-address not provided
+            '''
+        )
+    web3 = create_web3(config.ethereum_node_url)
+    service = EthereumStoredTXService(
+        config.network,
+        config.dbsession,
+        web3,
+        config.ethereum_private_key,
+        config.ethereum_gas_price,
+        config.ethereum_gas_limit,
+        BroadcastAccount,
+        PreparedTransaction
+    )
+    abi = get_abi(config.ethereum_abi_file)
+    service.interact_with_contract(
+        payout_token_name,
+        abi,
+        payout_token_address,
+        'approving tokens',
+        'approve',
+        args={'_spender': customer_address, '_value': transfer_value},
+        use_bytecode=False
+    )
+    _broadcast(config)
 
 
 @cli.command(name="payout-deposit")
@@ -781,6 +821,23 @@ def payout_deposit(config: BoardCommmadConfiguration, payout_token_address: str,
         args={}
     )
     _broadcast(config)
+
+
+@cli.command(name="deploy-crowdsale-token")
+@click.pass_obj
+def deploy_crowdsale_token(config: BoardCommmadConfiguration):
+    """
+    Command to be used only for testing
+    """
+    from sto.ethereum.utils import deploy_contract
+    args = {
+        "_name": 'test_token',
+        "_symbol": 'TEST',
+        "_initialSupply": 900000000,
+        "_decimals": 18,
+        "_mintable": True
+    }
+    deploy_contract(config, contract_name='CrowdsaleToken', constructor_args=args)
 
 
 def main():

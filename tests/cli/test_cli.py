@@ -10,15 +10,6 @@ from sto.ethereum.utils import get_abi, priv_key_to_address
 
 
 @pytest.fixture
-def customer_private_key():
-    from eth_keys import KeyAPI
-    from eth_utils import int_to_big_endian
-    keys = KeyAPI()
-    pk_bytes = int_to_big_endian(2).rjust(32, b'\x00')
-    private_key = keys.PrivateKey(pk_bytes)
-    return private_key
-
-@pytest.fixture
 def deploy(click_runner, db_path, private_key_hex):
     import click
     from sto.ethereum.utils import deploy_contract
@@ -458,6 +449,9 @@ def test_payout_deposit(
         test_token_name,
         customer_private_key
 ):
+    abi = get_abi(None)
+
+    # deploy contract
     result = click_runner.invoke(
         cli,
         [
@@ -474,19 +468,27 @@ def test_payout_deposit(
             '--type', 0
         ]
     )
-    address = priv_key_to_address(private_key_hex)
-    abi = get_abi(None)
+    assert result.exit_code == 0
+
     test_token_contract = web3.eth.contract(
         address=test_token,
         abi=abi[test_token_name]['abi']
     )
-    initial_balance = test_token_contract.functions.balanceOf(address).call()
 
-    assert result.exit_code == 0
-    payout_contract = web3.eth.contract(
-        address=get_contract_deployed_tx(dbsession, 'PayoutContract').contract_address,
-        abi=abi['PayoutContract']['abi']
+    result = click_runner.invoke(
+        cli,
+        [
+            '--database-file', db_path,
+            '--ethereum-private-key', private_key_hex,
+            '--ethereum-gas-price', 9999999,
+            'payout-approve',
+            '--payout-token-name', test_token_name,
+            '--customer-address', priv_key_to_address(customer_private_key),
+            '--transfer-value', test_token_contract.functions.balanceOf(priv_key_to_address(private_key_hex)).call()
+
+        ]
     )
+    assert result.exit_code == 0
 
     result = click_runner.invoke(
         cli,
@@ -499,9 +501,6 @@ def test_payout_deposit(
         ]
     )
     assert result.exit_code == 0
-
-    # TODO: fix this test
-    # initial_balance = test_token_contract.call().balanceOf(priv_key_to_address(private_key_hex))
-    # payout_contract.functions.act(123).transact({"from": priv_key_to_address(private_key_hex)})
-    # assert test_token_contract.call().balanceOf(priv_key_to_address(private_key_hex)) > initial_balance
-    #
+    initial_balance = test_token_contract.call().balanceOf(priv_key_to_address(private_key_hex))
+    payout_contract.functions.act(123).transact({"from": priv_key_to_address(private_key_hex)})
+    assert test_token_contract.call().balanceOf(priv_key_to_address(private_key_hex)) > initial_balance
