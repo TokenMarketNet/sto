@@ -97,7 +97,7 @@ def scanned_distribution(logger, dbsession, web3, private_key_hex, sample_csv_fi
 
     entries = read_csv(logger, sample_csv_file)
     for entry in entries:
-        # whitelist owner
+        # whitelist customers
         result = click_runner.invoke(
             cli,
             [

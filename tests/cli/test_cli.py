@@ -499,7 +499,7 @@ def test_payout_deposit(
         ]
     )
     assert result.exit_code == 0
-
+    
     # TODO: fix this test
     # initial_balance = test_token_contract.call().balanceOf(priv_key_to_address(private_key_hex))
     # payout_contract.functions.act(123).transact({"from": priv_key_to_address(private_key_hex)})
