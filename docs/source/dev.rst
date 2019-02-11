@@ -27,10 +27,10 @@ Then push out new Docker:
 Tutorial to add a new command and test if process works end to end
 ------------------------------------------------------------------
 
-For the purpose of this tutorial, lets create a command `ethereum-token-transfer` that takes a private key
-and calls `transfer()`
+For the purpose of this tutorial, lets create a command ``ethereum-token-transfer`` that takes a private key
+and calls ``transfer()``
 
-1. Add the command in `sto.cli.main`:
+1. Add the command in ``sto.cli.main``:
 
 .. code-block:: python
 
@@ -61,7 +61,8 @@ and calls `transfer()`
         # write the logic in `distribute_tokens` or refer to `distribute_tokens` method in `sto.ethereum.distribution`
 
 2. Write the necessary fixtures to deploy the smart contracts needed to deploy security token.
-   Use the `deploy` fixture in `tests.cli.test_cli`.
+   Use the ``deploy`` fixture in ``tests.cli.test_cli``.
+
 .. code-block:: python
 
     @pytest.fixture
@@ -71,8 +72,10 @@ and calls `transfer()`
         tx = get_contract_deployed_tx(dbsession, 'BasicKYC')
         return tx.contract_address
 
-3. before issuing tokens whitelist the address that will be used to deploy security token smart contract
+3. Before issuing tokens whitelist the address that will be used to deploy security token smart contract
+
 .. code-block:: python
+
     @pytest.fixture
     def whitelisted_owner():
         result = click_runner.invoke(
@@ -87,8 +90,10 @@ and calls `transfer()`
             )
             assert result.exit_code == 0
 
-4. deploy the security token smart contract in restricted mode and broadcast the transaction.
+4. Deploy the security token smart contract in restricted mode and broadcast the transaction.
+
 .. code-block:: python
+
     result = click_runner.invoke(
         cli,
         [
@@ -117,8 +122,10 @@ and calls `transfer()`
     )
     assert result.exit_code == 0
 
-5. whitelist customer address that will participate in the token distribution
+5. Whitelist customer address that will participate in the token distribution.
+
 .. code-block:: python
+
     result = click_runner.invoke(
         cli,
         [
@@ -131,8 +138,10 @@ and calls `transfer()`
     )
     assert result.exit_code == 0
 
-6. Distribute the tokens::
+6. Distribute the tokens.
+
 .. code-block:: python
+
     result = click_runner.invoke(
         cli,
         [
@@ -146,7 +155,9 @@ and calls `transfer()`
     )
 
 7. Scan token to update balances
+
 .. code-block:: python
+
     result = click_runner.invoke(
         cli,
         [
@@ -157,8 +168,11 @@ and calls `transfer()`
             "--token-address", token_address,
         ]
     )
-8. Check the cap table:
+
+8. Check the cap table
+
 .. code-block:: python
+
     result = click_runner.invoke(
         cli,
         [

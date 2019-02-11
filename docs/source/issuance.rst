@@ -54,6 +54,7 @@ Tutorial for issuing tokens in restricted mode
 5. Make sure the transaction ran sucessfully on the ethereum network::
 
     sto --config=myconfig.ini tx-update
+
    See :doc:`broadcast created transactions <broadcast>` for more info.
 
 6. Before distributing token whitelist all the user addresses that will participate in the token distribution.
@@ -74,6 +75,7 @@ Tutorial for issuing tokens in restricted mode
       sto --config=myconfig.ini cap-table --identity-file=example-ids.csv --token-address=0x..
 
    See :doc:`View token holder cap table <captable>` for more info.
+
 Further information
 -------------------
 

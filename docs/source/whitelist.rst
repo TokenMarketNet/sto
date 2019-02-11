@@ -7,7 +7,7 @@ smart contract.
 Deploying KYC smart Contract
 ----------------------------
 
-To deploy the KYC smart contract::
+To deploy the ``KYC`` smart contract::
 
     sto --config=myconfig.ini kyc-deploy
 
@@ -17,6 +17,7 @@ Whitelist an ethereum address
 -----------------------------
 
 Adresses can only whitelisted by the owner of the smart contract::
+
     sto --config=myconfig.ini kyc-manage --whitelist-address='0x2B5AD5c4795c026514f8317c7a215E218DcCD6cF'
 
-The command will also broadcast the transaction to the ethereum network. There is no need to run command `tx-broadcast`.
+The command will also broadcast the transaction to the ethereum network. There is no need to run command ``tx-broadcast``.
