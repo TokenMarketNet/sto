@@ -145,7 +145,19 @@ and calls `transfer()`
         ]
     )
 
-7. check the cap table:
+7. Scan token to update balances
+.. code-block:: python
+    result = click_runner.invoke(
+        cli,
+        [
+            '--database-file', db_path,
+            '--ethereum-private-key', private_key_hex,
+            '--ethereum-gas-limit', 999999999,
+            "token-scan",
+            "--token-address", token_address,
+        ]
+    )
+8. Check the cap table:
 .. code-block:: python
     result = click_runner.invoke(
         cli,
