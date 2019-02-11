@@ -65,14 +65,11 @@ Tutorial for issuing tokens in restricted mode
 
 8. Repeat step 3 and 4.
 9. To scan all transactions of your security token use ``token-scan`` command.
-   Use the token address for which you have created a distribution.
-
-.. code-block:: console
+   Use the token address for which you have created a distribution::
 
       sto --config=myconfig.ini token-scan --token-address=0x1091aA1ED6070eDEDFdf46f665C1eD78Bd2c7431
 
-10. To verify that balances have been set right, view the cap table.::
-.. code-block:: console
+10. To verify that balances have been set right, view the cap table::
 
       sto --config=myconfig.ini cap-table --identity-file=example-ids.csv --token-address=0x..
 
