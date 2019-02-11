@@ -681,6 +681,15 @@ def payout_deploy(
     """
     from sto.ethereum.utils import deploy_contract, integer_hash, get_contract_deployed_tx
     from eth_utils import to_bytes
+    from sto.ethereum.utils import (
+        get_contract_deployed_tx,
+        create_web3,
+        get_abi,
+        broadcast as _broadcast,
+        priv_key_to_address
+    )
+    from sto.ethereum.txservice import EthereumStoredTXService
+    from sto.models.implementation import BroadcastAccount, PreparedTransaction
     if kyc_address is None:
         tx = get_contract_deployed_tx(config.dbsession, 'BasicKYC')
         if not tx:
@@ -709,6 +718,31 @@ def payout_deploy(
     }
     deploy_contract(config, contract_name='PayoutContract', constructor_args=args)
 
+    web3 = create_web3(config.ethereum_node_url)
+    service = EthereumStoredTXService(
+        config.network,
+        config.dbsession,
+        web3,
+        config.ethereum_private_key,
+        config.ethereum_gas_price,
+        config.ethereum_gas_limit,
+        BroadcastAccount,
+        PreparedTransaction
+    )
+    abi = get_abi(config.ethereum_abi_file)
+    payout_token_contract = service.get_contract_proxy(payout_token_name, abi, payout_token_address)
+    value = payout_token_contract.functions.balanceOf(priv_key_to_address(config.ethereum_private_key)).call()
+    service.interact_with_contract(
+        payout_token_name,
+        abi,
+        payout_token_address,
+        'approving tokens',
+        'approve',
+        args={'_spender': payout_token_address, '_value': value},
+        use_bytecode=False
+    )
+    _broadcast(config)
+
 
 @cli.command(name="deploy-crowdsale-token")
 @click.pass_obj
@@ -732,12 +766,14 @@ def deploy_crowdsale_token(config: BoardCommmadConfiguration):
 @click.option('--payout-token-name', required=True, help="name of the payout token smart contract", type=str)
 @click.pass_obj
 def payout_deposit(config: BoardCommmadConfiguration, payout_token_address: str, payout_token_name: str):
+    """
+    the private key here needs to belong to the customer who wants to fetch tokens
+    """
     from sto.ethereum.utils import (
         get_contract_deployed_tx,
         create_web3,
         get_abi,
-        broadcast as _broadcast,
-        priv_key_to_address
+        broadcast as _broadcast
     )
     from sto.ethereum.txservice import EthereumStoredTXService
     from sto.models.implementation import BroadcastAccount, PreparedTransaction
@@ -765,21 +801,8 @@ def payout_deposit(config: BoardCommmadConfiguration, payout_token_address: str,
         BroadcastAccount,
         PreparedTransaction
     )
+
     abi = get_abi(config.ethereum_abi_file)
-    payout_token_contract = service.get_contract_proxy(payout_token_name, abi, payout_token_address)
-
-    value = payout_token_contract.functions.balanceOf(priv_key_to_address(config.ethereum_private_key)).call()
-    service.interact_with_contract(
-        payout_token_name,
-        abi,
-        payout_token_address,
-        'approving tokens',
-        'approve',
-        args={'_spender': payout_token_address, '_value': value},
-        use_bytecode=False
-    )
-    _broadcast(config)
-
     service.interact_with_contract(
         contract_name='PayoutContract',
         abi=abi,

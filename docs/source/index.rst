@@ -32,6 +32,7 @@ New to tokens and securities? `Read an introduction for security tokens <https:/
    setup
    issuance
    broadcast
+   whitelisting
    token-summary
    distribute
    scanner

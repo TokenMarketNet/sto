@@ -9,6 +9,14 @@ from sto.cli.main import cli
 from sto.ethereum.utils import get_abi, priv_key_to_address
 
 
+@pytest.fixture
+def customer_private_key():
+    from eth_keys import KeyAPI
+    from eth_utils import int_to_big_endian
+    keys = KeyAPI()
+    pk_bytes = int_to_big_endian(2).rjust(32, b'\x00')
+    private_key = keys.PrivateKey(pk_bytes)
+    return private_key
 
 @pytest.fixture
 def deploy(click_runner, db_path, private_key_hex):
@@ -86,19 +94,19 @@ def execute_contract_function(click_runner, db_path, private_key_hex, web3, get_
                 contract_name, abi, tx.contract_address, '', contract_function_name, args
             )
             broadcast(config)
-            result = click_runner.invoke(
-                cli,
-                [
-                    '--database-file', db_path,
-                    '--ethereum-private-key', private_key_hex,
-                    '--ethereum-gas-limit', 999999999,
-                    'contract-execute',
-                    '--contract-name', contract_name,
-                    '--contract-function-name', contract_function_name,
-                    '--args', args,
-                ]
-            )
-            assert result.exit_code == 0
+        result = click_runner.invoke(
+            cli,
+            [
+                '--database-file', db_path,
+                '--ethereum-private-key', private_key_hex,
+                '--ethereum-gas-limit', 999999999,
+                'contract-execute',
+                '--contract-name', contract_name,
+                '--contract-function-name', contract_function_name,
+                '--args', args,
+            ]
+        )
+        assert result.exit_code == 0
     return _execute_contract
 
 
@@ -122,7 +130,7 @@ def test_token(
     }
     deploy(test_token_name, args)
     tx = get_contract_deployed_tx(dbsession, test_token_name)
-    execute_contract_function(test_token_name, 'setReleaseAgent', {'_address': tx.contract_address})
+    execute_contract_function(test_token_name, 'setReleaseAgent', {'addr': priv_key_to_address(private_key_hex)})
     execute_contract_function(test_token_name, 'releaseTokenTransfer', {})
     return tx.contract_address
 
@@ -447,7 +455,8 @@ def test_payout_deposit(
         security_token,
         kyc_contract,
         test_token,
-        test_token_name
+        test_token_name,
+        customer_private_key
 ):
     result = click_runner.invoke(
         cli,
@@ -472,15 +481,27 @@ def test_payout_deposit(
         abi=abi[test_token_name]['abi']
     )
     initial_balance = test_token_contract.functions.balanceOf(address).call()
+
     assert result.exit_code == 0
+    payout_contract = web3.eth.contract(
+        address=get_contract_deployed_tx(dbsession, 'PayoutContract').contract_address,
+        abi=abi['PayoutContract']['abi']
+    )
+
     result = click_runner.invoke(
         cli,
         [
             '--database-file', db_path,
-            '--ethereum-private-key', private_key_hex,
+            '--ethereum-private-key', customer_private_key,
             '--ethereum-gas-price', 9999999,
             'payout-deposit',
             '--payout-token-name', test_token_name,
         ]
     )
     assert result.exit_code == 0
+
+    # TODO: fix this test
+    # initial_balance = test_token_contract.call().balanceOf(priv_key_to_address(private_key_hex))
+    # payout_contract.functions.act(123).transact({"from": priv_key_to_address(private_key_hex)})
+    # assert test_token_contract.call().balanceOf(priv_key_to_address(private_key_hex)) > initial_balance
+    #

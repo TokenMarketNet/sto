@@ -5,7 +5,7 @@ Before issuing out stock you need to have set up :doc:`a functional Ethereum acc
 
 To issue out stock you need to give stock name, ticker symbol and amount of shares::
 
-    sto --config=myconfig.ini issue --symbol=STO --name="Mikko's magic corp" --amount=10000
+    sto --config=myconfig.ini issue --symbol=STO --name="Mikko's magic corp" --url="https://tokenmarket.net" --amount=10000
 
 You will get a list of Ethereum transactions needed to perform this operation::
 
@@ -18,6 +18,11 @@ You will get a list of Ethereum transactions needed to perform this operation::
             waiting         4  0xDE5bC059aA433D72F25846bdFfe96434b406FA85  0x3cD6f4004e310c0E5Ae7eaf5B698386ccF1d78F2  Creating 10000 initial shares for Mikko's magic corp
 
 Next see how to :doc:`broadcast created transactions <broadcast>`.
+
+Issuing tokens in restricted mode
+----------------------------------
+Restrictions on a token are implemented through a KYC process. The KYC process
+sto --config=myconfig.ini issue --symbol=STO --name="Mikko's magic corp" --url="https://tokenmarket.net" --amount=10000
 
 Further information
 -------------------
