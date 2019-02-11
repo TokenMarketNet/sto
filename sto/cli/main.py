@@ -592,8 +592,8 @@ def version(config: BoardCommmadConfiguration):
 @click.pass_obj
 def kyc_deploy(config: BoardCommmadConfiguration):
     """
-    Deploys Kyc contract to desired ethereum network
-    network, ethereum-abi-file, ethereum-private-key, ethereum-node-url are required args
+    Deploys Kyc contract to desired ethereum network.
+    required args network, ethereum-abi-file, ethereum-private-key, ethereum-node-url
     """
     from sto.ethereum.utils import deploy_contract
     deploy_contract(config, contract_name='BasicKYC')
@@ -604,7 +604,7 @@ def kyc_deploy(config: BoardCommmadConfiguration):
 @click.pass_obj
 def kyc_manage(config: BoardCommmadConfiguration, whitelist_address):
     """
-    Whitelist a address in KYC smart contract
+    Whitelist a address in KYC smart contract.
     network, ethereum-abi-file, ethereum-private-key, ethereum-node-url are required args
     """
     from sto.ethereum.utils import whitelist_kyc_address

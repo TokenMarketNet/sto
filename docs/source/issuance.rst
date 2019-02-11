@@ -21,8 +21,17 @@ Next see how to :doc:`broadcast created transactions <broadcast>`.
 
 Issuing tokens in restricted mode
 ----------------------------------
-Restrictions on a token are implemented through a KYC process. The KYC process
+
+The security token can deployed with `--transfer-restriction`. The default value of this flag is `unrestricted`.
+When `--transfer-restriction="restricted"` the restricted mode is enabled. In restricted mode the user address should be
+whitelisted in a KYC smart contract. See :doc:`How to whitelist an address <whitelist>` For more info on
 sto --config=myconfig.ini issue --symbol=STO --name="Mikko's magic corp" --url="https://tokenmarket.net" --amount=10000
+
+
+Tutorial for issuing tokens in restricted mode
+----------------------------------------------
+
+
 
 Further information
 -------------------
