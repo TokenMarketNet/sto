@@ -11,6 +11,7 @@ To deploy the KYC smart contract::
 
     sto --config=myconfig.ini kyc-deploy
 
+If the smart contract is already deployed then it wont be re-deployed.
 
 Whitelist an ethereum address
 -----------------------------
