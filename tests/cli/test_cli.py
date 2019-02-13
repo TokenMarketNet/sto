@@ -509,8 +509,7 @@ def test_payout_deposit(
             '--ethereum-private-key', private_key_hex,
             '--ethereum-gas-price', 9999999,
             'payout-approve',
-            '--payout-token-name', test_token_name,
-            '--transfer-value', test_token_contract.functions.balanceOf(priv_key_to_address(private_key_hex)).call()
+            '--payout-token-name', test_token_name
         ]
     )
     assert result.exit_code == 0

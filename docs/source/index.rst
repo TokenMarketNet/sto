@@ -40,6 +40,8 @@ New to tokens and securities? `Read an introduction for security tokens <https:/
    erc-20-holders
    etherscan
    protocols
+   payout
+   voting
    command-line-reference
    dev
 

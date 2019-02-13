@@ -716,22 +716,25 @@ def payout_deploy(
 @cli.command(name="payout-approve")
 @click.option('--payout-token-address', required=False, default=None, help="address of payout token contract", type=str)
 @click.option('--payout-token-name', required=True, help="name of the payout token smart contract", type=str)
-@click.option('--transfer-value', required=True, help="name of the payout token smart contract", type=int)
 @click.pass_obj
 def payout_approve(
         config: BoardCommmadConfiguration,
         payout_token_address: str,
         payout_token_name: str,
-        transfer_value: int
 ):
+    """
+    approve tokens to the payout contract
+    """
     from sto.ethereum.utils import (
         get_contract_deployed_tx,
         create_web3,
         get_abi,
-        broadcast as _broadcast
+        broadcast as _broadcast,
+        priv_key_to_address
     )
     from sto.ethereum.txservice import EthereumStoredTXService
     from sto.models.implementation import BroadcastAccount, PreparedTransaction
+
     tx = get_contract_deployed_tx(config.dbsession, 'PayoutContract')
     if not tx:
         raise Exception('PayoutContract not found. Call payout-deploy to deploy PayoutContract')
@@ -761,13 +764,21 @@ def payout_approve(
         PreparedTransaction
     )
     abi = get_abi(config.ethereum_abi_file)
+    payout_token_contract = web3.eth.contract(
+        address=payout_token_address, abi=abi[payout_token_name]['abi']
+    )
     service.interact_with_contract(
         payout_token_name,
         abi,
         payout_token_address,
         'approving tokens',
         'approve',
-        args={'_spender': payout_contract_address, '_value': transfer_value},
+        args={
+            '_spender': payout_contract_address,
+            '_value': payout_token_contract.functions.balanceOf(
+                priv_key_to_address(config.ethereum_private_key)
+            ).call()
+        },
         use_bytecode=False
     )
     _broadcast(config)
