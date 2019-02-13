@@ -38,13 +38,41 @@ def deploy(click_runner, db_path, private_key_hex):
 
 
 @pytest.fixture
-def security_token(deploy, dbsession, monkeypatch_get_contract_deployed_tx, get_contract_deployed_tx):
-    args = {
-        "_name": "SecurityToken",
-        "_symbol": "SEC",
-        "_url": "http://tokenmarket.net/"
-    }
-    deploy('SecurityToken', args)
+def security_token(
+        deploy,
+        dbsession,
+        monkeypatch_get_contract_deployed_tx,
+        get_contract_deployed_tx,
+        click_runner,
+        db_path,
+        private_key_hex,
+):
+    result = click_runner.invoke(
+        cli,
+        [
+            '--database-file', db_path,
+            '--ethereum-private-key', private_key_hex,
+            '--ethereum-gas-limit', 999999999,
+            'issue',
+            '--name', "Moo Corp",
+            '--symbol', "MOO",
+            '--url', "https://tokenmarket.net",
+            '--amount', 9999,
+        ]
+    )
+
+    assert result.exit_code == 0
+    result = click_runner.invoke(
+        cli,
+        [
+            '--database-file', db_path,
+            '--ethereum-private-key', private_key_hex,
+            '--ethereum-gas-limit', 999999999,
+            'tx-broadcast',
+
+        ]
+    )
+    assert result.exit_code == 0
     tx = get_contract_deployed_tx(dbsession, 'SecurityToken')
     return tx.contract_address
 
@@ -435,19 +463,18 @@ def test_payout_deploy(
 
 
 def test_payout_deposit(
-        private_key_hex,
-        db_path,
-        monkeypatch_create_web3,
-        monkeypatch_get_contract_deployed_tx,
-        get_contract_deployed_tx,
-        click_runner,
-        dbsession,
-        web3,
-        security_token,
-        kyc_contract,
-        test_token,
-        test_token_name,
-        customer_private_key
+    private_key_hex,
+    db_path,
+    monkeypatch_create_web3,
+    monkeypatch_get_contract_deployed_tx,
+    get_contract_deployed_tx,
+    click_runner,
+    dbsession,
+    web3,
+    security_token,
+    kyc_contract,
+    test_token,
+    test_token_name
 ):
     abi = get_abi(None)
 
@@ -483,24 +510,28 @@ def test_payout_deposit(
             '--ethereum-gas-price', 9999999,
             'payout-approve',
             '--payout-token-name', test_token_name,
-            '--customer-address', priv_key_to_address(customer_private_key),
             '--transfer-value', test_token_contract.functions.balanceOf(priv_key_to_address(private_key_hex)).call()
-
         ]
     )
     assert result.exit_code == 0
-
+    payout_contract_address = get_contract_deployed_tx(dbsession, 'PayoutContract').contract_address
+    payout_contract = web3.eth.contract(
+        address=payout_contract_address,
+        abi=abi['PayoutContract']['abi']
+    )
+    initial_balance = test_token_contract.call().balanceOf(payout_contract_address)
     result = click_runner.invoke(
         cli,
         [
             '--database-file', db_path,
-            '--ethereum-private-key', customer_private_key,
+            '--ethereum-private-key', private_key_hex,
             '--ethereum-gas-price', 9999999,
-            'payout-deposit',
-            '--payout-token-name', test_token_name,
+            'payout-deposit'
         ]
     )
     assert result.exit_code == 0
-    initial_balance = test_token_contract.call().balanceOf(priv_key_to_address(private_key_hex))
+    assert test_token_contract.functions.balanceOf(payout_contract.address).call() > initial_balance
+    # check if payouts happen
     payout_contract.functions.act(123).transact({"from": priv_key_to_address(private_key_hex)})
-    assert test_token_contract.call().balanceOf(priv_key_to_address(private_key_hex)) > initial_balance
+    # 0x0000000000000000000000000000000000000064 is the default address 100
+    assert payout_contract.functions.balanceOf('0x0000000000000000000000000000000000000064').call() == 123

@@ -716,14 +716,12 @@ def payout_deploy(
 @cli.command(name="payout-approve")
 @click.option('--payout-token-address', required=False, default=None, help="address of payout token contract", type=str)
 @click.option('--payout-token-name', required=True, help="name of the payout token smart contract", type=str)
-@click.option('--customer-address', required=True, help="name of the payout token smart contract", type=str)
 @click.option('--transfer-value', required=True, help="name of the payout token smart contract", type=int)
 @click.pass_obj
 def payout_approve(
         config: BoardCommmadConfiguration,
         payout_token_address: str,
         payout_token_name: str,
-        customer_address: str,
         transfer_value: int
 ):
     from sto.ethereum.utils import (
@@ -746,6 +744,11 @@ def payout_approve(
             Either payout token is not deployed or --payout-token-address not provided
             '''
         )
+    tx = get_contract_deployed_tx(config.dbsession, 'PayoutContract')
+    if not tx:
+        raise Exception('PayoutContract not found. Call payout-deploy to deploy PayoutContract')
+    payout_contract_address = tx.contract_address
+
     web3 = create_web3(config.ethereum_node_url)
     service = EthereumStoredTXService(
         config.network,
@@ -764,17 +767,15 @@ def payout_approve(
         payout_token_address,
         'approving tokens',
         'approve',
-        args={'_spender': customer_address, '_value': transfer_value},
+        args={'_spender': payout_contract_address, '_value': transfer_value},
         use_bytecode=False
     )
     _broadcast(config)
 
 
 @cli.command(name="payout-deposit")
-@click.option('--payout-token-address', required=False, default=None, help="address of payout token contract", type=str)
-@click.option('--payout-token-name', required=True, help="name of the payout token smart contract", type=str)
 @click.pass_obj
-def payout_deposit(config: BoardCommmadConfiguration, payout_token_address: str, payout_token_name: str):
+def payout_deposit(config: BoardCommmadConfiguration):
     """
     the private key here needs to belong to the customer who wants to fetch tokens
     """
@@ -790,15 +791,6 @@ def payout_deposit(config: BoardCommmadConfiguration, payout_token_address: str,
     tx = get_contract_deployed_tx(config.dbsession, 'PayoutContract')
     if not tx:
         raise Exception('PayoutContract not found. Call payout-deploy to deploy PayoutContract')
-    if payout_token_name:
-        tx = get_contract_deployed_tx(config.dbsession, payout_token_name)
-        payout_token_address = tx.contract_address
-    if payout_token_address is None:
-        raise Exception(
-            '''
-            Either payout token is not deployed or --payout-token-address not provided
-            '''
-        )
     web3 = create_web3(config.ethereum_node_url)
     service = EthereumStoredTXService(
         config.network,
