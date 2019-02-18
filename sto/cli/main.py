@@ -826,6 +826,45 @@ def payout_deposit(config: BoardCommmadConfiguration):
     _broadcast(config)
 
 
+@cli.command(name="payout-dividends")
+@click.option('--transfer-amount', required=True, help="amount of sto tokens to trade for payout token", type=int)
+@click.pass_obj
+def payout_dividends(config: BoardCommmadConfiguration, transfer_amount):
+    from sto.ethereum.utils import (
+        get_contract_deployed_tx,
+        create_web3,
+        get_abi,
+        broadcast as _broadcast
+    )
+    from sto.ethereum.txservice import EthereumStoredTXService
+    from sto.models.implementation import BroadcastAccount, PreparedTransaction
+
+    tx = get_contract_deployed_tx(config.dbsession, 'PayoutContract')
+    if not tx:
+        raise Exception('PayoutContract not found. Call payout-deploy to deploy PayoutContract')
+    web3 = create_web3(config.ethereum_node_url)
+    service = EthereumStoredTXService(
+        config.network,
+        config.dbsession,
+        web3,
+        config.ethereum_private_key,
+        config.ethereum_gas_price,
+        config.ethereum_gas_limit,
+        BroadcastAccount,
+        PreparedTransaction
+    )
+    abi = get_abi(config.ethereum_abi_file)
+    service.interact_with_contract(
+        contract_name='PayoutContract',
+        abi=abi,
+        address=tx.contract_address,
+        note='transferring amount: {0}'.format(transfer_amount),
+        func_name='act',
+        args={'amount': transfer_amount}
+    )
+    _broadcast(config)
+
+
 @cli.command(name="deploy-crowdsale-token")
 @click.pass_obj
 def deploy_crowdsale_token(config: BoardCommmadConfiguration):
