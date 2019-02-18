@@ -37,6 +37,7 @@ New to tokens and securities? `Read an introduction for security tokens <https:/
    scanner
    captable
    erc-20-holders
+   payout
    etherscan
    protocols
    command-line-reference
