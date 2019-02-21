@@ -445,8 +445,11 @@ def last(config: BoardCommmadConfiguration, limit):
 
 
 @cli.command(name="tx-restart-nonce")
+@click.option('--reset-pending-tx', required=False, help="Delete's any pending tx", type=bool, default=None)
 @click.pass_obj
-def restart_nonce(config: BoardCommmadConfiguration):
+def restart_nonce(config: BoardCommmadConfiguration, reset_pending_tx):
+
+
     """Resets the broadcasting account nonce."""
 
     assert is_ethereum_network(config.network)
@@ -463,7 +466,8 @@ def restart_nonce(config: BoardCommmadConfiguration):
           ethereum_node_url=config.ethereum_node_url,
           ethereum_private_key=config.ethereum_private_key,
           ethereum_gas_limit=config.ethereum_gas_limit,
-          ethereum_gas_price=config.ethereum_gas_price)
+          ethereum_gas_price=config.ethereum_gas_price,
+          reset_pending_tx=reset_pending_tx)
 
 @cli.command(name="tx-next-nonce")
 @click.pass_obj

@@ -25,7 +25,10 @@ def restart_nonce(logger: Logger,
               ethereum_private_key: str,
               ethereum_gas_limit: str,
               ethereum_gas_price: str,
+              reset_pending_tx: bool,
+
 ):
+
     check_good_private_key(ethereum_private_key)
 
     web3 = create_web3(ethereum_node_url)
@@ -36,8 +39,9 @@ def restart_nonce(logger: Logger,
 
     account = service.get_or_create_broadcast_account()
     txs = service.get_last_transactions(limit=1)
-    if txs.count() > 0:
-        raise HistoryDeleteNeeded("Cannot reset nonce as the database contains txs for {}. Delete database to restart.".format(service.address))
+    if txs.count() > 0 and reset_pending_tx = True:
+        service.delete_pending_broadcasts()
+
 
     # read nonce from the network and record to the database
     tx_count = web3.eth.getTransactionCount(service.address)
