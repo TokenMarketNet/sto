@@ -335,7 +335,7 @@ class EthereumStoredTXService:
     def get_last_transactions(self, limit: int) -> Query:
         """Fetch latest transactions."""
         assert type(limit) == int
-        return self.dbsession.query(self.prepared_tx_model).order_by(restart-nonce.prepared_tx_model.created_at.desc()).limit(limit)
+        return self.dbsession.query(self.prepared_tx_model).order_by(self.prepared_tx_model.created_at.desc()).limit(limit)
 
     def broadcast(self, tx: _PreparedTransaction):
         """Push transactions to Ethereum network."""
