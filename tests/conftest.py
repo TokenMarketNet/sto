@@ -34,8 +34,26 @@ def dbsession(db_path):
 
 @pytest.fixture
 def monkey_patch_py_evm_gas_limit():
+    from eth_tester.backends.common import merge_genesis_overrides
     from eth_tester.backends.pyevm import main
+
+    def get_default_account_state(overrides=None):
+        default_account_state = {
+            'balance': to_wei(10000000000, 'ether'),
+            'storage': {},
+            'code': b'',
+            'nonce': 0,
+        }
+        if overrides is not None:
+            account_state = merge_genesis_overrides(defaults=default_account_state,
+                                                    overrides=overrides)
+        else:
+            account_state = default_account_state
+        return account_state
+
     main.GENESIS_GAS_LIMIT = 9999999999
+    # increase default eth value
+    main.get_default_account_state = get_default_account_state
 
 
 @pytest.fixture
@@ -77,7 +95,7 @@ def private_key_hex(web3_test_provider, web3):
 
     acc_zero = web3_test_provider.ethereum_tester.get_accounts()[0]  # Accounts with pregenerated balance
     address = web3_test_provider.ethereum_tester.add_account(private_key_hex)
-    web3.eth.sendTransaction({"from": acc_zero, "to": address, "value": to_wei(1, "ether")})
+    web3.eth.sendTransaction({"from": acc_zero, "to": address, "value": to_wei(1000000000, "ether")})
     balance = web3.eth.getBalance(address)
     assert balance > 0
     return private_key_hex
@@ -90,12 +108,20 @@ def click_runner():
 
 @pytest.fixture
 def monkeypatch_create_web3(monkeypatch, web3):
-    from sto.ethereum import utils, broadcast, tokenscan, distribution, issuance
+    from sto.ethereum import (
+        utils,
+        broadcast,
+        tokenscan,
+        distribution,
+        issuance,
+        status,
+    )
     monkeypatch.setattr(utils, 'create_web3', lambda _: web3)
     monkeypatch.setattr(broadcast, 'create_web3', lambda _: web3)
     monkeypatch.setattr(tokenscan, 'create_web3', lambda _: web3)
     monkeypatch.setattr(distribution, 'create_web3', lambda _: web3)
     monkeypatch.setattr(issuance, 'create_web3', lambda _: web3)
+    monkeypatch.setattr(status, 'create_web3', lambda _: web3)
 
 
 @pytest.fixture

@@ -333,6 +333,7 @@ class EthereumStoredTXService:
         next_nonce = self.get_next_nonce()
 
         tx_data = self.generate_tx_data(next_nonce)
+        tx_data['to'] = receiver_address
         tx_data['value'] = int(raw_amount)
 
         tx = self.allocate_transaction(

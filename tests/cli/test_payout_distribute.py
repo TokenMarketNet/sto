@@ -199,15 +199,20 @@ def holders_payout_csv(
     assert result.exit_code == 0
 
 
-def test_payout_distribute(
+def test_payout_distribute_ether(
         monkeypatch_create_web3,
         holders_payout_csv,
         csv_output,
         click_runner,
         db_path,
         private_key_hex,
-        security_token
+        security_token,
+        web3
 ):
+    inital_balance_1 = web3.eth.getBalance('0x0bdcc26C4B8077374ba9DB82164B77d6885b92a6')
+    inital_balance_2 = web3.eth.getBalance('0xE738f7A6Eb317b8B286c27296cD982445c9D8cd2')
+
+    total_amount = 9999000000000000000000
     result = click_runner.invoke(
         cli,
         [
@@ -218,7 +223,32 @@ def test_payout_distribute(
             "payout-distribute",
             '--csv-input', csv_output,
             '--security-token-address', security_token,
-            '--total-amount', 9999000000000000000000
+            '--total-amount', total_amount
         ]
     )
     assert result.exit_code == 0
+    result = click_runner.invoke(
+        cli,
+        [
+            '--database-file', db_path,
+            '--ethereum-private-key', private_key_hex,
+            '--ethereum-gas-limit', 999999999,
+            'tx-broadcast',
+        ]
+    )
+    assert result.exit_code == 0
+    result = click_runner.invoke(
+        cli,
+        [
+            '--database-file', db_path,
+            '--ethereum-private-key', private_key_hex,
+            '--ethereum-gas-limit', 999999999,
+            'tx-update',
+        ]
+    )
+    assert result.exit_code == 0
+    after_balance_1 = web3.eth.getBalance('0x0bdcc26C4B8077374ba9DB82164B77d6885b92a6')
+    after_balance_2 = web3.eth.getBalance('0xE738f7A6Eb317b8B286c27296cD982445c9D8cd2')
+
+    assert after_balance_1 > inital_balance_1
+    assert after_balance_2 > inital_balance_2

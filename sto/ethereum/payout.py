@@ -33,7 +33,6 @@ def payout_investors(
         PreparedTransaction
     )
     dists = read_csv(config.logger, csv_input)
-
     new_distributes = old_distributes = 0
 
     security_token_total_balance = service.get_total_supply(security_token_address, abi)
