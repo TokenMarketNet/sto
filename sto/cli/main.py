@@ -746,6 +746,7 @@ def create_holders_payout_csv(
     import csv
 
     from sto.ethereum.tokenscan import token_scan
+    from sto.ethereum.distribution import get_or_create_investor
 
     logger = config.logger
     dbsession = config.dbsession
@@ -762,11 +763,14 @@ def create_holders_payout_csv(
     )
 
     with open(csv_output, 'w') as write_file:
-        writer = csv.DictWriter(write_file, fieldnames=['external_id', 'address', 'amount'])
+        writer = csv.DictWriter(write_file, fieldnames=['external_id', 'email', 'name', 'address', 'amount'])
         writer.writeheader()
         for address, balance in updated_addresses.items():
+            investor = get_or_create_investor(dbsession, address)
             writer.writerow({
                 'external_id': str(uuid4()),
+                'email': investor.email,
+                'name': investor.name,
                 'address': address,
                 'amount': balance,
             })

@@ -2,26 +2,31 @@
 from decimal import Decimal
 from logging import Logger
 
-import colorama
 from tqdm import tqdm
 
 from sto.distribution import DistributionEntry
 from sto.ethereum.txservice import EthereumStoredTXService
 
 from sto.ethereum.utils import get_abi, check_good_private_key, create_web3
-from sto.ethereum.exceptions import BadContractException
-from sto.models.broadcastaccount import _PreparedTransaction
 
-from sto.models.implementation import BroadcastAccount, PreparedTransaction
+from sto.models.implementation import BroadcastAccount, PreparedTransaction, Investor
 from sqlalchemy.orm import Session
 from typing import Union, Optional, List, Tuple
 from web3 import Web3
-from web3.exceptions import BadFunctionCallOutput
 
 
 class NotEnoughTokens(Exception):
     pass
 
+
+def get_or_create_investor(dbsession, address, name=None, email=None):
+    investor = dbsession.query(Investor).filter(Investor.address == address).one_or_none()
+    if investor:
+        return investor
+    else:
+        investor = Investor(address=address, name=name, email=email)
+        dbsession.flush()
+        return investor
 
 
 def distribute_tokens(logger: Logger,
@@ -56,6 +61,7 @@ def distribute_tokens(logger: Logger,
 
     for d in tqdm(dists):
         if not service.is_distributed(d.external_id, token_address):
+            get_or_create_investor(dbsession, d.address, d.name, d.email)
             # Going to tx queue
             raw_amount = int(d.amount * 10**18)
             note = "Distributing tokens, raw amount: {}".format(raw_amount)
@@ -108,6 +114,8 @@ def distribute_single(logger: Logger,
         raise NotEnoughTokens("Not enough tokens for distribution. Account {} has {} raw token balance, needed {}".format(service.get_or_create_broadcast_account().address, available, total))
 
     if not service.is_distributed(d.external_id, token_address):
+        get_or_create_investor(dbsession, d.address, d.name, d.email)
+
         # Going to tx queue
         raw_amount = int(d.amount * 10**18)
         note = "Distributing tokens, raw amount: {}".format(raw_amount)

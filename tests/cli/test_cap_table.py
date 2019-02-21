@@ -195,5 +195,5 @@ def test_create_holders_payout_csv(
     assert result.exit_code == 0
     with open(csv_output, 'rt') as f:
         reader = csv.reader(f)
-        rows = [row[1] for row in reader]
+        rows = [row for row in reader]
         assert len(rows) == 4

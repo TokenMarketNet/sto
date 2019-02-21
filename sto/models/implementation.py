@@ -10,6 +10,7 @@ from sqlalchemy.ext.declarative import declarative_base
 
 from .broadcastaccount import _BroadcastAccount, _PreparedTransaction
 from .tokenscan import _TokenScanStatus, _TokenHolderDelta, _TokenHolderAccount
+from .investors import _Investor
 
 
 Base = declarative_base()
@@ -53,3 +54,5 @@ class TokenHolderDelta(_TokenHolderDelta, Base):
                                         single_parent=True, ), )
 
 
+class Investor(_Investor, Base):
+    pass
