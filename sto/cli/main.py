@@ -167,7 +167,7 @@ def issue(config: BoardCommmadConfiguration, symbol, name, url, amount, transfer
         ethereum_gas_price=config.ethereum_gas_price,
         name=name,
         symbol=symbol,
-        uel=url,
+        url=url,
         amount=amount,
         transfer_restriction=transfer_restriction
     )
@@ -812,6 +812,7 @@ def payout_distribute(
         token_symbol,
         token_address
     )
+    config.dbsession.commit()
 
 
 def main():

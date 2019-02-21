@@ -90,10 +90,12 @@ def click_runner():
 
 @pytest.fixture
 def monkeypatch_create_web3(monkeypatch, web3):
-    from sto.ethereum import utils, broadcast, tokenscan
+    from sto.ethereum import utils, broadcast, tokenscan, distribution, issuance
     monkeypatch.setattr(utils, 'create_web3', lambda _: web3)
     monkeypatch.setattr(broadcast, 'create_web3', lambda _: web3)
     monkeypatch.setattr(tokenscan, 'create_web3', lambda _: web3)
+    monkeypatch.setattr(distribution, 'create_web3', lambda _: web3)
+    monkeypatch.setattr(issuance, 'create_web3', lambda _: web3)
 
 
 @pytest.fixture

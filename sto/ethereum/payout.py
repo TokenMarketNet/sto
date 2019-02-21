@@ -1,3 +1,5 @@
+import decimal
+
 from tqdm import tqdm
 
 from sto.distribution import read_csv
@@ -30,14 +32,13 @@ def payout_investors(
         BroadcastAccount,
         PreparedTransaction
     )
-    dists = read_csv(csv_input)
+    dists = read_csv(config.logger, csv_input)
 
     new_distributes = old_distributes = 0
 
-    security_token_total_balance = service.get_raw_token_balance(security_token_address, abi)
-    one_unit = total_amount / security_token_address
-
-    total_to_distribute = sum([dist.amount * security_token_total_balance for dist in dists])
+    security_token_total_balance = service.get_total_supply(security_token_address, abi)
+    one_unit = decimal.Decimal(total_amount / security_token_total_balance)
+    total_to_distribute = sum([dist.amount * one_unit for dist in dists])
 
     if total_to_distribute > total_amount:
         raise NotEnoughTokens(
@@ -52,11 +53,18 @@ def payout_investors(
             raw_amount = d.amount * one_unit
             note = "Distributing payout, raw amount: {}".format(raw_amount)
             if payment_type == 'ether':
-                service.distribute_ether(d.external_id, d.address, raw_amount, note)
+                service.distribute_ether(d.external_id, d.address, d.amount * one_unit, note)
             else:
-                service.distribute_tokens(d.external_id, d.address, raw_amount, token_address, abi, note, contract_name)
-            service.distribute_tokens(d.external_id, d.address, raw_amount, token_address, abi, note)
-            new_distributes += 1
+                service.distribute_tokens(
+                    d.external_id,
+                    d.address,
+                    d.amount * one_unit,
+                    token_address,
+                    abi,
+                    note,
+                    contract_name
+                )
+                new_distributes += 1
         else:
             # CSV reimports
             old_distributes += 1

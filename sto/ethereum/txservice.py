@@ -318,13 +318,22 @@ class EthereumStoredTXService:
         result = func(**args).call()
         return result
 
+    def get_total_supply(self, token_address: str, abi: dict, contract_name="ERC20Basic", func_name="totalSupply") -> int:
+        assert token_address.startswith("0x")
+        contract = self.get_contract_proxy(contract_name, abi, token_address)
+
+        func = getattr(contract.functions, func_name)
+
+        result = func().call()
+        return result
+
     def distribute_ether(self, external_id: str, receiver_address: str, raw_amount: int, note: str):
         broadcast_account = self.get_or_create_broadcast_account()
 
         next_nonce = self.get_next_nonce()
 
         tx_data = self.generate_tx_data(next_nonce)
-        tx_data['to'] = raw_amount
+        tx_data['value'] = int(raw_amount)
 
         tx = self.allocate_transaction(
             broadcast_account=broadcast_account,
