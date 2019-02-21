@@ -53,6 +53,9 @@ class _PreparedTransaction(TimeStampedBaseModel):
     #: Precalculated transaction id
     txid = sa.Column(sa.String(256), nullable=True)
 
+    #: tx_type can `ether` or `token`
+    tx_type = sa.Column(sa.String(256), nullable=True)
+
     #: Value transferred in Ethereum transaction
     # value = sa.Column(sa.Numeric(60, 20), nullable=False, default=0)
 
@@ -184,3 +187,9 @@ class _PreparedTransaction(TimeStampedBaseModel):
         return sa.cast(
             cls.other_data['abi']['name'], sa.String
         ) == '"{0}"'.format(contract_name)
+
+    @classmethod
+    def filter_by_tx_sent_to(cls, address):
+        return sa.cast(
+            cls.other_data["constructor_arguments"]['to'], sa.String
+        ) == '"{0}"'.format(address)

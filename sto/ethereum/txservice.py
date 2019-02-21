@@ -107,6 +107,7 @@ class EthereumStoredTXService:
                              gas_price: Optional[int],
                              gas_limit: Optional[int],
                              external_id: Optional[str]=None,
+                             tx_type: Optional[str]=None
                              ) -> _PreparedTransaction:
         """Put a transaction to the pending queue of the current broadcast list."""
 
@@ -129,6 +130,7 @@ class EthereumStoredTXService:
         tx.contract_deployment = contract_deployment
         tx.unsigned_payload = unsigned_payload
         tx.external_id = external_id
+        tx.tx_type = tx_type
         broadcast_account.txs.append(tx)
         broadcast_account.current_nonce += 1
         return tx
@@ -295,6 +297,7 @@ class EthereumStoredTXService:
             gas_price=self.gas_price,
             gas_limit=self.gas_limit,
             external_id=external_id,
+            tx_type='token'
         )
         self.dbsession.flush()
         return tx
@@ -314,6 +317,30 @@ class EthereumStoredTXService:
 
         result = func(**args).call()
         return result
+
+    def distribute_ether(self, external_id: str, receiver_address: str, raw_amount: int, note: str):
+        broadcast_account = self.get_or_create_broadcast_account()
+
+        next_nonce = self.get_next_nonce()
+
+        tx_data = self.generate_tx_data(next_nonce)
+        tx_data['to'] = raw_amount
+
+        tx = self.allocate_transaction(
+            broadcast_account=broadcast_account,
+            receiver=receiver_address,
+            contract_address=None,
+            contract_deployment=False,
+            nonce=next_nonce,
+            note=note,
+            unsigned_payload=tx_data,
+            tx_type='ether',
+            gas_price=self.gas_price,
+            gas_limit=self.gas_limit,
+            external_id=external_id,
+        )
+        self.dbsession.flush()
+        return tx
 
     def get_pending_broadcasts(self) -> Query:
         """All transactions that need to be broadcasted."""

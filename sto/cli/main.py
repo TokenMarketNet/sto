@@ -729,6 +729,77 @@ def payout_deposit(config: BoardCommmadConfiguration):
     _broadcast(config)
 
 
+@cli.command(name="create-holders-payout-csv")
+@click.option('--csv-output', required=False, default='.', help="output file where output is to be written", type=str)
+@click.option('--start-block', required=False, help="The first block where we start (re)scan", type=int, default=None)
+@click.option('--end-block', required=False, help="Until which block we scan, also can be 'latest'", type=int, default=None)
+@click.option('--token-address', required=True, help="Security Token contract address", default=None)
+@click.pass_obj
+def create_holders_payout_csv(
+        config: BoardCommmadConfiguration,
+        csv_output,
+        start_block,
+        end_block,
+        token_address
+):
+    from uuid import uuid4
+    import csv
+
+    updated_addresses = token_scan(
+        config.logger,
+        config.dbsession,
+        config.network,
+        ethereum_node_url=config.ethereum_node_url,
+        ethereum_abi_file=config.ethereum_abi_file,
+        token_address=token_address,
+        start_block=start_block,
+        end_block=end_block
+    )
+    with open(csv_output, 'w') as write_file:
+        writer = csv.writer(write_file, fieldnames=['external_id', 'address', 'amount'])
+        writer.writeheader()
+        for address, balance in updated_addresses.items():
+            writer.writerows([str(uuid4()), address, balance])
+
+
+@cli.command(name="payout-distribute")
+@click.option('--csv-input', required=True, help="address to whitelist", type=str)
+@click.option('--security-token-address', required=True, help="address of deployed security token", type=str)
+@click.option('--payment-type', required=False, default="ether", help="type of payment", type=str)
+@click.option('--total-amount', required=True, help="total payout amount", type=int)
+@click.option('--token-symbol', required=False, help="PaymentToken symbol", default=None)
+@click.option('--token-address', required=False, help="PaymentToken contract address", default=None)
+@click.pass_obj
+def payout_distribute(
+        config: BoardCommmadConfiguration,
+        csv_input,
+        security_token_address,
+        payment_type,
+        total_amount,
+        token_symbol,
+        token_address
+):
+    """
+    :param csv_input: input file containing the payout distribution
+    :param security_token_address: address of deployed security token
+    :param payment_type: this can either `ether` or `token`
+    :param total_amount: total amount to distribute
+    :param token_symbol: should be provided iff payment-type=`token`. This the symbol of the payout token
+    :param token_address: should be provided iff payment-type=`token`. This is the address of the deployed token.
+    """
+    from sto.ethereum.payout import payout_investors
+    assert payment_type in ["ether", "token"], "--payment-type only takes values `ether` and `payout`"
+    payout_investors(
+        config,
+        csv_input,
+        security_token_address,
+        payment_type,
+        total_amount,
+        token_symbol,
+        token_address
+    )
+
+
 def main():
     # https://github.com/pallets/click/issues/204#issuecomment-270012917
     cli.main(max_content_width=200, terminal_width=200)

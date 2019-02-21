@@ -3,7 +3,7 @@ Distribute Dividends
 
 The command line tool supports a simple CSV input to make payouts to shareholders.
 
-* Shares are exchanged here for ether or tokens like Gemini USD.
+* If you own security tokens, you are entitled to the payouts.
 
 * ``payout-distribute`` takes in the input csv with investor info.
 
@@ -14,8 +14,8 @@ The command line tool supports a simple CSV input to make payouts to shareholder
 
 * payouts can be made either in ether or any other payable ERC20 compliant token. use `--payment-type` flag in
   ``payout-distribute`` to specify the type of payout. ``payment-type`` can either be `ether` or `token`. If ``payment-type``
-  is `token` then ``payment-token-address`` and ``payment-token-contract-name`` are required parameters. ``payment-token-address``
-  refers to the address of the deployed payout-token and  ``payment-token-contract-name`` refers to the name of the smart contract.
+  is `token` then ``payment-token-address`` and ``payment-token-symbol`` are required parameters. ``payment-token-address``
+  refers to the address of the deployed payout-token and  ``payment-token-symbol`` refers to the symbol of the payout token.
 
 * Transactions are prepared for broadcasting.
 
@@ -44,6 +44,11 @@ Example for making payouts:
 
 This should output:
 
+
+Note
+----
+Address(0) will be intentionally skipped from payouts, so the total amount of tokens (and their proportional value)
+will not change
 
 Next reading
 ------------
