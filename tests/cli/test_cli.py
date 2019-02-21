@@ -32,46 +32,6 @@ def kyc_contract(
 
 
 @pytest.fixture
-def deploy(click_runner, db_path, private_key_hex):
-    import click
-    from sto.ethereum.utils import deploy_contract
-
-    def _deploy_contract(name, contract_args={}):
-        @cli.command(name="contract-deploy")
-        @click.option('--contract-name', required=True, type=str)
-        @click.option('--args', required=True, type=dict)
-        @click.pass_obj
-        def contract_deploy(config, contract_name, args):
-            deploy_contract(config, contract_name, constructor_args=args)
-
-        result = click_runner.invoke(
-            cli,
-            [
-                '--database-file', db_path,
-                '--ethereum-private-key', private_key_hex,
-                '--ethereum-gas-limit', 999999999,
-                'contract-deploy',
-                '--contract-name', name,
-                '--args', contract_args,
-            ]
-        )
-        assert result.exit_code == 0
-    return _deploy_contract
-
-
-@pytest.fixture
-def security_token(deploy, dbsession, monkeypatch_get_contract_deployed_tx, get_contract_deployed_tx):
-    args = {
-        "_name": "SecurityToken",
-        "_symbol": "SEC",
-        "_url": "http://tokenmarket.net/"
-    }
-    deploy('SecurityToken', args)
-    tx = get_contract_deployed_tx(dbsession, 'SecurityToken')
-    return tx.contract_address
-
-
-@pytest.fixture
 def test_token(deploy, dbsession, monkeypatch_get_contract_deployed_tx, get_contract_deployed_tx):
     args = {
         "_name": 'test_token',

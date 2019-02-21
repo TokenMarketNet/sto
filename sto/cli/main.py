@@ -745,9 +745,14 @@ def create_holders_payout_csv(
     from uuid import uuid4
     import csv
 
+    from sto.ethereum.tokenscan import token_scan
+
+    logger = config.logger
+    dbsession = config.dbsession
+
     updated_addresses = token_scan(
-        config.logger,
-        config.dbsession,
+        logger,
+        dbsession,
         config.network,
         ethereum_node_url=config.ethereum_node_url,
         ethereum_abi_file=config.ethereum_abi_file,
@@ -755,11 +760,16 @@ def create_holders_payout_csv(
         start_block=start_block,
         end_block=end_block
     )
+
     with open(csv_output, 'w') as write_file:
-        writer = csv.writer(write_file, fieldnames=['external_id', 'address', 'amount'])
+        writer = csv.DictWriter(write_file, fieldnames=['external_id', 'address', 'amount'])
         writer.writeheader()
         for address, balance in updated_addresses.items():
-            writer.writerows([str(uuid4()), address, balance])
+            writer.writerow({
+                'external_id': str(uuid4()),
+                'address': address,
+                'amount': balance,
+            })
 
 
 @cli.command(name="payout-distribute")

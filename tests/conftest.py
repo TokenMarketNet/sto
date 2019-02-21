@@ -90,9 +90,10 @@ def click_runner():
 
 @pytest.fixture
 def monkeypatch_create_web3(monkeypatch, web3):
-    from sto.ethereum import utils, broadcast
+    from sto.ethereum import utils, broadcast, tokenscan
     monkeypatch.setattr(utils, 'create_web3', lambda _: web3)
     monkeypatch.setattr(broadcast, 'create_web3', lambda _: web3)
+    monkeypatch.setattr(tokenscan, 'create_web3', lambda _: web3)
 
 
 @pytest.fixture
@@ -105,6 +106,7 @@ def get_contract_deployed_tx():
                 return tx
     return _get_contract_deployed_tx
 
+
 @pytest.fixture
 def monkeypatch_get_contract_deployed_tx(monkeypatch, get_contract_deployed_tx):
     """
@@ -112,3 +114,44 @@ def monkeypatch_get_contract_deployed_tx(monkeypatch, get_contract_deployed_tx):
     """
     from sto.ethereum import utils
     monkeypatch.setattr(utils, 'get_contract_deployed_tx', get_contract_deployed_tx)
+
+
+@pytest.fixture
+def deploy(click_runner, db_path, private_key_hex):
+    import click
+    from sto.ethereum.utils import deploy_contract
+    from sto.cli.main import cli
+
+    def _deploy_contract(name, contract_args={}):
+        @cli.command(name="contract-deploy")
+        @click.option('--contract-name', required=True, type=str)
+        @click.option('--args', required=True, type=dict)
+        @click.pass_obj
+        def contract_deploy(config, contract_name, args):
+            deploy_contract(config, contract_name, constructor_args=args)
+
+        result = click_runner.invoke(
+            cli,
+            [
+                '--database-file', db_path,
+                '--ethereum-private-key', private_key_hex,
+                '--ethereum-gas-limit', 999999999,
+                'contract-deploy',
+                '--contract-name', name,
+                '--args', contract_args,
+            ]
+        )
+        assert result.exit_code == 0
+    return _deploy_contract
+
+
+@pytest.fixture
+def security_token(deploy, dbsession, monkeypatch_get_contract_deployed_tx, get_contract_deployed_tx):
+    args = {
+        "_name": "SecurityToken",
+        "_symbol": "SEC",
+        "_url": "http://tokenmarket.net/"
+    }
+    deploy('SecurityToken', args)
+    tx = get_contract_deployed_tx(dbsession, 'SecurityToken')
+    return tx.contract_address
