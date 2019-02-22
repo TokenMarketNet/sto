@@ -106,3 +106,5 @@ This will output::
     Distribution created 2 new transactions and there was already 0 old transactions in the database
 
 8. Repeat step 2 and 3.
+
+9. Verify on etherscan that ether has been sent to accounts mentioned in example-distribution.csv
