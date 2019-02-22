@@ -262,21 +262,42 @@ def test_payout_distribute_ether(
         ]
     )
     assert result.exit_code == 0
+
+    after_balance_1 = web3.eth.getBalance('0x0bdcc26C4B8077374ba9DB82164B77d6885b92a6')
+    after_balance_2 = web3.eth.getBalance('0xE738f7A6Eb317b8B286c27296cD982445c9D8cd2')
+
+    assert after_balance_1 > inital_balance_1
+    assert after_balance_2 > inital_balance_2
+
+    # test csv input re-run
     result = click_runner.invoke(
         cli,
         [
             '--database-file', db_path,
             '--ethereum-private-key', private_key_hex,
             '--ethereum-gas-limit', 999999999,
-            'tx-update',
+            '--ethereum-gas-price', 20000,
+            "payout-distribute",
+            '--csv-input', csv_output,
+            '--security-token-address', security_token,
+            '--total-amount', total_amount
         ]
     )
     assert result.exit_code == 0
-    after_balance_1 = web3.eth.getBalance('0x0bdcc26C4B8077374ba9DB82164B77d6885b92a6')
-    after_balance_2 = web3.eth.getBalance('0xE738f7A6Eb317b8B286c27296cD982445c9D8cd2')
-
-    assert after_balance_1 > inital_balance_1
-    assert after_balance_2 > inital_balance_2
+    result = click_runner.invoke(
+        cli,
+        [
+            '--database-file', db_path,
+            '--ethereum-private-key', private_key_hex,
+            '--ethereum-gas-limit', 999999999,
+            'tx-broadcast',
+        ]
+    )
+    assert result.exit_code == 0
+    re_run_balance_1 = web3.eth.getBalance('0x0bdcc26C4B8077374ba9DB82164B77d6885b92a6')
+    re_run_balance_2 = web3.eth.getBalance('0xE738f7A6Eb317b8B286c27296cD982445c9D8cd2')
+    assert after_balance_1 == re_run_balance_1
+    assert after_balance_2 == re_run_balance_2
 
 
 def test_payout_tokens(
@@ -322,16 +343,7 @@ def test_payout_tokens(
         ]
     )
     assert result.exit_code == 0
-    result = click_runner.invoke(
-        cli,
-        [
-            '--database-file', db_path,
-            '--ethereum-private-key', private_key_hex,
-            '--ethereum-gas-limit', 999999999,
-            'tx-update',
-        ]
-    )
-    assert result.exit_code == 0
+
     tx = get_contract_deployed_tx(dbsession, 'CrowdsaleToken')
     from sto.ethereum.utils import get_abi
     abi = get_abi(None)
@@ -341,3 +353,35 @@ def test_payout_tokens(
     after_balance_2 = test_token_contract.functions.balanceOf('0xE738f7A6Eb317b8B286c27296cD982445c9D8cd2').call()
     assert after_balance_1 > inital_balance_1
     assert after_balance_2 > inital_balance_2
+
+
+    # test csv input re-run
+    result = click_runner.invoke(
+        cli,
+        [
+            '--database-file', db_path,
+            '--ethereum-private-key', private_key_hex,
+            '--ethereum-gas-limit', 999999999,
+            '--ethereum-gas-price', 20000,
+            "payout-distribute",
+            '--csv-input', csv_output,
+            '--security-token-address', security_token,
+            '--total-amount', total_amount
+        ]
+    )
+    assert result.exit_code == 0
+    result = click_runner.invoke(
+        cli,
+        [
+            '--database-file', db_path,
+            '--ethereum-private-key', private_key_hex,
+            '--ethereum-gas-limit', 999999999,
+            'tx-broadcast',
+        ]
+    )
+    assert result.exit_code == 0
+
+    re_run_balance_1 = test_token_contract.functions.balanceOf('0x0bdcc26C4B8077374ba9DB82164B77d6885b92a6').call()
+    re_run_balance_2 = test_token_contract.functions.balanceOf('0xE738f7A6Eb317b8B286c27296cD982445c9D8cd2').call()
+    assert after_balance_1 == re_run_balance_1
+    assert after_balance_2 == re_run_balance_2
