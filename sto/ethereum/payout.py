@@ -53,7 +53,7 @@ def payout_investors(
             continue
         if not service.is_distributed(d.external_id, token_address):
             # Going to tx queue
-            raw_amount = (d.amount * total_amount) // security_token_total_balance
+            raw_amount = int((d.amount * total_amount) // security_token_total_balance)
             note = "Distributing payout, raw amount: {}".format(raw_amount)
             if payment_type == 'ether':
                 service.distribute_ether(d.external_id, d.address, raw_amount, note)
