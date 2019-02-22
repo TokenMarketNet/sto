@@ -10,7 +10,7 @@ The command line tool supports a simple CSV input to make payouts to shareholder
 * ``create-holders-payout-csv`` is an optional command that can be used to generate the CSV. This CSV contains investor with
     their respective shares. This basically fetches data by running ``token-scan`` in the background.
 
-* Edit this csv to remove some holders or to modify the amount.
+* Edit this csv to suit your needs.
 
 * payouts can be made either in ether or any other payable ERC20 compliant token. use `--payment-type` flag in
   ``payout-distribute`` to specify the type of payout. ``payment-type`` can either be `ether` or `token`. If ``payment-type``
