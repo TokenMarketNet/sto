@@ -187,9 +187,3 @@ class _PreparedTransaction(TimeStampedBaseModel):
         return sa.cast(
             cls.other_data['abi']['name'], sa.String
         ) == '"{0}"'.format(contract_name)
-
-    @classmethod
-    def filter_by_tx_sent_to(cls, address):
-        return sa.cast(
-            cls.other_data["constructor_arguments"]['to'], sa.String
-        ) == '"{0}"'.format(address)
