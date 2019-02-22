@@ -1,3 +1,4 @@
+import csv
 import pytest
 
 from sto.ethereum.issuance import contract_status
@@ -218,6 +219,33 @@ def test_token(
     execute_contract_function('CrowdsaleToken', 'setReleaseAgent', {'addr': priv_key_to_address(private_key_hex)})
     execute_contract_function('CrowdsaleToken', 'releaseTokenTransfer', {})
     return tx.contract_address
+
+
+def test_create_holders_payout_csv(
+        scanned_distribution,
+        monkeypatch_create_web3,
+        click_runner,
+        db_path,
+        private_key_hex,
+        csv_output,
+        security_token
+):
+    result = click_runner.invoke(
+        cli,
+        [
+            '--database-file', db_path,
+            '--ethereum-private-key', private_key_hex,
+            '--ethereum-gas-limit', 999999999,
+            "create-holders-payout-csv",
+            '--csv-output', csv_output,
+            '--token-address', security_token
+        ]
+    )
+    assert result.exit_code == 0
+    with open(csv_output, 'rt') as f:
+        reader = csv.reader(f)
+        rows = [row for row in reader]
+        assert len(rows) == 4
 
 
 def test_payout_distribute_ether(

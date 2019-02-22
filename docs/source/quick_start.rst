@@ -9,9 +9,10 @@ Tutorial
 In this tutorial, we deploy the security token, distribute the tokens as per the csv and then distribute the payout to shareholders.
 
 1. Deploy all the necessary smart contracts
+
 .. code-block:: shell
 
-    sto --network=kovan --ethereum-private-key=9CB5.. --ethereum-node-url='https://kovan.infura.io/v3/6b70887f1b0d4ce5bb41514e3b494936' issue --symbol=STO --name="Mikko's magic corp" --amount=10000 --url='https://tokenmarket.net'
+    sto --network=kovan --ethereum-private-key=9CB5.. --ethereum-node-url="https://kovan.infura.io/v3/6b70887f1b0d4ce5bb41514e3b494936" issue --symbol=STO --name="Mikko's magic corp" --amount=10000 --url="https://tokenmarket.net"
 
 This will output::
 
@@ -29,6 +30,7 @@ This will output::
     Run sto tx-broadcast to write this to blockchain
 
 2. Broadcast transactions on the ethereum network
+
 .. code-block:: shell
 
     sto --network=kovan --ethereum-private-key=9CB5.. --ethereum-node-url='https://kovan.infura.io/v3/6b70887f1b0d4ce5bb41514e3b494936' tx-broadcast
@@ -46,6 +48,7 @@ This will output::
     0x780bd29793959f4779cb1a8f426443600d2074dd2780f37999123786348a962d  broadcasted              50  0xb85f30B1bA4513D1260B229348955d5497CcB55e  0xa79F4b65cf6023b9A5978541D62565CE2b6dE9b8  Creating 10000 initial shares for Mikko's magic corp
 
 3. Check the status of broadcasted transactions. You might have to run this several times until all transactions are mined
+
 .. code-block:: shell
 
     sto --network=kovan --ethereum-private-key=9CB5... --ethereum-node-url='https://kovan.infura.io/v3/6b70887f1b0d4ce5bb41514e3b494936' tx-update
@@ -62,9 +65,10 @@ On successful mining, this will output::
     0x780bd29793959f4779cb1a8f426443600d2074dd2780f37999123786348a962d  success:10415958         50  0xb85f30B1bA4513D1260B229348955d5497CcB55e  0xa79F4b65cf6023b9A5978541D62565CE2b6dE9b8  Creating 10000 initial shares for Mikko's magic corp
 
 4. Distribute the tokens.
+
 .. code-block:: shell
 
-     # Download example CSV file provided with source code repository
+    # Download example CSV file provided with source code repository
     curl -O "https://raw.githubusercontent.com/TokenMarketNet/sto/master/docs/source/example-distribution.csv"
 
     sto --network=kovan --ethereum-private-key=9CB5.. --ethereum-node-url='https://kovan.infura.io/v3/6b70887f1b0d4ce5bb41514e3b494936' distribute-multiple --address="0x.." --csv-input="example-distribution.csv"
@@ -80,6 +84,7 @@ This will output::
 5. Repeat step 2 and 3.
 
 6. Create csv to distribute payouts.
+
 .. code-block:: shell
 
     sto --network=kovan --ethereum-private-key=9CB5... --ethereum-node-url='https://kovan.infura.io/v3/6b70887f1b0d4ce5bb41514e3b494936' create-holders-payout-csv --token-address="0xa.."
@@ -93,6 +98,7 @@ This will output::
     create payout.csv
 
 7. Distribute the payouts.
+
 .. code-block:: shell
 
     sto --network=kovan --ethereum-private-key=9CB5... --ethereum-node-url='https://kovan.infura.io/v3/6b70887f1b0d4ce5bb41514e3b494936' --ethereum-gas-limit=8000000 --ethereum-gas-price=2000000000 payout-distribute --security-token-address="0xa.." --csv-input='payout.csv' --total-amount=1000000000000000000

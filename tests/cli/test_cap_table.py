@@ -1,5 +1,3 @@
-import csv
-
 import pytest
 
 from sto.distribution import read_csv
@@ -11,7 +9,7 @@ from sto.ethereum.tokenscan import token_scan
 from sto.generic.captable import generate_cap_table, print_cap_table
 from sto.models.implementation import TokenScanStatus, TokenHolderAccount
 from sto.identityprovider import NullIdentityProvider
-from sto.cli.main import cli
+
 
 @pytest.fixture
 def sample_token(logger, dbsession, web3, private_key_hex, sample_csv_file):
@@ -167,33 +165,5 @@ def test_cap_table_printer(logger, dbsession, network, scanned_distribution, web
     print_cap_table(table, max_entries=1000, accuracy=2)
 
 
-@pytest.fixture()
-def csv_output(tmp_path):
-    return str(tmp_path / 'payout.csv')
 
 
-def test_create_holders_payout_csv(
-        scanned_distribution,
-        monkeypatch_create_web3,
-        click_runner,
-        db_path,
-        private_key_hex,
-        csv_output,
-        security_token
-):
-    result = click_runner.invoke(
-        cli,
-        [
-            '--database-file', db_path,
-            '--ethereum-private-key', private_key_hex,
-            '--ethereum-gas-limit', 999999999,
-            "create-holders-payout-csv",
-            '--csv-output', csv_output,
-            '--token-address', security_token
-        ]
-    )
-    assert result.exit_code == 0
-    with open(csv_output, 'rt') as f:
-        reader = csv.reader(f)
-        rows = [row for row in reader]
-        assert len(rows) == 4

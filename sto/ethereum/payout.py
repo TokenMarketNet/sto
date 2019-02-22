@@ -69,6 +69,11 @@ def payout_investors(
             # CSV reimports
             old_distributes += 1
     config.logger.info(
+        "Distribution created {0} new transactions and there were already {1} old transactions in the database".format(
+            new_distributes, old_distributes
+        )
+    )
+    config.logger.info(
         "Run %ssto tx-broadcast%s to broadacst your transactions on the blockchain",
         colorama.Fore.LIGHTCYAN_EX,
         colorama.Fore.RESET

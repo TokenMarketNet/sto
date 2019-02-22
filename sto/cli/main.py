@@ -775,6 +775,8 @@ def create_holders_payout_csv(
                 'amount': balance,
             })
 
+    config.logger.info("created {0}".format(csv_output))
+
 
 @cli.command(name="payout-distribute")
 @click.option('--csv-input', required=True, help="address to whitelist", type=str)

@@ -28,6 +28,7 @@ New to tokens and securities? `Read an introduction for security tokens <https:/
    :maxdepth: 1
    :caption: Contents
 
+   quick_start
    install
    setup
    issuance
