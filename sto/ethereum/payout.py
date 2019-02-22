@@ -1,4 +1,5 @@
 import decimal
+from math import floor
 
 from tqdm import tqdm
 
@@ -15,7 +16,6 @@ def payout_investors(
     security_token_address,
     payment_type,
     total_amount,
-    contract_name,
     token_address
 ):
     assert payment_type in ['ether', 'token']
@@ -37,7 +37,7 @@ def payout_investors(
 
     security_token_total_balance = service.get_total_supply(security_token_address, abi)
     one_unit = decimal.Decimal(total_amount / security_token_total_balance)
-    total_to_distribute = sum([dist.amount * one_unit for dist in dists])
+    total_to_distribute = sum([floor(dist.amount * one_unit) for dist in dists])
 
     if total_to_distribute > total_amount:
         raise NotEnoughTokens(
@@ -47,21 +47,25 @@ def payout_investors(
         )
 
     for d in tqdm(dists):
+        if d.address == service.get_or_create_broadcast_account().address:
+            config.logger.info(
+                'ignoring address: {0} as it is the same address used to distribute tokens'.format(d.address)
+            )
+            continue
         if not service.is_distributed(d.external_id, token_address):
             # Going to tx queue
-            raw_amount = d.amount * one_unit
+            raw_amount = floor(d.amount * one_unit)
             note = "Distributing payout, raw amount: {}".format(raw_amount)
             if payment_type == 'ether':
-                service.distribute_ether(d.external_id, d.address, d.amount * one_unit, note)
+                service.distribute_ether(d.external_id, d.address, raw_amount, note)
             else:
                 service.distribute_tokens(
                     d.external_id,
                     d.address,
-                    d.amount * one_unit,
+                    raw_amount,
                     token_address,
                     abi,
                     note,
-                    contract_name
                 )
                 new_distributes += 1
         else:

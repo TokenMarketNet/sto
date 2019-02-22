@@ -4,6 +4,7 @@ from sto.distribution import read_csv
 from sto.ethereum.issuance import contract_status
 from sto.ethereum.status import update_status
 from sto.ethereum.tokenscan import token_scan
+from sto.ethereum.utils import priv_key_to_address
 from sto.generic.captable import generate_cap_table, print_cap_table
 from sto.models.implementation import TokenScanStatus, TokenHolderAccount
 from sto.identityprovider import NullIdentityProvider
@@ -199,6 +200,30 @@ def holders_payout_csv(
     assert result.exit_code == 0
 
 
+@pytest.fixture
+def test_token(
+        deploy,
+        dbsession,
+        monkeypatch_get_contract_deployed_tx,
+        get_contract_deployed_tx,
+        web3,
+        private_key_hex,
+        execute_contract_function
+):
+    args = {
+        "_name": "CrowdsaleToken",
+        "_symbol": 'TEST',
+        "_initialSupply": 9999000000000000000000,
+        "_decimals": 18,
+        "_mintable": True
+    }
+    deploy('CrowdsaleToken', args)
+    tx = get_contract_deployed_tx(dbsession, 'CrowdsaleToken')
+    execute_contract_function('CrowdsaleToken', 'setReleaseAgent', {'addr': priv_key_to_address(private_key_hex)})
+    execute_contract_function('CrowdsaleToken', 'releaseTokenTransfer', {})
+    return tx.contract_address
+
+
 def test_payout_distribute_ether(
         monkeypatch_create_web3,
         holders_payout_csv,
@@ -207,7 +232,7 @@ def test_payout_distribute_ether(
         db_path,
         private_key_hex,
         security_token,
-        web3
+        web3,
 ):
     inital_balance_1 = web3.eth.getBalance('0x0bdcc26C4B8077374ba9DB82164B77d6885b92a6')
     inital_balance_2 = web3.eth.getBalance('0xE738f7A6Eb317b8B286c27296cD982445c9D8cd2')
@@ -250,5 +275,69 @@ def test_payout_distribute_ether(
     after_balance_1 = web3.eth.getBalance('0x0bdcc26C4B8077374ba9DB82164B77d6885b92a6')
     after_balance_2 = web3.eth.getBalance('0xE738f7A6Eb317b8B286c27296cD982445c9D8cd2')
 
+    assert after_balance_1 > inital_balance_1
+    assert after_balance_2 > inital_balance_2
+
+
+def test_payout_tokens(
+        monkeypatch_create_web3,
+        holders_payout_csv,
+        csv_output,
+        click_runner,
+        db_path,
+        private_key_hex,
+        security_token,
+        web3,
+        test_token,
+        get_contract_deployed_tx,
+        dbsession,
+):
+    inital_balance_1 = web3.eth.getBalance('0x0bdcc26C4B8077374ba9DB82164B77d6885b92a6')
+    inital_balance_2 = web3.eth.getBalance('0xE738f7A6Eb317b8B286c27296cD982445c9D8cd2')
+
+    total_amount = 9999000000000000000000
+    result = click_runner.invoke(
+        cli,
+        [
+            '--database-file', db_path,
+            '--ethereum-private-key', private_key_hex,
+            '--ethereum-gas-limit', 999999999,
+            '--ethereum-gas-price', 20000,
+            "payout-distribute",
+            '--csv-input', csv_output,
+            '--security-token-address', security_token,
+            '--total-amount', total_amount,
+            '--payment-type', 'token',
+            '--payout-token-address', test_token
+        ]
+    )
+    assert result.exit_code == 0
+    result = click_runner.invoke(
+        cli,
+        [
+            '--database-file', db_path,
+            '--ethereum-private-key', private_key_hex,
+            '--ethereum-gas-limit', 999999999,
+            'tx-broadcast',
+        ]
+    )
+    assert result.exit_code == 0
+    result = click_runner.invoke(
+        cli,
+        [
+            '--database-file', db_path,
+            '--ethereum-private-key', private_key_hex,
+            '--ethereum-gas-limit', 999999999,
+            'tx-update',
+        ]
+    )
+    assert result.exit_code == 0
+    tx = get_contract_deployed_tx(dbsession, 'CrowdsaleToken')
+    from sto.ethereum.utils import get_abi
+    abi = get_abi(None)
+    test_token_contract = web3.eth.contract(address=tx.contract_address, abi=abi['CrowdsaleToken']['abi'])
+
+    after_balance_1 = test_token_contract.functions.balanceOf('0x0bdcc26C4B8077374ba9DB82164B77d6885b92a6').call()
+    after_balance_2 = test_token_contract.functions.balanceOf('0xE738f7A6Eb317b8B286c27296cD982445c9D8cd2').call()
     assert after_balance_1 > inital_balance_1
     assert after_balance_2 > inital_balance_2

@@ -6,6 +6,7 @@ from typing import Optional
 import colorama
 import rlp
 from eth_abi import encode_abi
+from sqlalchemy import and_
 from web3 import Web3, HTTPProvider
 from web3.contract import Contract
 from web3.utils.abi import get_constructor_abi, merge_args_and_kwargs
@@ -333,7 +334,10 @@ def deploy_contract_on_eth_network(
 def get_contract_deployed_tx(dbsession, contract_name):
     from sto.models.implementation import PreparedTransaction
     return dbsession.query(PreparedTransaction).filter(
-        PreparedTransaction.filter_by_contract_name(contract_name)
+        and_(
+            PreparedTransaction.contract_deployment == True,
+            PreparedTransaction.filter_by_contract_name(contract_name)
+        )
     ).first()
 
 

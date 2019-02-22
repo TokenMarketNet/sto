@@ -130,7 +130,7 @@ def get_contract_deployed_tx():
         from sto.models.implementation import PreparedTransaction
         txs = dbsession.query(PreparedTransaction).all()
         for tx in txs:
-            if tx.contract_name == contract_name:
+            if tx.contract_deployment and tx.contract_name == contract_name:
                 return tx
     return _get_contract_deployed_tx
 
@@ -171,6 +171,55 @@ def deploy(click_runner, db_path, private_key_hex):
         )
         assert result.exit_code == 0
     return _deploy_contract
+
+
+@pytest.fixture
+def execute_contract_function(click_runner, db_path, private_key_hex, web3, get_contract_deployed_tx, dbsession):
+    import click
+    from sto.cli.main import cli
+    from sto.ethereum.utils import get_abi
+
+    def _execute_contract(contract_name, contract_function_name, args):
+        @cli.command(name="contract-execute")
+        @click.option('--contract-name', required=True, type=str)
+        @click.option('--contract-function-name', required=True, type=str)
+        @click.option('--args', required=True, type=dict)
+        @click.pass_obj
+        def _execute(config, contract_name, contract_function_name, args):
+            from sto.ethereum.txservice import EthereumStoredTXService
+            from sto.models.implementation import BroadcastAccount, PreparedTransaction
+            from sto.ethereum.utils import broadcast
+
+            service = EthereumStoredTXService(
+                config.network,
+                config.dbsession,
+                web3,
+                config.ethereum_private_key,
+                config.ethereum_gas_price,
+                config.ethereum_gas_limit,
+                BroadcastAccount,
+                PreparedTransaction
+            )
+            abi = get_abi(None)
+            tx = get_contract_deployed_tx(dbsession, contract_name)
+            service.interact_with_contract(
+                contract_name, abi, tx.contract_address, '', contract_function_name, args, use_bytecode=False
+            )
+            broadcast(config)
+        result = click_runner.invoke(
+            cli,
+            [
+                '--database-file', db_path,
+                '--ethereum-private-key', private_key_hex,
+                '--ethereum-gas-limit', 999999999,
+                'contract-execute',
+                '--contract-name', contract_name,
+                '--contract-function-name', contract_function_name,
+                '--args', args,
+            ]
+        )
+        assert result.exit_code == 0
+    return _execute_contract
 
 
 @pytest.fixture
