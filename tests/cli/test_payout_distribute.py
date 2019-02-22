@@ -1,13 +1,9 @@
 import pytest
 
-from sto.distribution import read_csv
 from sto.ethereum.issuance import contract_status
 from sto.ethereum.status import update_status
 from sto.ethereum.tokenscan import token_scan
-from sto.ethereum.utils import priv_key_to_address
-from sto.generic.captable import generate_cap_table, print_cap_table
-from sto.models.implementation import TokenScanStatus, TokenHolderAccount
-from sto.identityprovider import NullIdentityProvider
+from sto.ethereum.utils import priv_key_to_address, get_abi
 from sto.cli.main import cli
 
 
@@ -347,7 +343,6 @@ def test_payout_tokens(
     assert result.exit_code == 0
 
     tx = get_contract_deployed_tx(dbsession, 'CrowdsaleToken')
-    from sto.ethereum.utils import get_abi
     abi = get_abi(None)
     test_token_contract = web3.eth.contract(address=tx.contract_address, abi=abi['CrowdsaleToken']['abi'])
 
