@@ -314,7 +314,7 @@ def test_payout_tokens(
     inital_balance_1 = web3.eth.getBalance('0x0bdcc26C4B8077374ba9DB82164B77d6885b92a6')
     inital_balance_2 = web3.eth.getBalance('0xE738f7A6Eb317b8B286c27296cD982445c9D8cd2')
 
-    total_amount = 9999000000000000000000
+    total_amount = 1000000000000000000
     result = click_runner.invoke(
         cli,
         [

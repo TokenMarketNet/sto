@@ -1,6 +1,4 @@
-import decimal
-from math import floor
-
+import colorama
 from tqdm import tqdm
 
 from sto.distribution import read_csv
@@ -70,5 +68,9 @@ def payout_investors(
         else:
             # CSV reimports
             old_distributes += 1
-
+    logger.info(
+        "Run %ssto tx-broadcast%s to broadacst your transactions on the blockchain",
+        colorama.Fore.LIGHTCYAN_EX,
+        colorama.Fore.RESET
+    )
     return new_distributes, old_distributes

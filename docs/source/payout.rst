@@ -14,8 +14,8 @@ The command line tool supports a simple CSV input to make payouts to shareholder
 
 * payouts can be made either in ether or any other payable ERC20 compliant token. use `--payment-type` flag in
   ``payout-distribute`` to specify the type of payout. ``payment-type`` can either be `ether` or `token`. If ``payment-type``
-  is `token` then ``payment-token-address`` and ``payment-token-symbol`` are required parameters. ``payment-token-address``
-  refers to the address of the deployed payout-token and  ``payment-token-symbol`` refers to the symbol of the payout token.
+  is `token` then ``payment-token-address`` is a required parameter. ``payment-token-address``
+  refers to the address of the deployed payout-token.
 
 * Transactions are prepared for broadcasting.
 
@@ -35,15 +35,24 @@ This will create a csv in the specified output file.
 make sure that you run the ``token-scan`` command before running ``create-holders-payout-csv``.
 See how to :doc:`scan token balances and print out cap table of shareholders <scanner>`
 
-Example for making payouts:
+Example for making payouts in ether:
 
 .. code-block:: shell
 
-    sto --config=myconfig.ini payout-distribute --csv-input="/Home/data/payout.csv" --payment-type="ether"
+    sto --config=myconfig.ini payout-distribute --csv-input="/Home/data/payout.csv" --total-amount=10000000 --payment-type="ether"
+
+The total amount needs to be in wei.
+
+Example for making payouts in tokens:
+.. code-block:: shell
+
+    sto --config=myconfig.ini payout-distribute --csv-input="/Home/data/payout.csv" --total-amount=10000000 --payment-type="token" --payout_token_address="0x..."
 
 
 This should output:
+    Run <sto tx-broadcast> to broadacst your transactions on the blockchain
 
+See how to :doc:`broadcast transaction on ethereum <broadcast>`
 
 Note
 ----
@@ -53,4 +62,4 @@ will not change
 Next reading
 ------------
 
-See how to :doc:`verifying contracts on EtherScan <etherscan>`
+See how to :doc:`verify contracts on EtherScan <etherscan>`
