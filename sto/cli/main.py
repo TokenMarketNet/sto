@@ -799,26 +799,21 @@ def payout_distribute(
     :param token_symbol: should be provided iff payment-type=`token`. This the symbol of the payout token
     :param token_address: should be provided iff payment-type=`token`. This is the address of the deployed token.
     """
-    try:
-        from sto.ethereum.payout import payout_investors
-        assert payment_type in ["ether", "token"], "--payment-type only takes values `ether` and `token`"
+    from sto.ethereum.payout import payout_investors
+    assert payment_type in ["ether", "token"], "--payment-type only takes values `ether` and `token`"
 
-        if payment_type == "token":
-            assert payout_token_address is not None, "--payout-token-address needs to be provided when -payment-type=token"
+    if payment_type == "token":
+        assert payout_token_address is not None, "--payout-token-address needs to be provided when -payment-type=token"
 
-        payout_investors(
-            config,
-            csv_input,
-            security_token_address,
-            payment_type,
-            total_amount,
-            payout_token_address
-        )
-        config.dbsession.commit()
-    except Exception as e:
-        import traceback
-        import pdb; pdb.set_trace()
-        print(''.join(traceback.format_tb(e.__traceback__)))
+    payout_investors(
+        config,
+        csv_input,
+        security_token_address,
+        payment_type,
+        total_amount,
+        payout_token_address
+    )
+    config.dbsession.commit()
 
 
 def main():

@@ -237,7 +237,7 @@ def test_payout_distribute_ether(
     inital_balance_1 = web3.eth.getBalance('0x0bdcc26C4B8077374ba9DB82164B77d6885b92a6')
     inital_balance_2 = web3.eth.getBalance('0xE738f7A6Eb317b8B286c27296cD982445c9D8cd2')
 
-    total_amount = 9999000000000000000000
+    total_amount = web3.toWei(100, 'ether')
     result = click_runner.invoke(
         cli,
         [
@@ -265,9 +265,11 @@ def test_payout_distribute_ether(
 
     after_balance_1 = web3.eth.getBalance('0x0bdcc26C4B8077374ba9DB82164B77d6885b92a6')
     after_balance_2 = web3.eth.getBalance('0xE738f7A6Eb317b8B286c27296cD982445c9D8cd2')
-
     assert after_balance_1 > inital_balance_1
     assert after_balance_2 > inital_balance_2
+
+    assert after_balance_1 == 3000300030003000300
+    assert after_balance_2 == 5000500050005000500
 
     # test csv input re-run
     result = click_runner.invoke(

@@ -36,8 +36,7 @@ def payout_investors(
     new_distributes = old_distributes = 0
 
     security_token_total_balance = service.get_total_supply(security_token_address, abi)
-    one_unit = decimal.Decimal(total_amount / security_token_total_balance)
-    total_to_distribute = sum([floor(dist.amount * one_unit) for dist in dists])
+    total_to_distribute = sum([(dist.amount * total_amount) // security_token_total_balance for dist in dists])
 
     if total_to_distribute > total_amount:
         raise NotEnoughTokens(
@@ -54,7 +53,7 @@ def payout_investors(
             continue
         if not service.is_distributed(d.external_id, token_address):
             # Going to tx queue
-            raw_amount = floor(d.amount * one_unit)
+            raw_amount = (d.amount * total_amount) // security_token_total_balance
             note = "Distributing payout, raw amount: {}".format(raw_amount)
             if payment_type == 'ether':
                 service.distribute_ether(d.external_id, d.address, raw_amount, note)
@@ -71,3 +70,5 @@ def payout_investors(
         else:
             # CSV reimports
             old_distributes += 1
+
+    return new_distributes, old_distributes
