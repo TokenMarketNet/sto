@@ -59,7 +59,7 @@ INTRO_TEXT = """{}TokenMarket{} security token management tool.
 @click.option('--network', required=False, default="ethereum", help="Network name. Either 'ethereum' or 'kovan' are supported for now.")
 @click.option('--ethereum-node-url', required=False, default="http://localhost:8545", help="Parity or Geth JSON-RPC to connect for Ethereum network access")
 @click.option('--ethereum-abi-file', required=False, help='Solidity compiler output JSON to override default smart contracts')
-@click.option('--ethereum-gas-price', required=False, help='How many GWei we pay for gas')
+@click.option('--ethereum-gas-price', required=False, help='How many GWei we pay for gas', type=int)
 @click.option('--ethereum-gas-limit', required=False, help='What is the transaction gas limit for broadcasts', type=int)
 @click.option('--ethereum-private-key', required=False, help='Private key for the broadcasting account')
 @click.option('--etherscan-api-key', required=False, help='EtherScan API key used for the contract source code verification')
@@ -730,7 +730,7 @@ def payout_deposit(config: BoardCommmadConfiguration):
 
 
 @cli.command(name="create-holders-payout-csv")
-@click.option('--csv-output', required=False, default='.', help="output file where output is to be written", type=str)
+@click.option('--csv-output', required=False, default='payout.csv', help="output file where output is to be written", type=str)
 @click.option('--start-block', required=False, help="The first block where we start (re)scan", type=int, default=None)
 @click.option('--end-block', required=False, help="Until which block we scan, also can be 'latest'", type=int, default=None)
 @click.option('--token-address', required=True, help="Security Token contract address", default=None)
