@@ -34,10 +34,10 @@ class EthereumStoredTXService:
     """A transaction service that writes entries to a local database before trying to broadcast them to the blockchain."""
 
     #: Can't trust auto estimate
-    SPECIAL_GAS_LIMIT_FOR_CONTRACT_DEPLOYMENT = 3141619  # Number from Ethereum tester, cannot exceed this
+    SPECIAL_GAS_LIMIT_FOR_CONTRACT_DEPLOYMENT = 3500000  # Number from Ethereum tester, cannot exceed this
 
     #: Can't trust auto estimate
-    SPECIAL_GAS_LIMIT_FOR_NORMAL_TX = 350333
+    SPECIAL_GAS_LIMIT_FOR_NORMAL_TX = 666111
 
     def __init__(self, network: str, dbsession: Session, web3: Web3, private_key_hex: str, gas_price, gas_limit, broadcast_account_model, prepared_tx_model):
 
