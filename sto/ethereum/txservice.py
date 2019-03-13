@@ -410,6 +410,9 @@ def verify_on_etherscan(logger: Logger, network: str, tx: _PreparedTransaction, 
     assert tx.contract_deployment
 
     source = tx.flattened_source_code
+
+    assert source.strip(), "Source code missing"
+
     compiler = tx.compiler_version
     address = tx.contract_address
     constructor_arguments = tx.constructor_arguments

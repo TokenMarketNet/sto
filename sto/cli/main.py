@@ -2,6 +2,7 @@
 import logging
 import os
 import sys
+from typing import Optional
 
 import colorama
 import configobj
@@ -9,6 +10,8 @@ import pkg_resources
 
 import click
 import coloredlogs
+from eth_utils import is_checksum_address
+
 from sto.db import setup_database
 
 
@@ -386,18 +389,33 @@ def update(config: BoardCommmadConfiguration):
     dbsession.commit()
 
 
-
 @cli.command(name="tx-verify")
+@click.option('--contract-addresses', required=False, help="Comma separated list of contract addresses to verify", type=str, default=None)
 @click.pass_obj
-def verify(config: BoardCommmadConfiguration):
+def verify(config: BoardCommmadConfiguration, contract_addresses: Optional[str]=None):
     """Verify source code of contract deployment transactions on EtherScan.
 
     Users EtherScan API to verify all deployed contracts from the management account.
+
+    Verify all past contract deployments:
+
+        sto verify
+
+    Verify certain deployed contracts:
+
+        sto verify --contract-addresses=0x1D88fd4fC47711Fc28d105aE2D96A4A9E5c2ae9C,0x57aa933E93Ea627a746DD335c23A90c8D8da825B
     """
 
     assert is_ethereum_network(config.network)
 
     logger = config.logger
+
+    if contract_addresses:
+        contract_addresses = [c.strip() for c in contract_addresses.split(',')]
+
+        for addr in contract_addresses:
+            if not is_checksum_address(addr):
+                raise RuntimeError("Does not look like Ethereum address: {}".format(addr))
 
     from sto.ethereum.issuance import verify_source_code
 
@@ -406,7 +424,8 @@ def verify(config: BoardCommmadConfiguration):
     txs = verify_source_code(logger,
                           dbsession,
                           config.network,
-                          config.etherscan_api_key)
+                          config.etherscan_api_key,
+                          addresses=contract_addresses)
 
     if txs:
         from sto.ethereum.txservice import EthereumStoredTXService
