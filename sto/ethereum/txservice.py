@@ -210,20 +210,21 @@ class EthereumStoredTXService:
 
         return tx
 
-    def get_contract_proxy(self, contract_name: str, abi: dict, address: str) -> Contract:
+    def get_contract_proxy(self, contract_name: str, abi: dict, address: str, use_bytecode: bool=True) -> Contract:
         """Get web3.Contract to interact directly with the network"""
         abi_data = abi[contract_name]
 
         contract_class = Contract.factory(
             web3=self.web3,
             abi=abi_data["abi"],
-            bytecode=abi_data["bytecode"],
-            bytecode_runtime=abi_data["bytecode_runtime"],
-            )
+        )
+        if use_bytecode:
+            contract_class.bytecode = abi_data["bytecode"],
+            contract_class.bytecode_runtime = abi_data["bytecode_runtime"],
 
         return contract_class(address=to_checksum_address(address))
 
-    def interact_with_contract(self, contract_name: str, abi: dict, address: str, note: str, func_name: str, args=None, receiver=None) -> _PreparedTransaction:
+    def interact_with_contract(self, contract_name: str, abi: dict, address: str, note: str, func_name: str, args=None, receiver=None, use_bytecode=True) -> _PreparedTransaction:
         """Does a transaction against a contract."""
 
         assert address.startswith("0x")
@@ -231,13 +232,12 @@ class EthereumStoredTXService:
         if not args:
             args = {}
 
-        contract = self.get_contract_proxy(contract_name, abi, address)
+        contract = self.get_contract_proxy(contract_name, abi, address, use_bytecode=use_bytecode)
         broadcast_account = self.get_or_create_broadcast_account()
 
         next_nonce = self.get_next_nonce()
 
-        func = getattr(contract.functions, func_name)
-
+        func = contract.get_function_by_name(func_name)
         tx_data = self.generate_tx_data(next_nonce)
         constructed_txn = func(**args).buildTransaction(tx_data)
 

@@ -1,4 +1,3 @@
-
 Command line reference
 ======================
 
@@ -18,20 +17,20 @@ Command line:
 .. code-block:: shell
 
     sto --ethereum-node-url="https://mainnet.infura.io/v3/453d2049c15d4a8da5501a0464fa44f8" token-scan ...
-    
+
 As with INI file ``mainnet.ini``:
 
 .. code-block:: ini
-    
+
     # Infura mainnet net node url
     ethereum-node-url = https://mainnet.infura.io/v3/453d2049c15d4a8da5501a0464fa44f8
-    
+
 .. code-block:: shell
 
     sto --config-file=mainnet.ini token-scan ...
 
 Subcommands take their own options that cannot be specified in the settings file.
- 
+
 Main command and options
 ------------------------
 
@@ -63,12 +62,17 @@ When running ``sto --help`` you get list of settings and subcommands:
 
    Commands:
      cap-table                Print out token holder cap table.
+     deploy-crowdsale-token   Command to be used only for testing
      diagnose                 Check your node and account status.
      distribute-multiple      Distribute shares to multiple shareholders whose address info is read from a file.
      distribute-single        Send out tokens to one individual shareholder.
      ethereum-create-account  Creates a new Ethereum account.
      issue                    Issue out a new security token.
      issue-logs               Print out transactions of for tokens issued in the past.
+     kyc-deploy               Deploys Kyc contract to desired ethereum network.
+     kyc-manage               Whitelist a address in KYC smart contract.
+     payout-deploy            Deploys Voting contract to desired ethereum network network, ethereum-abi-file, ethereum-private-key, ethereum-node-url are required args
+     payout-deposit           the private key here needs to belong to the customer who wants to fetch tokens
      reference                Print out the command line reference for the documentation.
      token-scan               Update token holder balances from a blockchain to a local database.
      token-status             Print token contract status.
@@ -79,6 +83,7 @@ When running ``sto --help`` you get list of settings and subcommands:
      tx-update                Update transaction status.
      tx-verify                Verify source code of contract deployment transactions on EtherScan.
      version                  Print version number and exit.
+     voting-deploy            Deploys Voting contract to desired ethereum network network, ethereum-abi-file, ethereum-private-key, ethereum-node-url are required args
 
 
 
@@ -116,6 +121,25 @@ You can supply optional CSV file that contains Ethereum address mappings to indi
       --max-entries INTEGER           Print only first N entries
       --accuracy INTEGER              How many decimals include in balance output
       --help                          Show this message and exit.
+
+
+
+
+.. _deploy-crowdsale-token:
+
+deploy-crowdsale-token
+-------------------------------------
+
+Command to be used only for testing
+
+.. code-block:: text
+
+    Usage: sto deploy-crowdsale-token [OPTIONS]
+
+      Command to be used only for testing
+
+    Options:
+      --help  Show this message and exit.
 
 
 
@@ -239,6 +263,7 @@ Issue out a new security token.
     Options:
       --symbol TEXT                [required]
       --name TEXT                  [required]
+      --url TEXT                   [required]
       --amount INTEGER             [required]
       --transfer-restriction TEXT
       --help                       Show this message and exit.
@@ -261,6 +286,101 @@ Print out transactions of for tokens issued in the past.
 
     Options:
       --help  Show this message and exit.
+
+
+
+
+.. _kyc-deploy:
+
+kyc-deploy
+-------------------------------------
+
+Deploys Kyc contract to desired ethereum network.
+required args network, ethereum-abi-file, ethereum-private-key, ethereum-node-url
+
+.. code-block:: text
+
+    Usage: sto kyc-deploy [OPTIONS]
+
+      Deploys Kyc contract to desired ethereum network. required args network,
+      ethereum-abi-file, ethereum-private-key, ethereum-node-url
+
+    Options:
+      --help  Show this message and exit.
+
+
+
+
+.. _kyc-manage:
+
+kyc-manage
+-------------------------------------
+
+Whitelist a address in KYC smart contract.
+network, ethereum-abi-file, ethereum-private-key, ethereum-node-url are required args
+
+.. code-block:: text
+
+    Usage: sto kyc-manage [OPTIONS]
+
+      Whitelist a address in KYC smart contract. network, ethereum-abi-file,
+      ethereum-private-key, ethereum-node-url are required args
+
+    Options:
+      --whitelist-address TEXT  address to whitelist  [required]
+      --help                    Show this message and exit.
+
+
+
+
+.. _payout-deploy:
+
+payout-deploy
+-------------------------------------
+
+Deploys Voting contract to desired ethereum network
+network, ethereum-abi-file, ethereum-private-key, ethereum-node-url are required args
+
+.. code-block:: text
+
+    Usage: sto payout-deploy [OPTIONS]
+
+      Deploys Voting contract to desired ethereum network network, ethereum-abi-
+      file, ethereum-private-key, ethereum-node-url are required args
+
+    Options:
+      --token-address TEXT         address of security token contract
+      --payout-token-address TEXT  address of payout token contract
+      --payout-token-name TEXT     name of the payout smart contract
+      --kyc-address TEXT           address of kyc contract
+      --payout-name TEXT           name of the payout,  [required]
+      --uri TEXT                   announcement uri  [required]
+      --type INTEGER               announcement type  [required]
+      --options LIST               additional payout contract options
+      --help                       Show this message and exit.
+
+
+
+
+.. _payout-deposit:
+
+payout-deposit
+-------------------------------------
+
+the private key here needs to belong to the customer who wants to fetch tokens
+
+.. code-block:: text
+
+    Usage: sto payout-deposit [OPTIONS]
+
+      the private key here needs to belong to the customer who wants to fetch
+      tokens
+
+    Options:
+      --payout-token-address TEXT  address of payout token contract
+      --payout-token-name TEXT     name of the payout token smart contract
+                                   [required]
+      --help                       Show this message and exit.
 
 
 
@@ -309,10 +429,10 @@ Scan operations may take a while.
       where we were left last time. Scan operations may take a while.
 
     Options:
-      --start-block TEXT    The first block where we start (re)scan
-      --end-block TEXT      Until which block we scan, also can be 'latest'
-      --token-address TEXT  Token contract address  [required]
-      --help                Show this message and exit.
+      --start-block INTEGER  The first block where we start (re)scan
+      --end-block INTEGER    Until which block we scan, also can be 'latest'
+      --token-address TEXT   Token contract address  [required]
+      --help                 Show this message and exit.
 
 
 
@@ -331,7 +451,7 @@ Print token contract status.
       Print token contract status.
 
     Options:
-      --address TEXT  Token contract addrss  [required]
+      --address TEXT  Token contract address  [required]
       --help          Show this message and exit.
 
 
@@ -369,7 +489,7 @@ tx-last
 -------------------------------------
 
 Print latest transactions from database.
-    
+
 
 .. code-block:: text
 
@@ -489,3 +609,28 @@ Print version number and exit.
       --help  Show this message and exit.
 
 
+
+
+.. _voting-deploy:
+
+voting-deploy
+-------------------------------------
+
+Deploys Voting contract to desired ethereum network
+network, ethereum-abi-file, ethereum-private-key, ethereum-node-url are required args
+
+.. code-block:: text
+
+    Usage: sto voting-deploy [OPTIONS]
+
+      Deploys Voting contract to desired ethereum network network, ethereum-abi-
+      file, ethereum-private-key, ethereum-node-url are required args
+
+    Options:
+      --token-address TEXT  address of security token contract  [required]
+      --kyc-address TEXT    address of kyc contract
+      --voting-name TEXT    name of the voting,  [required]
+      --uri TEXT            announcement uri  [required]
+      --type INTEGER        announcement type  [required]
+      --options LIST        additional voting contract options
+      --help                Show this message and exit.

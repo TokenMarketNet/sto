@@ -8,6 +8,8 @@ from eth_utils import to_wei
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 from sto.models.implementation import Base
+from sto.cli.main import cli
+from sto.ethereum.utils import priv_key_to_address
 
 from click.testing import CliRunner
 from web3 import Web3, EthereumTesterProvider
@@ -90,9 +92,18 @@ def click_runner():
 
 @pytest.fixture
 def monkeypatch_create_web3(monkeypatch, web3):
-    from sto.ethereum import utils, broadcast
+    from sto.ethereum import (
+        utils,
+        broadcast,
+        issuance,
+        distribution,
+        status
+    )
     monkeypatch.setattr(utils, 'create_web3', lambda _: web3)
     monkeypatch.setattr(broadcast, 'create_web3', lambda _: web3)
+    monkeypatch.setattr(issuance, 'create_web3', lambda _: web3)
+    monkeypatch.setattr(distribution, 'create_web3', lambda _: web3)
+    monkeypatch.setattr(status, 'create_web3', lambda _: web3)
 
 
 @pytest.fixture
@@ -101,7 +112,7 @@ def get_contract_deployed_tx():
         from sto.models.implementation import PreparedTransaction
         txs = dbsession.query(PreparedTransaction).all()
         for tx in txs:
-            if tx.contract_name == contract_name:
+            if tx.contract_deployment and tx.contract_name == contract_name:
                 return tx
     return _get_contract_deployed_tx
 
@@ -110,5 +121,65 @@ def monkeypatch_get_contract_deployed_tx(monkeypatch, get_contract_deployed_tx):
     """
     This feature is needed becuase jsonb is not supported on travis sqlite
     """
-    from sto.ethereum import utils
+    from sto.ethereum import utils, issuance
     monkeypatch.setattr(utils, 'get_contract_deployed_tx', get_contract_deployed_tx)
+    monkeypatch.setattr(issuance, 'get_contract_deployed_tx', get_contract_deployed_tx)
+
+
+@pytest.fixture
+def customer_private_key():
+    from eth_keys import KeyAPI
+    from eth_utils import int_to_big_endian
+    keys = KeyAPI()
+    pk_bytes = int_to_big_endian(2).rjust(32, b'\x00')
+    private_key = keys.PrivateKey(pk_bytes)
+    return private_key
+
+
+@pytest.fixture
+def kyc_contract(
+        click_runner,
+        dbsession,
+        db_path,
+        private_key_hex,
+        monkeypatch_get_contract_deployed_tx,
+        monkeypatch_create_web3,
+        get_contract_deployed_tx,
+        customer_private_key
+):
+    result = click_runner.invoke(
+        cli,
+        [
+            '--database-file', db_path,
+            '--ethereum-private-key', private_key_hex,
+            'kyc-deploy'
+        ]
+    )
+    assert result.exit_code == 0
+    tx = get_contract_deployed_tx(dbsession, 'BasicKYC')
+
+    # whitelist customer
+    result = click_runner.invoke(
+        cli,
+        [
+            '--database-file', db_path,
+            '--ethereum-private-key', private_key_hex,
+            '--ethereum-gas-limit', 80000,
+            'kyc-manage',
+            '--whitelist-address', priv_key_to_address(private_key_hex)
+        ]
+    )
+    assert result.exit_code == 0
+    result = click_runner.invoke(
+        cli,
+        [
+            '--database-file', db_path,
+            '--ethereum-private-key', private_key_hex,
+            '--ethereum-gas-limit', 80000,
+            'kyc-manage',
+            '--whitelist-address', priv_key_to_address(customer_private_key)
+        ]
+    )
+    assert result.exit_code == 0
+    return tx.contract_address
+

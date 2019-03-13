@@ -32,6 +32,7 @@ New to tokens and securities? `Read an introduction for security tokens <https:/
    setup
    issuance
    broadcast
+   whitelist
    token-summary
    distribute
    scanner
@@ -39,6 +40,8 @@ New to tokens and securities? `Read an introduction for security tokens <https:/
    erc-20-holders
    etherscan
    protocols
+   payout
+   voting
    command-line-reference
    dev
 
