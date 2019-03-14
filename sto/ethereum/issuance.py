@@ -8,7 +8,7 @@ from tqdm import tqdm
 
 from sto.ethereum.txservice import EthereumStoredTXService, verify_on_etherscan
 
-from sto.ethereum.utils import get_abi, check_good_private_key, create_web3
+from sto.ethereum.utils import get_abi, check_good_private_key, create_web3, get_contract_deployed_tx
 from sto.ethereum.exceptions import BadContractException
 
 from sto.models.implementation import BroadcastAccount, PreparedTransaction
@@ -19,6 +19,10 @@ from web3.exceptions import BadFunctionCallOutput
 
 
 class NeedAPIKey(RuntimeError):
+    pass
+
+
+class DeploymentNotFound(RuntimeError):
     pass
 
 
@@ -46,8 +50,6 @@ def deploy_token_contracts(logger: Logger,
 
     web3 = create_web3(ethereum_node_url)
 
-    # We do not have anything else implemented yet
-    assert transfer_restriction == "unrestricted"
 
     service = EthereumStoredTXService(network, dbsession, web3, ethereum_private_key, ethereum_gas_price, ethereum_gas_limit, BroadcastAccount, PreparedTransaction)
 
@@ -56,8 +58,18 @@ def deploy_token_contracts(logger: Logger,
     deploy_tx1 = service.deploy_contract("SecurityToken", abi, note, constructor_args={"_name": name, "_symbol": symbol, "_url": url})  # See SecurityToken.sol
 
     # Deploy transfer agent
-    note = "Deploying unrestricted transfer policy for {}".format(name)
-    deploy_tx2 = service.deploy_contract("UnrestrictedTransferAgent", abi, note)
+    if transfer_restriction == "unrestricted":
+        note = "Deploying unrestricted transfer policy for {}".format(name)
+        deploy_tx2 = service.deploy_contract("UnrestrictedTransferAgent", abi, note)
+    else:
+        note = "Deploying restricted transfer policy for {}".format(name)
+        tx = get_contract_deployed_tx(dbsession, 'BasicKYC')
+        if not tx:
+            raise Exception(
+                'BasicKyc contract is not deployed. '
+                'invoke command kyc-deploy to deploy the smart contract'
+            )
+        deploy_tx2 = service.deploy_contract("RestrictedTransferAgent", abi, note, constructor_args={'_KYC': tx.contract_address})
 
     # Set transfer agent
     note = "Making transfer restriction policy for {} effective".format(name)
@@ -121,21 +133,44 @@ def verify_source_code(logger: Logger,
               dbsession: Session,
               network: str,
               etherscan_api_key: str,
+              addresses: Optional[List[str]]=None,
 ):
-    """Verify source code of all unverified deployment transactions."""
+    """Verify source code of all unverified deployment transactions.
+
+    :param addresses: List of specific contract addresses to verify. Contracts need to be deployed through th tool.
+    """
 
     if not etherscan_api_key:
+
         raise NeedAPIKey("You need to give EtherScan API key in the configuration file. Get one from https://etherscan.io")
 
-    unverified_txs = dbsession.query(PreparedTransaction).filter_by(verified_at=None, result_transaction_success=True, contract_deployment=True)
+    if addresses:
 
-    logger.info("Found %d unverified contract deployments on %s", unverified_txs.count(), network)
+        unverified_txs = []
 
-    if unverified_txs.count() == 0:
-        logger.info("No transactions to verify.")
-        return []
+        for addr in addresses:
+            tx = dbsession.query(PreparedTransaction).filter_by(contract_address=addr, contract_deployment=True).one_or_none()
+            if not tx:
+                raise DeploymentNotFound("Could not find deployment transaction for contract {}".format(addr))
+            unverified_txs.append(tx)
 
-    unverified_txs = list(unverified_txs)
+        logger.info("Verifying contracts %s", ",".join(addresses))
+    else:
+        txs = BroadcastAccount.get_transactions_for_network(dbsession, network)
+
+        if txs.count() == 0:
+            logger.info("Network has no transactions")
+            return []
+
+        unverified_txs = txs.filter_by(verified_at=None, result_transaction_success=True, contract_deployment=True)
+
+        if unverified_txs.count() == 0:
+            logger.info("No transactions to verify.")
+            return []
+
+        logger.info("Found %d unverified contract deployments on %s", unverified_txs.count(), network)
+
+        unverified_txs = list(unverified_txs)
 
     # HTTP keep-alive
     session = requests.Session()

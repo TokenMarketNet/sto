@@ -1,6 +1,7 @@
 from typing import Optional
 
 import sqlalchemy as sa
+from sqlalchemy.orm import Session
 from sqlalchemy.orm.attributes import flag_modified
 
 from sto.models.utils import TimeStampedBaseModel, UTCDateTime
@@ -19,6 +20,12 @@ class _BroadcastAccount(TimeStampedBaseModel):
 
     #: Currently available nonce to be allocated for the next transaction
     current_nonce = sa.Column(sa.Integer, default=0)
+
+    @classmethod
+    def get_transactions_for_network(cls, dbsession: Session, network: str):
+        account = dbsession.query(cls).filter_by(network=network).one()
+        return account.txs
+
 
 
 class _PreparedTransaction(TimeStampedBaseModel):
@@ -187,3 +194,4 @@ class _PreparedTransaction(TimeStampedBaseModel):
         return sa.cast(
             cls.other_data['abi']['name'], sa.String
         ) == '"{0}"'.format(contract_name)
+

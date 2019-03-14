@@ -1,6 +1,19 @@
 Changes
 =======
 
+0.x
+---
+
+* Added payouts
+
+* Added restricted shares
+
+* Added voting
+
+* Adjust gas limits for Constantinopole
+
+* Manually give addresses for tx-verify
+
 0.3.3
 -----
 
