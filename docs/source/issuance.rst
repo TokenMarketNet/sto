@@ -5,7 +5,7 @@ Before issuing out stock you need to have set up :doc:`a functional Ethereum acc
 
 To issue out stock you need to give stock name, ticker symbol and amount of shares::
 
-    sto --config=myconfig.ini issue --symbol=STO --name="Mikko's magic corp" --amount=10000 --url="https://tokenmarket.net"
+    sto --config=myconfig.ini issue --symbol=STO --name="Mikko's magic corp" --url="https://tokenmarket.net" --amount=10000
 
 You will get a list of Ethereum transactions needed to perform this operation::
 
