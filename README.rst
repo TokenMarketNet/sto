@@ -20,7 +20,7 @@ Security Token Manager provides technical operations for corporate governance in
 
 * Printing out cap table
 
-* Managing bad transactions and lost privat keys
+* Managing bad transactions and lost private keys
 
 * Paying dividends and interest
 
