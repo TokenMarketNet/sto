@@ -10,6 +10,7 @@ import pkg_resources
 
 import click
 import coloredlogs
+from decimal import Decimal
 from eth_utils import is_checksum_address
 
 from sto.db import setup_database
@@ -288,6 +289,8 @@ def distribute_single(config: BoardCommmadConfiguration, token_address, to_addre
     dbsession = config.dbsession
 
     from sto.ethereum.distribution import distribute_single
+
+    amount = Decimal(amount)
 
     result = distribute_single(
         logger,

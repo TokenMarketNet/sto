@@ -4,7 +4,10 @@ Security Token Manager documentation
 
 This is the documentation for Security Token Manager open source project. The project provides command line tools and programming interfaces to interact and integrate security tokens.
 
-Security Token Manager supports operations for security token governance including e.g.
+.. image:: screenshots/overview.png
+    :width: 800 px
+
+Security Token Manager supports operations for security token governance.
 
 * Issue out new stock or bond series as security tokens
 
