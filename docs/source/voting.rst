@@ -1,8 +1,20 @@
-Voting Contract
-===============
+======================
+Voting by shareholders
+======================
+
+Introduction
+============
+
+Shareholder voting is a process where equity owners participate in the company wide decisions. We support voting both offchain and onchain.
+
+* In offchain voting, you take a snapshot of registered assembly participants and their voting rights. Then you use a special corporate governance platform to organise voting. An example of such a corporate governance and voting service is `KoreConX <https://koreconx.com>`_.
+
+* In onchain voting, the participants vote on each topic transparently on blockchain, using their token wallets
+
+Using on-chain voting with voting contract
+==========================================
 
 This gives shareholders the ability to vote on-chain.
-
 
 Voting Deploy
 -------------

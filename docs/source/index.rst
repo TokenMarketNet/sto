@@ -38,9 +38,7 @@ New to tokens and securities? `Read an introduction for security tokens <https:/
    whitelist
    token-summary
    distribute
-   scanner
    captable
-   erc-20-holders
    etherscan
    protocols
    payout

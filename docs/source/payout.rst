@@ -1,4 +1,19 @@
-Payout Contract
+======================
+Dividends and interest
+======================
+
+Introduction
+============
+
+Dividends, interest or royalies can be generally lumped together as payouts.
+We support doing
+
+* Dumb payouts: wiring stable coins directly to the owner address
+
+* Payout contract:
+
+
+Payout contract
 ===============
 
 The Payout contract provides the ability to set up dividend distribution.
