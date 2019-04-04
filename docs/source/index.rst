@@ -40,9 +40,9 @@ New to tokens and securities? `Read an introduction for security tokens <https:/
    distribute
    captable
    etherscan
-   protocols
    payout
    voting
+   protocols
    command-line-reference
    dev
 
