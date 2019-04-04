@@ -1,4 +1,5 @@
-Restricting share transfers
+===========================
+Restricting token transfers
 ===========================
 
 Introduction
