@@ -1,6 +1,6 @@
-======================
-Voting by shareholders
-======================
+======
+Voting
+======
 
 Introduction
 ============
