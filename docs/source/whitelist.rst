@@ -2,6 +2,8 @@
 Restricting token transfers
 ===========================
 
+.. _whitelist:
+
 Introduction
 ============
 

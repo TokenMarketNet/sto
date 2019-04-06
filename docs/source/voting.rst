@@ -16,19 +16,19 @@ Off-chain voting
 
 In off-chain voting, shareholders need to register to present themselves in a general assembly beforehand.
 
-* A snapshot of eligible votes the certain point of time, see :ref:`cap table management <captable>`
+#. A snapshot of eligible votes the certain point of time, see :doc:`cap table management <captable>`
 
-* Issuer invites the shareholders to the meeting through email address they have in the :ref:`shareholder registry <whitelist>`
+#. Issuer invites the shareholders to the meeting through email address they have in the :doc:`shareholder registry <whitelist>`
 
-* Issuer opens a master account in the corporate governance system
+#. Issuer opens a master account in the corporate governance system
 
-* Issuer gives registered participants an shareholder account and allocates voting rights proportionally to their registered shares
+#. Issuer gives registered participants an shareholder account and allocates voting rights proportionally to their registered shares
 
-* The general assembly meeting is run the corporate governance system, each agenda item is voted individually online
+#. The general assembly meeting is run the corporate governance system, each agenda item is voted individually online
 
-* Participants chat with the meeting chair and other participants online in the corporate governance system
+#. Participants chat with the meeting chair and other participants online in the corporate governance system
 
-* The meetings minutes is automatically produced afterwards
+#. The meetings minutes is automatically produced afterwards
 
 An example of a suitable corporate governance and voting service is `KoreConX <https://koreconx.com>`_.
 

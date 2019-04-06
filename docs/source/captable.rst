@@ -2,6 +2,8 @@
 Cap table
 =========
 
+.. _captable:
+
 Introduction
 ============
 
