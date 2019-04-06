@@ -34,12 +34,12 @@ dev_requirements = [
 
 setup(
     name='sto',
-    version='0.3.4',
-    description="Security token management tool",
+    version='0.4.0',
+    description="Security token manager",
     long_description=readme + '\n\n',
     author="TokenMarket Ltd.",
     author_email='mikko@tokenmarket.net',
-    url='https://tokenmarket.net',
+    url='https://docs.tokenmarket.net',
     #packages=[
     #    'sto',
     #],
