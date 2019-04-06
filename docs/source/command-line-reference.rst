@@ -1,3 +1,4 @@
+
 Command line reference
 ======================
 
@@ -17,20 +18,20 @@ Command line:
 .. code-block:: shell
 
     sto --ethereum-node-url="https://mainnet.infura.io/v3/453d2049c15d4a8da5501a0464fa44f8" token-scan ...
-
+    
 As with INI file ``mainnet.ini``:
 
 .. code-block:: ini
-
+    
     # Infura mainnet net node url
     ethereum-node-url = https://mainnet.infura.io/v3/453d2049c15d4a8da5501a0464fa44f8
-
+    
 .. code-block:: shell
 
     sto --config-file=mainnet.ini token-scan ...
 
 Subcommands take their own options that cannot be specified in the settings file.
-
+ 
 Main command and options
 ------------------------
 
@@ -71,8 +72,10 @@ When running ``sto --help`` you get list of settings and subcommands:
      issue-logs               Print out transactions of for tokens issued in the past.
      kyc-deploy               Deploys Kyc contract to desired ethereum network.
      kyc-manage               Whitelist a address in KYC smart contract.
+     payout-approve           approve tokens to the payout contract
      payout-deploy            Deploys Voting contract to desired ethereum network network, ethereum-abi-file, ethereum-private-key, ethereum-node-url are required args
      payout-deposit           the private key here needs to belong to the customer who wants to fetch tokens
+     payout-dividends
      reference                Print out the command line reference for the documentation.
      token-scan               Update token holder balances from a blockchain to a local database.
      token-status             Print token contract status.
@@ -333,6 +336,28 @@ network, ethereum-abi-file, ethereum-private-key, ethereum-node-url are required
 
 
 
+.. _payout-approve:
+
+payout-approve
+-------------------------------------
+
+approve tokens to the payout contract
+
+.. code-block:: text
+
+    Usage: sto payout-approve [OPTIONS]
+
+      approve tokens to the payout contract
+
+    Options:
+      --payout-token-address TEXT  address of payout token contract
+      --payout-token-name TEXT     name of the payout token smart contract
+                                   [required]
+      --help                       Show this message and exit.
+
+
+
+
 .. _payout-deploy:
 
 payout-deploy
@@ -377,10 +402,26 @@ the private key here needs to belong to the customer who wants to fetch tokens
       tokens
 
     Options:
-      --payout-token-address TEXT  address of payout token contract
-      --payout-token-name TEXT     name of the payout token smart contract
-                                   [required]
-      --help                       Show this message and exit.
+      --help  Show this message and exit.
+
+
+
+
+.. _payout-dividends:
+
+payout-dividends
+-------------------------------------
+
+None
+
+.. code-block:: text
+
+    Usage: sto payout-dividends [OPTIONS]
+
+    Options:
+      --transfer-amount INTEGER  amount of sto tokens to trade for payout token
+                                 [required]
+      --help                     Show this message and exit.
 
 
 
@@ -489,7 +530,7 @@ tx-last
 -------------------------------------
 
 Print latest transactions from database.
-
+    
 
 .. code-block:: text
 
@@ -577,6 +618,14 @@ Verify source code of contract deployment transactions on EtherScan.
 
 Users EtherScan API to verify all deployed contracts from the management account.
 
+Verify all past contract deployments:
+
+    sto verify
+
+Verify certain deployed contracts:
+
+    sto verify --contract-addresses=0x1D88fd4fC47711Fc28d105aE2D96A4A9E5c2ae9C,0x57aa933E93Ea627a746DD335c23A90c8D8da825B
+
 .. code-block:: text
 
     Usage: sto tx-verify [OPTIONS]
@@ -586,8 +635,19 @@ Users EtherScan API to verify all deployed contracts from the management account
       Users EtherScan API to verify all deployed contracts from the management
       account.
 
+      Verify all past contract deployments:
+
+          sto verify
+
+      Verify certain deployed contracts:
+
+          sto verify --contract-addresses=0x1D88fd4fC47711Fc28d105aE2D96A4A9E5c2
+          ae9C,0x57aa933E93Ea627a746DD335c23A90c8D8da825B
+
     Options:
-      --help  Show this message and exit.
+      --contract-addresses TEXT  Comma separated list of contract addresses to
+                                 verify
+      --help                     Show this message and exit.
 
 
 
@@ -634,3 +694,5 @@ network, ethereum-abi-file, ethereum-private-key, ethereum-node-url are required
       --type INTEGER        announcement type  [required]
       --options LIST        additional voting contract options
       --help                Show this message and exit.
+
+

@@ -14,6 +14,7 @@ First send out PyPi release:
 
     # Build and upload PyPi egg
     export VERSION=0.2.0
+    make reference
     make release
 
 Then push out new Docker:

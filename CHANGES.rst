@@ -1,8 +1,8 @@
 Changes
 =======
 
-0.x
----
+0.4.0
+-----
 
 * Added payouts
 
@@ -13,6 +13,8 @@ Changes
 * Adjust gas limits for Constantinopole
 
 * Manually give addresses for tx-verify
+
+* More colour on the documentation
 
 0.3.3
 -----
