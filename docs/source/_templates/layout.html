@@ -121,13 +121,13 @@
 
           {% endblock %}
         </div>
+    <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
 
-        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
           {% block menu %}
             {#
               The singlehtml builder doesn't handle this toctree call when the
               toctree is empty. Skip building this for now.
-            #}t
+            #}
             {% if 'singlehtml' not in builder %}
               {% set global_toc = toctree(maxdepth=theme_navigation_depth|int,
                                           collapse=theme_collapse_navigation|tobool,
@@ -154,7 +154,6 @@
           <a href="{{ pathto(master_doc) }}">{{ project }}</a>
         {% endblock %}
       </nav>
-
 
       <div class="wy-nav-content">
       {%- block content %}
