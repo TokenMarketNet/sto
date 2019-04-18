@@ -69,8 +69,8 @@ publish-docker:
 	# Test run - smoke test will probably exit non-zero if Python dependencies failed
 	echo "Docker local version is now " && docker run -p 8545:8545 -v `pwd`:`pwd` -w `pwd` miohtama/sto:latest version
 	# Push the release to hub
-	docker tag miohtama/sto:latest miohtama/sto:$VERSION
-	docker push miohtama/sto:$VERSION && docker push miohtama/sto:latest
+	docker tag miohtama/sto:latest miohtama/sto:$(VERSION)
+	docker push miohtama/sto:$(VERSION) && docker push miohtama/sto:latest
 
 dist: clean
 	python setup.py sdist bdist_wheel

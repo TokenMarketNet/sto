@@ -34,7 +34,7 @@ dev_requirements = [
 
 setup(
     name='sto',
-    version='0.4.0',
+    version='0.4.1',
     description="Security token manager",
     long_description=readme + '\n\n',
     author="TokenMarket Ltd.",

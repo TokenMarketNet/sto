@@ -1,6 +1,11 @@
 Changes
 =======
 
+0.4.1
+-----
+
+* Fixed architecture overview image link in README to be PyPi compatible
+
 0.4.0
 -----
 
@@ -8,7 +13,7 @@ Changes
 
 * Added restricted shares
 
-* Added voting
+* Added votingx
 
 * Adjust gas limits for Constantinopole
 
