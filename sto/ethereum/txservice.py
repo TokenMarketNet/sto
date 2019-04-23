@@ -88,13 +88,14 @@ class EthereumStoredTXService:
 
     def ensure_accounts_in_sync(self):
         """Make sure that our internal nonce and external nonce looks correct."""
-
         broadcast_account = self.get_or_create_broadcast_account()
 
         tx_count = self.web3.eth.getTransactionCount(broadcast_account.address)
 
         if tx_count != broadcast_account.current_nonce:
             NetworkAndDatabaseNonceOutOfSync("Nonced out of sync. Network: {}, database: {}. Maybe you have a pending broadcasts propagating?".format(tx_count, broadcast_account.current_nonce))
+
+
 
     def allocate_transaction(self,
                              broadcast_account: _BroadcastAccount,
@@ -318,6 +319,14 @@ class EthereumStoredTXService:
     def get_pending_broadcasts(self) -> Query:
         """All transactions that need to be broadcasted."""
         return self.dbsession.query(self.prepared_tx_model).filter_by(broadcasted_at=None).order_by(self.prepared_tx_model.nonce).join(self.broadcast_account_model).filter_by(network=self.network)
+
+
+
+    def delete_pending_broadcasts(self) -> Query:
+        """All transactions that need to be deleted."""
+        return self.dbsession.delete(self.prepared_tx_model).filter_by(broadcasted_at=None).order_by(self.prepared_tx_model.nonce).join(self.broadcast_account_model).filter_by(network=self.network)
+
+
 
     def get_unmined_txs(self) -> Query:
         """All transactions that do not yet have a block assigned."""
