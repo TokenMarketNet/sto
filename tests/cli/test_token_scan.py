@@ -2,6 +2,8 @@ import logging
 import os
 
 import pytest
+from decimal import Decimal
+
 from web3.contract import Contract
 
 from sto.distribution import read_csv
@@ -247,7 +249,7 @@ def test_token_scan_incremental(logger, dbsession, network, private_key_hex, sam
     """Call token scan repeatly and see we get new events in."""
 
     token_address = sample_token
-    send_issuer_tokens(logger, dbsession, web3, private_key_hex, token_address, test_account_1, 101)
+    send_issuer_tokens(logger, dbsession, web3, private_key_hex, token_address, test_account_1, Decimal(101))
 
     # Run incremental scan
     balances = token_scan(logger, dbsession, network, web3, None, sample_token)
@@ -259,7 +261,7 @@ def test_token_scan_incremental(logger, dbsession, network, private_key_hex, sam
 
     # Issuer distributes some more tokens
     start_block = web3.eth.blockNumber + 1
-    send_issuer_tokens(logger, dbsession, web3, private_key_hex, token_address, test_account_2, 333)
+    send_issuer_tokens(logger, dbsession, web3, private_key_hex, token_address, test_account_2, Decimal(333))
     end_block = web3.eth.blockNumber
     balances = token_scan(logger, dbsession, network, web3, None, sample_token, start_block, end_block)
     correct_result = {

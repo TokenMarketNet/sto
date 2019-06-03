@@ -36,7 +36,7 @@ Now you can broadcast your distribution transactions with ``sto tx-broadcast`` (
 Next reading
 ------------
 
-See how to :doc:`scan token balances and print out cap table of shareholders <scanner>`
+See how to :doc:`scan token balances and print out cap table of shareholders <issuance>`
 
 Further information
 -------------------

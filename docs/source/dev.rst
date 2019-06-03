@@ -12,8 +12,10 @@ First send out PyPi release:
 
 .. code-block:: shell
 
+    # First edit setu.py manually - auto version bump is broken
     # Build and upload PyPi egg
     export VERSION=0.2.0
+    make reference
     make release
 
 Then push out new Docker:

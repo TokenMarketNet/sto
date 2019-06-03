@@ -1,5 +1,13 @@
-Viewing token summary
-=====================
+Token summary
+=============
+
+Introduction
+------------
+
+Token summary commands allow you to check the overview of existing deployed STO smart contracts.
+
+Viewing summary
+---------------
 
 After all your transactions have been pushed out and are succesfully included in blocks, you can view the token status by entering the contract address::
 

@@ -1,5 +1,5 @@
-EtherScan integration
-=====================
+Contract verification on EtherScan
+==================================
 
 Verifying contracts on EtherScan
 --------------------------------

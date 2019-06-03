@@ -1,3 +1,23 @@
+======================
+Dividends and interest
+======================
+
+Introduction
+============
+
+Dividends, interest or royalties can be generally lumped together as payouts.
+We support doing
+
+* Dumb payouts: wiring stable coins directly to the owner address
+
+* Payout contract:
+
+
+Payout contract
+
+The Payout contract provides the ability to set up dividend distribution.
+
+
 Distribute Dividends
 ====================
 
@@ -63,16 +83,12 @@ Next reading
 ------------
 
 See how to :doc:`verify contracts on EtherScan <etherscan>`
-=======
-Payout Contract
-===============
 
-The Payout contract provides the ability to set up dividend distribution.
 
 Payout Deploy
 -------------
 
-To deploy payout smart contract::
+To deploy the payout smart contract::
 
     sto --config=myconfig.ini payout-deploy --token-address="0x.." --payout-token-address="0x.." --payout-token-name="CrowdsaleToken" --kyc-address="0x.." --payout-name='Pay X' --uri="http://tokenmarket.net" --type=0
 

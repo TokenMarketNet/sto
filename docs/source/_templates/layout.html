@@ -16,7 +16,7 @@
   {{ metatags }}
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   {% block htmltitle %}
-  <title>{{ title|striptags|e }}{{ titlesuffix }}</title>
+  <title>{{ title|striptags|e }} - Security token documentation</title>
   {% endblock %}
 
   {# FAVICON #}
@@ -121,8 +121,8 @@
 
           {% endblock %}
         </div>
+    <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
 
-        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
           {% block menu %}
             {#
               The singlehtml builder doesn't handle this toctree call when the
@@ -154,7 +154,6 @@
           <a href="{{ pathto(master_doc) }}">{{ project }}</a>
         {% endblock %}
       </nav>
-
 
       <div class="wy-nav-content">
       {%- block content %}

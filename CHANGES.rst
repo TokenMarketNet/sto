@@ -1,18 +1,25 @@
 Changes
 =======
 
-0.x
----
+0.4.1
+-----
+
+* Fixed architecture overview image link in README to be PyPi compatible
+
+0.4.0
+-----
 
 * Added payouts
 
 * Added restricted shares
 
-* Added voting
+* Added votingx
 
 * Adjust gas limits for Constantinopole
 
 * Manually give addresses for tx-verify
+
+* More colour on the documentation
 
 0.3.3
 -----

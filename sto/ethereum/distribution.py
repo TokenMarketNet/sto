@@ -95,6 +95,7 @@ def distribute_single(logger: Logger,
     :return: True if a new tx for broadcasting was created
     """
 
+    assert isinstance(amount, Decimal)
     d = DistributionEntry(ext_id, email, name, to_address, amount)
 
     check_good_private_key(ethereum_private_key)

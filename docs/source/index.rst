@@ -2,9 +2,12 @@
 Security Token Manager documentation
 ====================================
 
-This is the documentation for Security Token Manager open source project. The project provides command line tools and programming interfaces to interact and integrate security tokens.
+This is the documentation for Security Token Manager. This open source project provides tooling and programming interfaces to interact and integrate security tokens on Ethereum and other blockchains.
 
-Security Token Manager supports operations for security token governance including e.g.
+.. image:: screenshots/overview.png
+    :width: 800 px
+
+Security Token Manager supports operations for security token governance.
 
 * Issue out new stock or bond series as security tokens
 
@@ -36,14 +39,13 @@ New to tokens and securities? `Read an introduction for security tokens <https:/
    whitelist
    token-summary
    distribute
-   scanner
    captable
    erc-20-holders
    payout
    etherscan
-   protocols
    payout
    voting
+   smartcontracts
    command-line-reference
    dev
 

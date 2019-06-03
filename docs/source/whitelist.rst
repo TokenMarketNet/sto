@@ -1,7 +1,30 @@
-Address Whitelisting
-====================
+===========================
+Restricting token transfers
+===========================
 
-Security Tokens in the restricted mode need addresses to be whitelisted. Addreses are whitelisted using a KYC
+.. _whitelist:
+
+Introduction
+============
+
+Unlike cryptocurrencies, security tokens have restrictions on transfers.
+
+* The real world identity of a receiver must be resolved before a transfer to maintain up-to-date shareholder registry information
+
+* For limited private companies, restricted shares are often subject to company's approval before they can be given to a new owner
+
+* Bearer shares, or shares without known owner on a shareholder ledger, are illegal in the most jurisdictions
+
+For all of these problems the solution is to "whitelist" token receivers, or shareholders, beforehand.
+
+* A centralised service maintains real world identity information of blockchain addresses offchain
+
+* This centralised service reports to blockchain who are allowed to receive new transfers
+
+Using Know Your Customer smart contract to ensure good ownership
+================================================================
+
+Security tokens in the restricted mode need addresses to be whitelisted. Addreses are whitelisted using a KYC
 smart contract.
 
 Deploying KYC smart Contract
