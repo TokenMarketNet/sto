@@ -18,20 +18,20 @@ Command line:
 .. code-block:: shell
 
     sto --ethereum-node-url="https://mainnet.infura.io/v3/453d2049c15d4a8da5501a0464fa44f8" token-scan ...
-    
+
 As with INI file ``mainnet.ini``:
 
 .. code-block:: ini
-    
+
     # Infura mainnet net node url
     ethereum-node-url = https://mainnet.infura.io/v3/453d2049c15d4a8da5501a0464fa44f8
-    
+
 .. code-block:: shell
 
     sto --config-file=mainnet.ini token-scan ...
 
 Subcommands take their own options that cannot be specified in the settings file.
- 
+
 Main command and options
 ------------------------
 
@@ -73,9 +73,9 @@ When running ``sto --help`` you get list of settings and subcommands:
      kyc-deploy               Deploys Kyc contract to desired ethereum network.
      kyc-manage               Whitelist a address in KYC smart contract.
      payout-approve           approve tokens to the payout contract
-     payout-deploy            Deploys Voting contract to desired ethereum network network, ethereum-abi-file, ethereum-private-key, ethereum-node-url are required args
-     payout-deposit           the private key here needs to belong to the customer who wants to fetch tokens
-     payout-dividends
+     payout-deploy            Deploys PayoutContract to desired ethereum network network, ethereum-abi-file, ethereum-private-key, ethereum-node-url are required args
+     payout-deposit           Fetch payment token (like GUSD) to the deployed PayoutContract
+     payout-dividends         Receive payout from a PayoutContract
      reference                Print out the command line reference for the documentation.
      token-scan               Update token holder balances from a blockchain to a local database.
      token-status             Print token contract status.
@@ -392,14 +392,16 @@ network, ethereum-abi-file, ethereum-private-key, ethereum-node-url are required
 payout-deposit
 -------------------------------------
 
-the private key here needs to belong to the customer who wants to fetch tokens
+Fetch payment token (like GUSD) to the deployed PayoutContract, which can be
+claimed with IIC Token (such as the PayoutContract token).
+Only after this step, the payout can commence.
+We need to do fetch, so we know how many tokens were there to begin with.
 
 .. code-block:: text
 
     Usage: sto payout-deposit [OPTIONS]
 
-      the private key here needs to belong to the customer who wants to fetch
-      tokens
+      Fetch payment token (like GUSD) to the deployed PayoutContract.
 
     Options:
       --help  Show this message and exit.
@@ -530,7 +532,7 @@ tx-last
 -------------------------------------
 
 Print latest transactions from database.
-    
+
 
 .. code-block:: text
 
@@ -618,14 +620,6 @@ Verify source code of contract deployment transactions on EtherScan.
 
 Users EtherScan API to verify all deployed contracts from the management account.
 
-Verify all past contract deployments:
-
-    sto verify
-
-Verify certain deployed contracts:
-
-    sto verify --contract-addresses=0x1D88fd4fC47711Fc28d105aE2D96A4A9E5c2ae9C,0x57aa933E93Ea627a746DD335c23A90c8D8da825B
-
 .. code-block:: text
 
     Usage: sto tx-verify [OPTIONS]
@@ -694,5 +688,3 @@ network, ethereum-abi-file, ethereum-private-key, ethereum-node-url are required
       --type INTEGER        announcement type  [required]
       --options LIST        additional voting contract options
       --help                Show this message and exit.
-
-
