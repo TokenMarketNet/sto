@@ -6,8 +6,8 @@ with open('README.rst') as readme_file:
 
 
 requirements = [
-    'eth-typing<2',
-    'eth-abi<1.3',
+    'eth-typing>=2.1.0',
+    'eth-abi',
     'web3[tester]',  # Cannot have more specific web3 settings separately in test_requirements
     'coloredlogs',
     'colorama',
