@@ -5,10 +5,29 @@ with open('README.rst') as readme_file:
     readme = readme_file.read()
 
 
+# We have known dependency issues with v4 tester. It used to be that on install, it threw an error, but still worked anyway. I think you should be able to use eth-abi 1.3 even though it complains
+
 requirements = [
-    'eth-typing>=2.1.0',
-    'eth-abi',
-    'web3[tester]',  # Cannot have more specific web3 settings separately in test_requirements
+    'web3<5',
+    # 'eth-typing==',
+    # 'eth-utils',
+    # 'eth-abi',
+
+    # Your everyday upstream Ooops we broke dependencies again making everything uninstallable
+    "eth-abi==1.2.2",
+    "eth-account==0.3.0",
+    "eth-bloom==1.0.1",
+    "eth-hash==0.2.0",
+    "eth-keyfile==0.5.1",
+    "eth-keys==0.2.0b3",
+    "eth-rlp==0.1.2",
+    "eth-tester==0.1.0b33",
+    "eth-typing==1.3.0",
+    "eth-utils==1.3.0",
+    "py-ecc==1.4.3",
+    "py-evm==0.2.0a33",
+    "py-geth==2.0.1",
+
     'coloredlogs',
     'colorama',
     'tabulate',
@@ -22,6 +41,7 @@ requirements = [
 
 test_requirements = [
     'pytest',
+    '',
 ]
 
 dev_requirements = [
