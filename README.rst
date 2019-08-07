@@ -12,7 +12,7 @@ Security Token Manager is an open source project that provides a command line to
 TokenMarket Security Token Manager
 ==================================
 
-.. image:: https://github.com/TokenMarketNet/sto/blob/master/docs/source/screenshots/overview-small.png
+.. image:: https://raw.githubusercontent.com/TokenMarketNet/sto/master/docs/source/screenshots/overview-small.png
 
 Security Token Manager provides technical operations for corporate governance including e.g.
 

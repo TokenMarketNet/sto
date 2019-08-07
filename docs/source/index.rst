@@ -42,7 +42,7 @@ New to tokens and securities? `Read an introduction for security tokens <https:/
    etherscan
    payout
    voting
-   protocols
+   smartcontracts
    command-line-reference
    dev
 

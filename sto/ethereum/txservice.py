@@ -2,7 +2,13 @@ from logging import Logger
 
 import requests
 import time
-from eth_account.internal.transactions import assert_valid_fields
+try:
+    # web3 4.0
+    from eth_account.internal.transactions import assert_valid_fields
+except ImportError:
+    # web3 5.0
+    from eth_account._utils.transactions import assert_valid_fields
+
 from sto.ethereum.utils import mk_contract_address, get_constructor_arguments
 from sto.models.broadcastaccount import _BroadcastAccount, _PreparedTransaction
 from sto.models.utils import now
