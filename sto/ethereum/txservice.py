@@ -59,7 +59,7 @@ class EthereumStoredTXService:
         self.broadcast_account_model = broadcast_account_model
         self.prepared_tx_model = prepared_tx_model
 
-        self.gas_price = gas_price
+        self.gas_price = gas_price or 20*10**9  # Default 20 GWei
 
         assert self.gas_price > 1*10**9, "Are you sure you want less than 1 GWei gas price?"
 
