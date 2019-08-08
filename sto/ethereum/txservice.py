@@ -61,6 +61,7 @@ class EthereumStoredTXService:
 
         self.gas_price = gas_price
 
+        assert self.gas_price > 1*10**9, "Are you sure you want less than 1 GWei gas price?"
 
         if gas_limit:
             assert type(gas_limit) == int
