@@ -339,7 +339,7 @@ class EthereumStoredTXService:
         """Push transactions to Ethereum network."""
 
         if tx.broadcast_account.address != self.address:
-            raise AddressConfigurationMismatch("Could not broadcast due to address mismatch. A pendign transaction was created for account {}, but we are using configured account {}".format(tx.broadcast_account.addres, self.address))
+            raise AddressConfigurationMismatch("Could not broadcast due to address mismatch. A pendign transaction was created for account {}, but we are using configured account {}".format(tx.broadcast_account.address, self.address))
 
         tx_data = tx.unsigned_payload
         signed = self.web3.eth.account.signTransaction(tx_data, self.private_key_hex)
