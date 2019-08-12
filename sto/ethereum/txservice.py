@@ -326,6 +326,10 @@ class EthereumStoredTXService:
         """All transactions that need to be broadcasted."""
         return self.dbsession.query(self.prepared_tx_model).filter_by(broadcasted_at=None).order_by(self.prepared_tx_model.nonce).join(self.broadcast_account_model).filter_by(network=self.network)
 
+    def get_pending_broadcasts_for_address(self, address: str) -> Query:
+        """All transactions that need to be broadcasted for a specific broadcasting account."""
+        return self.dbsession.query(self.prepared_tx_model).filter_by(broadcasted_at=None).order_by(self.prepared_tx_model.nonce).join(self.broadcast_account_model).filter_by(network=self.network).filter(self.broadcast_account_model.address == self.address)
+
     def get_unmined_txs(self) -> Query:
         """All transactions that do not yet have a block assigned."""
         return self.dbsession.query(self.prepared_tx_model).filter(self.prepared_tx_model.txid != None).filter_by(result_block_num=None).join(self.broadcast_account_model).filter_by(network=self.network)
