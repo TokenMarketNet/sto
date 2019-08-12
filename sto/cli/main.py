@@ -50,7 +50,7 @@ def is_ethereum_network(network: str):
 INTRO_TEXT = """{}TokenMarket{} security token management tool.
 
     {}Manage tokenised equity for things like issuing out new, distributing and revoking shares.{}
-    
+
     For full documentation see https://docs.tokenmarket.net/
 """.format(colorama.Fore.LIGHTGREEN_EX, colorama.Fore.RESET, colorama.Fore.BLUE, colorama.Fore.RESET)
 
@@ -525,7 +525,7 @@ def token_scan(config: BoardCommmadConfiguration, token_address, start_block, en
     If start block and end block information are omitted, continue the scan where we were left last time.
     Scan operations may take a while.
     """
-    
+
     assert is_ethereum_network(config.network)
 
     logger = config.logger
@@ -623,16 +623,18 @@ def kyc_deploy(config: BoardCommmadConfiguration):
 
 @cli.command(name="kyc-manage")
 @click.option('--whitelist-address', required=True, help="address to whitelist", type=str)
+@click.option('--kyc-contract-address', required=False, help="optional argument to override KYC contract address", type=str)
 @click.pass_obj
-def kyc_manage(config: BoardCommmadConfiguration, whitelist_address):
+def kyc_manage(config: BoardCommmadConfiguration, whitelist_address, kyc_contract_address):
     """
-    Whitelist a address in KYC smart contract.
+    Whitelist an address in KYC smart contract.
     network, ethereum-abi-file, ethereum-private-key, ethereum-node-url are required args
     """
     from sto.ethereum.utils import whitelist_kyc_address
     whitelist_kyc_address(
         config=config,
-        address=whitelist_address
+        address=whitelist_address,
+        kyc_contract_address=kyc_contract_address
     )
 
 

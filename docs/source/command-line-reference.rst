@@ -71,7 +71,7 @@ When running ``sto --help`` you get list of settings and subcommands:
      issue                    Issue out a new security token.
      issue-logs               Print out transactions of for tokens issued in the past.
      kyc-deploy               Deploys Kyc contract to desired ethereum network.
-     kyc-manage               Whitelist a address in KYC smart contract.
+     kyc-manage               Whitelist an address in KYC smart contract.
      payout-approve           approve tokens to the payout contract
      payout-deploy            Deploys PayoutContract to desired ethereum network network, ethereum-abi-file, ethereum-private-key, ethereum-node-url are required args
      payout-deposit           Fetch payment token (like GUSD) to the deployed PayoutContract
@@ -319,19 +319,20 @@ required args network, ethereum-abi-file, ethereum-private-key, ethereum-node-ur
 kyc-manage
 -------------------------------------
 
-Whitelist a address in KYC smart contract.
+Whitelist an address in KYC smart contract.
 network, ethereum-abi-file, ethereum-private-key, ethereum-node-url are required args
 
 .. code-block:: text
 
     Usage: sto kyc-manage [OPTIONS]
 
-      Whitelist a address in KYC smart contract. network, ethereum-abi-file,
+      Whitelist an address in KYC smart contract. network, ethereum-abi-file,
       ethereum-private-key, ethereum-node-url are required args
 
     Options:
-      --whitelist-address TEXT  address to whitelist  [required]
-      --help                    Show this message and exit.
+      --whitelist-address TEXT     address to whitelist  [required]
+      --kyc-contract-address TEXT  optional argument to override KYC contract address
+      --help                       Show this message and exit.
 
 
 

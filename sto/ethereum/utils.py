@@ -342,16 +342,19 @@ def get_contract_deployed_tx(dbsession, contract_name):
     ).first()
 
 
-def whitelist_kyc_address(config, address):
+def whitelist_kyc_address(config, address, kyc_contract_address):
     from sto.ethereum.txservice import EthereumStoredTXService
     from sto.models.implementation import BroadcastAccount, PreparedTransaction
 
     tx = get_contract_deployed_tx(config.dbsession, 'BasicKYC')
     if not tx:
-        raise Exception(
-            'BasicKyc contract is not deployed. '
-            'invoke command kyc_deploy to deploy the smart contract'
-        )
+        if not kyc_contract_address:
+            raise Exception(
+                'BasicKyc contract is not deployed. '
+                'invoke command kyc_deploy to deploy the smart contract'
+            )
+    else:
+        kyc_contract_address = tx.contract_address
 
     web3 = create_web3(config.ethereum_node_url)
 
@@ -370,10 +373,10 @@ def whitelist_kyc_address(config, address):
     service.interact_with_contract(
         contract_name='BasicKYC',
         abi=abi,
-        address=tx.contract_address,
+        address=kyc_contract_address,
         note='whitelisting address {0}'.format(address),
-        func_name='whitelistUser',
-        args={'who': address, 'status': True}
+        func_name='setAttributes',
+        args={'user': address, 'newAttributes': 1}
     )
     broadcast(config)
 
