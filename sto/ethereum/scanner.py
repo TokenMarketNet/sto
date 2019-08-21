@@ -286,7 +286,7 @@ class TokenScanner:
             self.update_scan_status(start_block, current_end)
 
             # Update database on the disk
-            self.dbsession.commit()
+            self.dbsession.flush()
 
             # Print progress bar
             if progress_callback:
@@ -300,7 +300,7 @@ class TokenScanner:
 
         # Calculate balances to all accounts that have not seen new total since the last scan
         status.update_denormalised_balances()
-        self.dbsession.commit()  # Write latest balances
+        self.dbsession.flush()  # Write latest balances
 
         result = status.get_raw_balances(mutated_addresses)
         return result
