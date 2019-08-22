@@ -5,6 +5,7 @@ from typing import Optional
 
 import colorama
 import rlp
+from enum import Enum
 from eth_abi import encode_abi
 from sqlalchemy import and_
 from web3 import Web3, HTTPProvider
@@ -24,6 +25,10 @@ from web3.utils.contracts import encode_abi
 from sqlalchemy import and_
 
 from sto.cli.main import is_ethereum_network
+
+class KYCAttribute(Enum):
+   kyc_cleared = 0b01  # binary representation
+   can_push_tokens = 0b10
 
 
 class NoNodeConfigured(Exception):
@@ -376,7 +381,7 @@ def whitelist_kyc_address(config, address, kyc_contract_address):
         address=kyc_contract_address,
         note='whitelisting address {0}'.format(address),
         func_name='setAttributes',
-        args={'user': address, 'newAttributes': 1}
+        args={'user': address, 'newAttributes': KYCAttribute.kyc_cleared.value}
     )
     broadcast(config)
 
