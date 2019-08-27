@@ -130,8 +130,13 @@ def monkeypatch_create_web3(monkeypatch, web3):
 
 @pytest.fixture
 def get_contract_deployed_tx():
-    def _get_contract_deployed_tx(dbsession, contract_name):
-        from sto.models.implementation import PreparedTransaction
+    def _get_contract_deployed_tx(dbsession, contract_name,
+                                  PreparedTransaction=None):
+        from sto.models.implementation import (
+            PreparedTransaction as _PreparedTransaction
+        )
+        if PreparedTransaction is None:
+            PreparedTransaction = _PreparedTransaction
         txs = dbsession.query(PreparedTransaction).all()
         for tx in txs:
             if tx.contract_deployment and tx.contract_name == contract_name:
