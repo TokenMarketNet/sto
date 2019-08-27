@@ -280,7 +280,9 @@ def test_kyc_manage(
         ]
     )
     assert result.exit_code == 0
-    assert kyc_contract.functions.isWhitelisted(eth_address).call() == True
+    # TODO: this method is no longer supported but maybe this should be tested
+    # some other way?
+    #assert kyc_contract.functions.isWhitelisted(eth_address).call() == True
 
 
 def test_voting_deploy(
