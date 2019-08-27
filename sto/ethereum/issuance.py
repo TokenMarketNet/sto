@@ -118,7 +118,7 @@ def contract_status(logger: Logger,
         logger.info("Broadcast account token balance: %f", normal_balance)
         logger.info("Transfer verified: %s", contract.functions.transferVerifier().call())
     except BadFunctionCallOutput as e:
-        raise BadContractException("Looks like this is not a token contract address. Please check on EtherScan that the address presents the token contract")
+        raise BadContractException("Looks like {} is not a token contract address. Please check on EtherScan that the address presents the token contract".format(contract.address))
 
     return {
         "name": contract.functions.name().call(),

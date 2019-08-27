@@ -18,6 +18,7 @@ def broadcast(logger: Logger,
               ethereum_private_key: str,
               ethereum_gas_limit: Optional[str],
               ethereum_gas_price: Optional[str],
+              commit=True,
 ):
     """Issue out a new Ethereum token."""
 
@@ -53,6 +54,7 @@ def broadcast(logger: Logger,
             logger.error("Failed to broadcast transaction %s: %s", tx.txid, tx.human_readable_description)
             raise e
 
-        dbsession.commit()  # Try to minimise file system sync issues
+        if commit:
+            dbsession.commit()  # Try to minimise file system sync issues
 
     return txs

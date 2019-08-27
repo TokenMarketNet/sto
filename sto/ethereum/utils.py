@@ -10,9 +10,18 @@ from eth_abi import encode_abi
 from sqlalchemy import and_
 from web3 import Web3, HTTPProvider
 from web3.contract import Contract
-from web3.utils.abi import get_constructor_abi, merge_args_and_kwargs
-from web3.utils.events import get_event_data
-from web3.utils.filters import construct_event_filter_params
+
+try:
+    from web3.utils.abi import get_constructor_abi, merge_args_and_kwargs
+    from web3.utils.events import get_event_data
+    from web3.utils.filters import construct_event_filter_params
+    from web3.utils.contracts import encode_abi
+except ImportError:
+    from web3._utils.abi import get_constructor_abi, merge_args_and_kwargs
+    from web3._utils.events import get_event_data
+    from web3._utils.filters import construct_event_filter_params
+    from web3._utils.contracts import encode_abi
+
 from eth_utils import (
     keccak,
     to_checksum_address,
@@ -21,7 +30,7 @@ from eth_utils import (
     is_checksum_address,
     to_hex
 )
-from web3.utils.contracts import encode_abi
+
 from sqlalchemy import and_
 
 from sto.cli.main import is_ethereum_network

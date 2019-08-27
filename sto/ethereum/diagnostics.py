@@ -18,7 +18,7 @@ class NeedMoney(Exception):
     pass
 
 
-def diagnose(logger: Logger, node_url: str, private_key_hex: str) -> Optional[Exception]:
+def diagnose(logger: Logger, node_url: str, private_key_hex: str, check_timestamps=True) -> Optional[Exception]:
     """Run Ethereum connection and account diagnostics.
 
     Check that the user has properly configured Ethereum node and private key.
@@ -42,18 +42,19 @@ def diagnose(logger: Logger, node_url: str, private_key_hex: str) -> Optional[Ex
         block_info = web3.eth.getBlock(block_num)
         last_time = block_info["timestamp"]
 
-        if last_time == 0:
-            raise NodeNotSynced("Looks like your node has not yet been synced.")
+        if check_timestamps:
+            if last_time == 0:
+                raise NodeNotSynced("Looks like your node has not yet been synced.")
 
-        ago = unix_time - last_time
+            ago = unix_time - last_time
 
-        logger.info("Current Ethereum node block number: %d, last block %d seconds ago - compare this to data on https://etherscan.io", block_num, ago)
+            logger.info("Current Ethereum node block number: %d, last block %d seconds ago - compare this to data on https://etherscan.io", block_num, ago)
 
-        if ago < 0:
-            raise NodeNotSynced("Last block in the future? Do we have a clock with a wrong timezone somewhere?")
+            if ago < 0:
+                raise NodeNotSynced("Last block in the future? Do we have a clock with a wrong timezone somewhere?")
 
-        if ago > 1800:
-            raise NodeNotSynced("Looks like your node has not received a block for half an hour. It is most likely unsynced at the moment.")
+            if ago > 1800:
+                raise NodeNotSynced("Looks like your node has not received a block for half an hour. It is most likely unsynced at the moment.")
 
         check_good_private_key(private_key_hex)
 
