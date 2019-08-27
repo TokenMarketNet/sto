@@ -337,8 +337,11 @@ def deploy_contract_on_eth_network(
     return receipt['contractAddress']
 
 
-def get_contract_deployed_tx(dbsession, contract_name):
-    from sto.models.implementation import PreparedTransaction
+def get_contract_deployed_tx(dbsession, contract_name, PreparedTransaction=None):
+    _, PreparedTransaction = _get_models(
+        PreparedTransaction=PreparedTransaction
+    )
+
     return dbsession.query(PreparedTransaction).filter(
         and_(
             PreparedTransaction.contract_deployment == True,
@@ -347,12 +350,15 @@ def get_contract_deployed_tx(dbsession, contract_name):
     ).first()
 
 
-def whitelist_kyc_address(config, address, kyc_contract_address):
+def whitelist_kyc_address(config, address, kyc_contract_address,
+                          BroadcastAccount=None, PreparedTransaction=None):
     from sto.ethereum.txservice import EthereumStoredTXService
-    from sto.models.implementation import BroadcastAccount, PreparedTransaction
+    BroadcastAccount, PreparedTransaction = _get_models(BroadcastAccount,
+                                                        PreparedTransaction)
 
     if not kyc_contract_address:
-        tx = get_contract_deployed_tx(config.dbsession, 'BasicKYC')
+        tx = get_contract_deployed_tx(config.dbsession, 'BasicKYC',
+                                      PreparedTransaction=PreparedTransaction)
         if not tx:
             raise Exception(
                 'BasicKyc contract is not deployed. '
@@ -392,4 +398,17 @@ def get_contract_factory_by_name(tx_service, ethereum_abi_file, dbsession, contr
         contract_name=contract_name,
         abi=abi,
         address=tx.contract_address
+    )
+
+
+def _get_models(BroadcastAccount=None, PreparedTransaction=None):
+    """Get BroadcastAccount and PreparedTransaction passed in as arguments,
+    or the default implementations if None is passed"""
+    from sto.models.implementation import (
+        BroadcastAccount as DefaultBroadcastAccount,
+        PreparedTransaction as DefaultPreparedTransaction,
+    )
+    return (
+        BroadcastAccount or DefaultBroadcastAccount,
+        PreparedTransaction or DefaultPreparedTransaction,
     )
