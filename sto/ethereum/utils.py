@@ -351,6 +351,7 @@ def get_contract_deployed_tx(dbsession, contract_name, PreparedTransaction=None)
 
 
 def whitelist_kyc_address(config, address, kyc_contract_address,
+                          do_broadcast=True,
                           BroadcastAccount=None, PreparedTransaction=None):
     from sto.ethereum.txservice import EthereumStoredTXService
     BroadcastAccount, PreparedTransaction = _get_models(BroadcastAccount,
@@ -388,7 +389,8 @@ def whitelist_kyc_address(config, address, kyc_contract_address,
         func_name='setAttributes',
         args={'user': address, 'newAttributes': KYCAttribute.kyc_cleared.value}
     )
-    broadcast(config)
+    if do_broadcast:
+        broadcast(config)
 
 
 def get_contract_factory_by_name(tx_service, ethereum_abi_file, dbsession, contract_name):
