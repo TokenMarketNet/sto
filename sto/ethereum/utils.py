@@ -337,8 +337,11 @@ def deploy_contract_on_eth_network(
     return receipt['contractAddress']
 
 
-def get_contract_deployed_tx(dbsession, contract_name):
-    from sto.models.implementation import PreparedTransaction
+def get_contract_deployed_tx(dbsession, contract_name, PreparedTransaction=None):
+    _, PreparedTransaction = _get_models(
+        PreparedTransaction=PreparedTransaction
+    )
+
     return dbsession.query(PreparedTransaction).filter(
         and_(
             PreparedTransaction.contract_deployment == True,
@@ -347,18 +350,21 @@ def get_contract_deployed_tx(dbsession, contract_name):
     ).first()
 
 
-def whitelist_kyc_address(config, address, kyc_contract_address):
+def whitelist_kyc_address(config, address, kyc_contract_address,
+                          do_broadcast=False,
+                          BroadcastAccount=None, PreparedTransaction=None):
     from sto.ethereum.txservice import EthereumStoredTXService
-    from sto.models.implementation import BroadcastAccount, PreparedTransaction
+    BroadcastAccount, PreparedTransaction = _get_models(BroadcastAccount,
+                                                        PreparedTransaction)
 
-    tx = get_contract_deployed_tx(config.dbsession, 'BasicKYC')
-    if not tx:
-        if not kyc_contract_address:
+    if not kyc_contract_address:
+        tx = get_contract_deployed_tx(config.dbsession, 'BasicKYC',
+                                      PreparedTransaction=PreparedTransaction)
+        if not tx:
             raise Exception(
                 'BasicKyc contract is not deployed. '
                 'invoke command kyc_deploy to deploy the smart contract'
             )
-    else:
         kyc_contract_address = tx.contract_address
 
     web3 = create_web3(config.ethereum_node_url)
@@ -383,7 +389,8 @@ def whitelist_kyc_address(config, address, kyc_contract_address):
         func_name='setAttributes',
         args={'user': address, 'newAttributes': KYCAttribute.kyc_cleared.value}
     )
-    broadcast(config)
+    if do_broadcast:
+        broadcast(config)
 
 
 def get_contract_factory_by_name(tx_service, ethereum_abi_file, dbsession, contract_name):
@@ -393,4 +400,17 @@ def get_contract_factory_by_name(tx_service, ethereum_abi_file, dbsession, contr
         contract_name=contract_name,
         abi=abi,
         address=tx.contract_address
+    )
+
+
+def _get_models(BroadcastAccount=None, PreparedTransaction=None):
+    """Get BroadcastAccount and PreparedTransaction passed in as arguments,
+    or the default implementations if None is passed"""
+    from sto.models.implementation import (
+        BroadcastAccount as DefaultBroadcastAccount,
+        PreparedTransaction as DefaultPreparedTransaction,
+    )
+    return (
+        BroadcastAccount or DefaultBroadcastAccount,
+        PreparedTransaction or DefaultPreparedTransaction,
     )

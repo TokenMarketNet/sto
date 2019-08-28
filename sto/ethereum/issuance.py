@@ -116,7 +116,8 @@ def contract_status(logger: Logger,
         logger.info("Decimals: %d", contract.functions.decimals().call())
         logger.info("Owner: %s", contract.functions.owner().call())
         logger.info("Broadcast account token balance: %f", normal_balance)
-        logger.info("Transfer verified: %s", contract.functions.transferVerifier().call())
+        # TODO: this seems to be no longer supported?
+        # logger.info("Transfer verified: %s", contract.functions.transferVerifier().call())
     except BadFunctionCallOutput as e:
         raise BadContractException("Looks like this is not a token contract address. Please check on EtherScan that the address presents the token contract")
 
