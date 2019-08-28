@@ -634,7 +634,8 @@ def kyc_manage(config: BoardCommmadConfiguration, whitelist_address, kyc_contrac
     whitelist_kyc_address(
         config=config,
         address=whitelist_address,
-        kyc_contract_address=kyc_contract_address
+        kyc_contract_address=kyc_contract_address,
+        do_broadcast=True,
     )
 
 

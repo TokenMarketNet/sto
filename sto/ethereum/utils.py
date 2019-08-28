@@ -360,7 +360,7 @@ def get_contract_deployed_tx(dbsession, contract_name, PreparedTransaction=None)
 
 
 def whitelist_kyc_address(config, address, kyc_contract_address,
-                          do_broadcast=True,
+                          do_broadcast=False,
                           BroadcastAccount=None, PreparedTransaction=None):
     from sto.ethereum.txservice import EthereumStoredTXService
     BroadcastAccount, PreparedTransaction = _get_models(BroadcastAccount,
