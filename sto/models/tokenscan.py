@@ -225,7 +225,7 @@ class _TokenHolderAccount(TimeStampedBaseModel):
     empty = sa.Column(sa.Boolean, nullable=False, default=True)
 
     #: When this account saw transfers last time
-    last_block_num = sa.Column(sa.Integer, nullable=True)
+    last_block_num = sa.Column(sa.BIGINT, nullable=True)
 
     #: When the last transfer was timestamped
     last_block_updated_at = sa.Column(UTCDateTime, nullable=True)
