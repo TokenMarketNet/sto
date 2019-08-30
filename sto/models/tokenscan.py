@@ -58,7 +58,8 @@ class _TokenScanStatus(TimeStampedBaseModel):
     #: All token balances are stored in raw amounts
     decimals = sa.Column(sa.Integer, nullable=False, default=0)
 
-    total_supply = sa.Column(sa.Integer, nullable=True)
+    #: Total supply of this token as decimal serialised as string - for DB compatiblity issues
+    total_supply = sa.Column(sa.String(256), nullable=True)
 
     def get_accounts(self, include_empty=False) -> Query:
         q = self.accounts
@@ -225,7 +226,7 @@ class _TokenHolderAccount(TimeStampedBaseModel):
     empty = sa.Column(sa.Boolean, nullable=False, default=True)
 
     #: When this account saw transfers last time
-    last_block_num = sa.Column(sa.BIGINT, nullable=True)
+    last_block_num = sa.Column(sa.Integer, nullable=True)
 
     #: When the last transfer was timestamped
     last_block_updated_at = sa.Column(UTCDateTime, nullable=True)
