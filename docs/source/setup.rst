@@ -34,6 +34,17 @@ Start Parity in another terminal and connect it to Kovan test network:
 
 Parity will now sync you to Kovan network using warp (fast mode). This will take up to two hours. You can continue to follow instructions below.
 
+Sign up for QuikNode (Option c)
+-----------------------------
+
+`Sign up for QuikNode <https://quiknode.io/>`_.
+
+Get a **Kovan** node on Parity and use the Web3 URL from your dashboard (Dev Tools):
+
+.. image:: screenshots/quiknode.png
+    :width: 500 px
+
+
 Set up Ethereum account
 -----------------------
 
@@ -60,7 +71,7 @@ Now create a file `myconfig.ini` and add the content:
     # Network we are using
     network = kovan
 
-    # This is for Parity - if you are using Infura get your Kovan node URL from your Infura dashboard
+    # This is for Parity - if you are using Infura or QuikNode get your Kovan node URL from your dashboard
     ethereum-node-url = http://localhost:8545
 
     # The private key for your generated Ethereum account
