@@ -348,7 +348,9 @@ class EthereumStoredTXService:
         tx_data = tx.unsigned_payload
         signed = self.web3.eth.account.signTransaction(tx_data, self.private_key_hex)
         tx.txid = signed.hash.hex()
+
         self.web3.eth.sendRawTransaction(signed.rawTransaction)
+
         tx.broadcasted_at = now()
         return tx
 

@@ -79,7 +79,9 @@ def private_key_hex(web3_test_provider, web3):
 
     acc_zero = web3_test_provider.ethereum_tester.get_accounts()[0]  # Accounts with pregenerated balance
     address = web3_test_provider.ethereum_tester.add_account(private_key_hex)
-    web3.eth.sendTransaction({"from": acc_zero, "to": address, "value": to_wei(1, "ether")})
+
+    # Start with 333 ETH balance
+    web3.eth.sendTransaction({"from": acc_zero, "to": address, "value": to_wei(333, "ether")})
     balance = web3.eth.getBalance(address)
     assert balance > 0
     return private_key_hex
