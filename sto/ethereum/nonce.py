@@ -44,7 +44,7 @@ def restart_nonce(logger: Logger,
     account.current_nonce = tx_count
 
     logger.info("Address %s, nonce is now set to %d", service.address, account.current_nonce)
-    dbsession.commit()
+    dbsession.flush()
 
 
 def next_nonce(logger: Logger,
