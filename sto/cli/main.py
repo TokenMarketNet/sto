@@ -113,6 +113,11 @@ def cli(ctx, config: str, **kwargs):
     version = pkg_resources.require("sto")[0].version
     config.version = version
 
+    # TODO: A hack to post process gas price, as command line help originally told it is going to be gwei,
+    # but in reality raw wei values were used
+    # Figure out how to do this with click() argument processors
+    config.ethereum_gas_price = config.ethereum_gas_price * 10**9 if config.ethereum_gas_price else config.ethereum_gas_price
+
     if prelude:
         copyright = "Copyright TokenMarket Ltd. 2018 - 2019"
         logger.info("STO tool, version %s%s%s - %s", colorama.Fore.LIGHTCYAN_EX, version, colorama.Fore.RESET, copyright)

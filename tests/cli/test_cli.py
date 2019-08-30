@@ -409,7 +409,7 @@ def test_voting_deploy(
         [
             '--database-file', db_path,
             '--ethereum-private-key', private_key_hex,
-            '--ethereum-gas-price', 9999999,
+            '--ethereum-gas-price', 20,
             'voting-deploy',
             '--token-address', security_token,
             '--kyc-address', kyc_contract,
@@ -444,7 +444,7 @@ def test_payout_deploy(
         [
             '--database-file', db_path,
             '--ethereum-private-key', private_key_hex,
-            '--ethereum-gas-price', 9999999,
+            '--ethereum-gas-price', 20,
             'payout-deploy',
             '--token-address', security_token,
             '--payout-token-address', test_token,
@@ -484,7 +484,7 @@ def test_payout_deposit(
         [
             '--database-file', db_path,
             '--ethereum-private-key', private_key_hex,
-            '--ethereum-gas-price', 9999999,
+            '--ethereum-gas-price',20,
             'payout-deploy',
             '--token-address', security_token,
             '--payout-token-address', test_token,
@@ -508,7 +508,7 @@ def test_payout_deposit(
         [
             '--database-file', db_path,
             '--ethereum-private-key', private_key_hex,
-            '--ethereum-gas-price', 9999999,
+            '--ethereum-gas-price', 20,
             'payout-approve',
             '--payout-token-name', test_token_name
         ]
@@ -525,7 +525,7 @@ def test_payout_deposit(
         [
             '--database-file', db_path,
             '--ethereum-private-key', private_key_hex,
-            '--ethereum-gas-price', 9999999,
+            '--ethereum-gas-price', 20,
             'payout-deposit'
         ]
     )
@@ -562,7 +562,7 @@ def test_payout_dividends(
         [
             '--database-file', db_path,
             '--ethereum-private-key', private_key_hex,
-            '--ethereum-gas-price', 9999999,
+            '--ethereum-gas-price', 20,
             'payout-deploy',
             '--token-address', security_token,
             '--payout-token-address', test_token,
@@ -586,7 +586,7 @@ def test_payout_dividends(
         [
             '--database-file', db_path,
             '--ethereum-private-key', private_key_hex,
-            '--ethereum-gas-price', 9999999,
+            '--ethereum-gas-price', 20,
             'payout-approve',
             '--payout-token-name', test_token_name
         ]
@@ -603,7 +603,7 @@ def test_payout_dividends(
         [
             '--database-file', db_path,
             '--ethereum-private-key', private_key_hex,
-            '--ethereum-gas-price', 9999999,
+            '--ethereum-gas-price', 20,
             'payout-deposit'
         ]
     )
