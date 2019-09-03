@@ -381,7 +381,7 @@ def whitelist_kyc_address(config, address, kyc_contract_address,
     )
     abi = get_abi(config.ethereum_abi_file)
 
-    service.interact_with_contract(
+    tx = service.interact_with_contract(
         contract_name='BasicKYC',
         abi=abi,
         address=kyc_contract_address,
@@ -391,6 +391,7 @@ def whitelist_kyc_address(config, address, kyc_contract_address,
     )
     if do_broadcast:
         broadcast(config)
+    return tx
 
 
 def get_contract_factory_by_name(tx_service, ethereum_abi_file, dbsession, contract_name):
