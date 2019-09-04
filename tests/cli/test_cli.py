@@ -1,9 +1,11 @@
 import pytest
+from eth_utils import to_wei, ValidationError
 
 from sto.distribution import read_csv
 from sto.ethereum.broadcast import broadcast
 from sto.ethereum.distribution import distribute_tokens
 from sto.ethereum.issuance import deploy_token_contracts, contract_status
+from sto.ethereum.nonce import restart_nonce
 from sto.ethereum.status import update_status
 from sto.cli.main import cli
 from sto.ethereum.utils import get_abi, priv_key_to_address
@@ -46,6 +48,7 @@ def security_token(
         click_runner,
         db_path,
         private_key_hex,
+        web3,
 ):
     result = click_runner.invoke(
         cli,
@@ -616,3 +619,114 @@ def test_payout_dividends(
     # # 0x0000000000000000000000000000000000000064 is the default address 100
     # assert payout_contract.functions.balanceOf('0x0000000000000000000000000000000000000064').call() == 123
     # assert test_token_contract.call().balanceOf(priv_key_to_address(customer_private_key)) > initial_balance
+
+
+def test_restart_nonce(
+    private_key_hex,
+    db_path,
+    monkeypatch_create_web3,
+    monkeypatch_get_contract_deployed_tx,
+    get_contract_deployed_tx,
+    click_runner,
+    web3,
+    sample_csv_file,
+    dbsession,
+    logger,
+):
+    txs = deploy_token_contracts(
+        logger,
+        dbsession,
+        "testing",
+        web3,
+        ethereum_abi_file=None,
+        ethereum_private_key=private_key_hex,
+        ethereum_gas_limit=99999999,
+        ethereum_gas_price=None,
+        name="Moo Corp",
+        symbol="MOO",
+        url="https://tokenmarket.net",
+        amount=9999,
+        transfer_restriction="unrestricted"
+    )
+    token_address = txs[0].contract_address
+
+    # create a manual transaction so that nonce changes
+    # and the prepared transactions go out of sync
+    # web3.eth.sendTransaction({
+    #     "from": priv_key_to_address(private_key_hex),
+    #     "to": web3.eth.accounts[3],
+    #     "value": to_wei(1, "ether")}
+    # )
+    # web3.eth.sendTransaction({
+    #     "to": priv_key_to_address(private_key_hex),
+    #     "from": web3.eth.accounts[3],
+    #     "value": to_wei(1, "ether")}
+    # )
+    # assert web3.eth.getTransactionCount(priv_key_to_address(private_key_hex)) == 1
+
+    # with pytest.raises(ValidationError):
+    broadcast(
+        logger,
+        dbsession,
+        "testing",
+        web3,
+        ethereum_private_key=private_key_hex,
+        ethereum_gas_limit=None,
+        ethereum_gas_price=None,
+    )
+
+    # restart_nonce(
+    #     logger,
+    #     dbsession,
+    #     "testing",
+    #     web3,
+    #     ethereum_private_key=private_key_hex,
+    #     ethereum_gas_limit=None,
+    #     ethereum_gas_price=None,
+    # )
+
+    # broadcast(
+    #     logger,
+    #     dbsession,
+    #     "testing",
+    #     web3,
+    #     ethereum_private_key=private_key_hex,
+    #     ethereum_gas_limit=None,
+    #     ethereum_gas_price=None,
+    # )
+    contract_status(
+        logger,
+        dbsession,
+        "testing",
+        web3,
+        ethereum_abi_file=None,
+        ethereum_private_key=private_key_hex,
+        ethereum_gas_limit=None,
+        ethereum_gas_price=None,
+        token_contract=token_address,
+    )
+
+    entries = read_csv(logger, sample_csv_file)
+
+    new_distributes, old_distributes = distribute_tokens(
+        logger,
+        dbsession,
+        "testing",
+        web3,
+        ethereum_abi_file=None,
+        ethereum_private_key=private_key_hex,
+        ethereum_gas_limit=None,
+        ethereum_gas_price=None,
+        token_address=token_address,
+        dists=entries
+    )
+
+    broadcast(
+        logger,
+        dbsession,
+        "testing",
+        web3,
+        ethereum_private_key=private_key_hex,
+        ethereum_gas_limit=None,
+        ethereum_gas_price=None,
+    )

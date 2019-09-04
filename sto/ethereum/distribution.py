@@ -9,19 +9,15 @@ from sto.distribution import DistributionEntry
 from sto.ethereum.txservice import EthereumStoredTXService
 
 from sto.ethereum.utils import get_abi, check_good_private_key, create_web3
-from sto.ethereum.exceptions import BadContractException
-from sto.models.broadcastaccount import _PreparedTransaction
 
 from sto.models.implementation import BroadcastAccount, PreparedTransaction
 from sqlalchemy.orm import Session
 from typing import Union, Optional, List, Tuple
 from web3 import Web3
-from web3.exceptions import BadFunctionCallOutput
 
 
 class NotEnoughTokens(Exception):
     pass
-
 
 
 def distribute_tokens(logger: Logger,
@@ -35,7 +31,6 @@ def distribute_tokens(logger: Logger,
                           token_address: str,
                           dists: List[DistributionEntry]) -> Tuple[int, int]:
     """Sends tokens to their first owners in primary markets."""
-
     check_good_private_key(ethereum_private_key)
 
     abi = get_abi(ethereum_abi_file)

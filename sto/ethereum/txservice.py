@@ -95,7 +95,6 @@ class EthereumStoredTXService:
 
     def ensure_accounts_in_sync(self):
         """Make sure that our internal nonce and external nonce looks correct."""
-
         broadcast_account = self.get_or_create_broadcast_account()
 
         tx_count = self.web3.eth.getTransactionCount(broadcast_account.address)
@@ -353,11 +352,11 @@ class EthereumStoredTXService:
 
     def broadcast(self, tx: _PreparedTransaction):
         """Push transactions to Ethereum network."""
-
         if tx.broadcast_account.address != self.address:
             raise AddressConfigurationMismatch("Could not broadcast {} due to address mismatch. A pendign transaction was created for account {}, but we are using configured account {}".format(tx.human_readable_description, tx.broadcast_account.address, self.address))
 
         tx_data = tx.unsigned_payload
+        tx_data['nonce'] = tx.nonce
         signed = self.web3.eth.account.signTransaction(tx_data, self.private_key_hex)
         tx.txid = signed.hash.hex()
 

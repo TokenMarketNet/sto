@@ -21,6 +21,7 @@ def restart_nonce(
     ethereum_private_key: str,
     ethereum_gas_limit: str,
     ethereum_gas_price: str,
+    commit=True
 ):
     check_good_private_key(ethereum_private_key)
 
@@ -34,17 +35,18 @@ def restart_nonce(
     # read nonce from the network
     tx_count = web3.eth.getTransactionCount(service.address)
     pending_txs = service.get_account_pending_broadcasts()
-    _nonce = tx_count - 1
+    _nonce = tx_count
     for tx in pending_txs:
-        _nonce += 1
         tx.nonce = _nonce
         tx.unsigned_payload['nonce'] = _nonce
+        _nonce += 1
 
     # record to the database
     account.current_nonce = _nonce
 
     logger.info("Address %s, nonce is now set to %d", service.address, account.current_nonce)
-    dbsession.flush()
+    if commit:
+        dbsession.commit()
 
 
 def next_nonce(logger: Logger,
