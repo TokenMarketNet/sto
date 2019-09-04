@@ -30,7 +30,7 @@ def broadcast(logger: Logger,
 
     service.ensure_accounts_in_sync()
 
-    pending_broadcasts = service.get_pending_broadcasts()
+    pending_broadcasts = service.get_account_pending_broadcasts()
 
     logger.info("Pending %d transactions for broadcasting in network %s", pending_broadcasts.count(), network)
 
