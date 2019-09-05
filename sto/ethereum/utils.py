@@ -10,9 +10,19 @@ from eth_abi import encode_abi
 from sqlalchemy import and_
 from web3 import Web3, HTTPProvider
 from web3.contract import Contract
-from web3.utils.abi import get_constructor_abi, merge_args_and_kwargs
-from web3.utils.events import get_event_data
-from web3.utils.filters import construct_event_filter_params
+
+
+try:
+    from web3.utils.abi import get_constructor_abi, merge_args_and_kwargs
+    from web3.utils.events import get_event_data
+    from web3.utils.filters import construct_event_filter_params
+    from web3.utils.contracts import encode_abi
+except ImportError:
+    from web3._utils.abi import get_constructor_abi, merge_args_and_kwargs
+    from web3._utils.events import get_event_data
+    from web3._utils.filters import construct_event_filter_params
+    from web3._utils.contracts import encode_abi
+
 from eth_utils import (
     keccak,
     to_checksum_address,
@@ -25,6 +35,7 @@ from web3.utils.contracts import encode_abi
 from sqlalchemy import and_
 
 from sto.cli.main import is_ethereum_network
+from sto.models.broadcastaccount import _BroadcastAccount, _PreparedTransaction
 
 class KYCAttribute(Enum):
    kyc_cleared = 0b01  # binary representation
@@ -216,7 +227,7 @@ def _link_bytecode(dbession, bytecode, link_references):
     return linked_bytecode
 
 
-def deploy_contract(config, contract_name, constructor_args=()):
+def deploy_contract(config, contract_name, constructor_args=())  -> _PreparedTransaction:
     tx = get_contract_deployed_tx(config.dbsession, contract_name)
     if tx:
         config.logger.error(
@@ -260,7 +271,7 @@ def deploy_contract(config, contract_name, constructor_args=()):
         PreparedTransaction
     )
     note = "Deploying contract {}".format(contract_name)
-    service.deploy_contract(
+    tx = service.deploy_contract(
         contract_name=contract_name,
         abi=abi,
         note=note,
@@ -272,6 +283,7 @@ def deploy_contract(config, contract_name, constructor_args=()):
     # deploy on ethereum network
     broadcast(config)
 
+    return tx
 
 def broadcast(config):
     # extracted this out as a separate method so that
@@ -389,9 +401,44 @@ def whitelist_kyc_address(config, address, kyc_contract_address,
         func_name='setAttributes',
         args={'user': address, 'newAttributes': KYCAttribute.kyc_cleared.value}
     )
+
     if do_broadcast:
         broadcast(config)
     return tx
+
+def admin_add_role(config, contract_address, role, address=None, BroadcastAccount=None, PreparedTransaction=None):
+    from sto.ethereum.txservice import EthereumStoredTXService
+
+    BroadcastAccount, PreparedTransaction = _get_models(BroadcastAccount,
+                                                        PreparedTransaction)
+    web3 = create_web3(config.ethereum_node_url)
+    dbsession = config.dbsession
+
+    service = EthereumStoredTXService(
+        config.network,
+        dbsession,
+        web3,
+        config.ethereum_private_key,
+        config.ethereum_gas_price,
+        config.ethereum_gas_limit,
+        BroadcastAccount,
+        PreparedTransaction
+    )
+    abi = get_abi(config.ethereum_abi_file)
+
+    if address == None:
+        address = format(service.address)
+
+    service.interact_with_contract(
+        contract_name='BasicKYC',
+        abi=abi,
+        address=contract_address,
+        note='Setting a role for {0}'.format(address),
+        func_name='adminAddRole',
+        args={'addr': address, 'roleName': role}
+    )
+
+    dbsession.flush()
 
 
 def get_contract_factory_by_name(tx_service, ethereum_abi_file, dbsession, contract_name):
