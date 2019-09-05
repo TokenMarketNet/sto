@@ -617,8 +617,22 @@ def kyc_deploy(config: BoardCommmadConfiguration):
     Deploys Kyc contract to desired ethereum network.
     required args network, ethereum-abi-file, ethereum-private-key, ethereum-node-url
     """
-    from sto.ethereum.utils import deploy_contract
-    deploy_contract(config, contract_name='BasicKYC')
+    from sto.ethereum.utils import deploy_contract, admin_add_role
+    from sto.ethereum.utils import whitelist_kyc_address
+
+    tx = deploy_contract(config, contract_name='BasicKYC')
+    kyc_contract_address = tx.contract_address
+
+    admin_add_role(config, kyc_contract_address, "setter")
+
+    # We need to whitelist 0x0 in order to issue tokens.
+    # Tokens are transferred from 0x0.
+    whitelist_kyc_address(
+        config=config,
+        address="0x0000000000000000000000000000000000000000",
+        kyc_contract_address=kyc_contract_address,
+        do_broadcast=True
+    )
 
 
 @cli.command(name="kyc-manage")
