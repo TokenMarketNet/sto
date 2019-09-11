@@ -648,24 +648,32 @@ def test_restart_nonce(
         amount=9999,
         transfer_restriction="unrestricted"
     )
-    token_address = txs[0].contract_address
-
     # create a manual transaction so that nonce changes
     # and the prepared transactions go out of sync
-    # web3.eth.sendTransaction({
-    #     "from": priv_key_to_address(private_key_hex),
-    #     "to": web3.eth.accounts[3],
-    #     "value": to_wei(1, "ether")}
-    # )
-    # web3.eth.sendTransaction({
-    #     "to": priv_key_to_address(private_key_hex),
-    #     "from": web3.eth.accounts[3],
-    #     "value": to_wei(1, "ether")}
-    # )
-    # assert web3.eth.getTransactionCount(priv_key_to_address(private_key_hex)) == 1
+    web3.eth.sendTransaction({
+        "from": priv_key_to_address(private_key_hex),
+        "to": web3.eth.accounts[3],
+        "value": to_wei(1, "ether")}
+    )
+    web3.eth.sendTransaction({
+        "to": priv_key_to_address(private_key_hex),
+        "from": web3.eth.accounts[3],
+        "value": to_wei(1, "ether")}
+    )
+    assert web3.eth.getTransactionCount(priv_key_to_address(private_key_hex)) == 1
 
-    # with pytest.raises(ValidationError):
-    broadcast(
+    with pytest.raises(ValidationError):
+        broadcast(
+            logger,
+            dbsession,
+            "testing",
+            web3,
+            ethereum_private_key=private_key_hex,
+            ethereum_gas_limit=None,
+            ethereum_gas_price=None,
+        )
+
+    restart_nonce(
         logger,
         dbsession,
         "testing",
@@ -675,25 +683,18 @@ def test_restart_nonce(
         ethereum_gas_price=None,
     )
 
-    # restart_nonce(
-    #     logger,
-    #     dbsession,
-    #     "testing",
-    #     web3,
-    #     ethereum_private_key=private_key_hex,
-    #     ethereum_gas_limit=None,
-    #     ethereum_gas_price=None,
-    # )
+    broadcast(
+        logger,
+        dbsession,
+        "testing",
+        web3,
+        ethereum_private_key=private_key_hex,
+        ethereum_gas_limit=None,
+        ethereum_gas_price=None,
+    )
+    tx = get_contract_deployed_tx(dbsession, 'SecurityToken')
+    token_address = tx.contract_address
 
-    # broadcast(
-    #     logger,
-    #     dbsession,
-    #     "testing",
-    #     web3,
-    #     ethereum_private_key=private_key_hex,
-    #     ethereum_gas_limit=None,
-    #     ethereum_gas_price=None,
-    # )
     contract_status(
         logger,
         dbsession,

@@ -113,6 +113,7 @@ class EthereumStoredTXService:
                              gas_price: Optional[int],
                              gas_limit: Optional[int],
                              external_id: Optional[str]=None,
+                             tx_extra_data=None,
                              ) -> _PreparedTransaction:
         """Put a transaction to the pending queue of the current broadcast list."""
 
@@ -135,6 +136,10 @@ class EthereumStoredTXService:
         tx.contract_deployment = contract_deployment
         tx.unsigned_payload = unsigned_payload
         tx.external_id = external_id
+        if tx.other_data is None:
+            tx.other_data = {}
+        if tx_extra_data:
+            tx.other_data['extra_data'] = tx_extra_data
         broadcast_account.txs.append(tx)
         broadcast_account.current_nonce += 1
         return tx
@@ -246,6 +251,12 @@ class EthereumStoredTXService:
         func = contract.get_function_by_name(func_name)
         tx_data = self.generate_tx_data(next_nonce)
         constructed_txn = func(**args).buildTransaction(tx_data)
+        extra_data = {
+            'contract_address': address,
+            'contract_name': contract_name,
+            'func_name': func_name,
+            'args': args
+        }
 
         tx = self.allocate_transaction(
             broadcast_account=broadcast_account,
@@ -257,6 +268,7 @@ class EthereumStoredTXService:
             unsigned_payload=constructed_txn,
             gas_price=self.gas_price,
             gas_limit=self.gas_limit,
+            tx_extra_data=extra_data,
         )
         self.dbsession.flush()
         return tx
@@ -360,7 +372,8 @@ class EthereumStoredTXService:
         signed = self.web3.eth.account.signTransaction(tx_data, self.private_key_hex)
         tx.txid = signed.hash.hex()
 
-        self.web3.eth.sendRawTransaction(signed.rawTransaction)
+        tx_hash = self.web3.eth.sendRawTransaction(signed.rawTransaction)
+        assert self.web3.eth.waitForTransactionReceipt(tx_hash)['status'] == 1
 
         tx.broadcasted_at = now()
         return tx

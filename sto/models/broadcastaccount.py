@@ -92,7 +92,7 @@ class _PreparedTransaction(TimeStampedBaseModel):
     verified_at = sa.Column(UTCDateTime, default=None)
 
     #: Misc. transaction data - like ABI with source code information for verification, verification info
-    other_data = sa.Column(sa.JSON, nullable=False, default=dict)
+    other_data = sa.Column(sa.JSON, default={}, server_default='{}', nullable=False)
 
     @property
     def gas_limit(self):
