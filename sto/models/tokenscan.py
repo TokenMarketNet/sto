@@ -236,7 +236,7 @@ class _TokenHolderAccount(TimeStampedBaseModel):
     balance_calculated_at = sa.Column(UTCDateTime, nullable=True, default=None)
 
     def __str__(self):
-        return "<Token:{}, holder:{}, updated at:{}, balance:{}>".format(self.token.address, self.address, self.last_updated_block, self.get_balance_uint())
+        return "<Token:{}, holder:{}, updated at:{}, balance:{}>".format(self.token.address, self.address, self.last_block_updated_at, self.get_balance_uint())
 
     def mark_dirty(self):
         """The raw_balance does not """
