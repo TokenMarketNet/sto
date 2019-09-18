@@ -58,7 +58,7 @@ class _TokenScanStatus(TimeStampedBaseModel):
     #: All token balances are stored in raw amounts
     decimals = sa.Column(sa.Integer, nullable=False, default=0)
 
-    #: Total supply, as stringified decimal
+    #: Total supply of this token as decimal serialised as string - for DB compatiblity issues
     total_supply = sa.Column(sa.String(256), nullable=True)
 
     def get_accounts(self, include_empty=False) -> Query:

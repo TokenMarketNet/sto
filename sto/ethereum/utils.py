@@ -11,7 +11,6 @@ from sqlalchemy import and_
 from web3 import Web3, HTTPProvider
 from web3.contract import Contract
 
-
 try:
     from web3.utils.abi import get_constructor_abi, merge_args_and_kwargs
     from web3.utils.events import get_event_data
@@ -31,7 +30,7 @@ from eth_utils import (
     is_checksum_address,
     to_hex
 )
-from web3.utils.contracts import encode_abi
+
 from sqlalchemy import and_
 
 from sto.cli.main import is_ethereum_network

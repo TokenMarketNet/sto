@@ -79,3 +79,5 @@ dist: clean
 reference:
 	sto reference > docs/source/command-line-reference.rst
 
+check-depds:
+	pip-compile

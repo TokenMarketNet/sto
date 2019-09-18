@@ -2,7 +2,13 @@ from logging import Logger
 
 import requests
 import time
-from eth_account.internal.transactions import assert_valid_fields
+try:
+    # web3 4.0
+    from eth_account.internal.transactions import assert_valid_fields
+except ImportError:
+    # web3 5.0
+    from eth_account._utils.transactions import assert_valid_fields
+
 from sto.ethereum.utils import mk_contract_address, get_constructor_arguments
 from sto.models.broadcastaccount import _BroadcastAccount, _PreparedTransaction
 from sto.models.utils import now
@@ -53,8 +59,9 @@ class EthereumStoredTXService:
         self.broadcast_account_model = broadcast_account_model
         self.prepared_tx_model = prepared_tx_model
 
-        self.gas_price = gas_price
+        self.gas_price = gas_price or 20*10**9  # Default 20 GWei
 
+        assert self.gas_price > 1*10**9, "Are you sure you want less than 1 GWei gas price?"
 
         if gas_limit:
             assert type(gas_limit) == int
@@ -356,6 +363,10 @@ class EthereumStoredTXService:
         """All transactions that need to be broadcasted."""
         return self.dbsession.query(self.prepared_tx_model).filter_by(broadcasted_at=None).order_by(self.prepared_tx_model.nonce).join(self.broadcast_account_model).filter_by(network=self.network)
 
+    def get_pending_broadcasts_for_address(self, address: str) -> Query:
+        """All transactions that need to be broadcasted for a specific broadcasting account."""
+        return self.dbsession.query(self.prepared_tx_model).filter_by(broadcasted_at=None).order_by(self.prepared_tx_model.nonce).join(self.broadcast_account_model).filter_by(network=self.network).filter(self.broadcast_account_model.address == self.address)
+
     def get_unmined_txs(self) -> Query:
         """All transactions that do not yet have a block assigned."""
         return self.dbsession.query(self.prepared_tx_model).filter(self.prepared_tx_model.txid != None).filter_by(result_block_num=None).join(self.broadcast_account_model).filter_by(network=self.network)
@@ -369,12 +380,14 @@ class EthereumStoredTXService:
         """Push transactions to Ethereum network."""
 
         if tx.broadcast_account.address != self.address:
-            raise AddressConfigurationMismatch("Could not broadcast due to address mismatch. A pendign transaction was created for account {}, but we are using configured account {}".format(tx.broadcast_account.addres, self.address))
+            raise AddressConfigurationMismatch("Could not broadcast {} due to address mismatch. A pendign transaction was created for account {}, but we are using configured account {}".format(tx.human_readable_description, tx.broadcast_account.address, self.address))
 
         tx_data = tx.unsigned_payload
         signed = self.web3.eth.account.signTransaction(tx_data, self.private_key_hex)
         tx.txid = signed.hash.hex()
+
         self.web3.eth.sendRawTransaction(signed.rawTransaction)
+
         tx.broadcasted_at = now()
         return tx
 

@@ -18,6 +18,7 @@ def update_status(logger: Logger,
               ethereum_private_key: str,
               ethereum_gas_limit: str,
               ethereum_gas_price: str,
+              commit=True,
 ):
     """Issue out a new Ethereum token."""
 
@@ -40,6 +41,7 @@ def update_status(logger: Logger,
     # https://stackoverflow.com/questions/41985993/tqdm-show-progress-for-a-generator-i-know-the-length-of
     for tx in tqdm(unfinished_txs):
         service.update_status(tx)
-        dbsession.commit()  # Try to minimise file system sync issues
+        if commit:
+            dbsession.commit()  # Try to minimise file system sync issues
 
     return unfinished_txs
