@@ -77,14 +77,20 @@ def deploy_token_contracts(logger: Logger,
     update_tx1 = service.interact_with_contract("SecurityToken", abi, contract_address, note, "setTransactionVerifier", {"newVerifier": deploy_tx2.contract_address})
 
     # Issue out initial shares
-    note = "Creating {} initial shares for {}".format(amount, name)
-    contract_address = deploy_tx1.contract_address
-    amount_18 = int(amount * 10**decimals)
-    update_tx2 = service.interact_with_contract("SecurityToken", abi, contract_address, note, "issueTokens", {"value": amount_18})
+    if amount > 0:
+        note = "Creating {} initial shares for {}".format(amount, name)
+        contract_address = deploy_tx1.contract_address
+        amount_18 = int(amount * 10**decimals)
+        update_tx2 = service.interact_with_contract("SecurityToken", abi, contract_address, note, "issueTokens", {"value": amount_18})
+        txs = [deploy_tx1, deploy_tx2, update_tx1, update_tx2]
+    else:
+        # We do not need to issue any shares yet,
+        # will be done manually later
+        txs = [deploy_tx1, deploy_tx2, update_tx1]
 
     logger.info("Prepared transactions for broadcasting for network %s", network)
     logger.info("STO token contract address will be %s%s%s", colorama.Fore.LIGHTGREEN_EX, deploy_tx1.contract_address, colorama.Fore.RESET)
-    return [deploy_tx1, deploy_tx2, update_tx1, update_tx2]
+    return txs
 
 
 def contract_status(logger: Logger,
