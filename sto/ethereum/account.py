@@ -26,6 +26,13 @@ def create_account_console(logger: Logger, network: str):
 
     acc = Account.create()
     private_key = to_hex(acc.privateKey)
+
+    if private_key.startswith("0x"):
+        # Looks like this behaves differently in different versions,
+        # we assume no 0x prefix for private key to distinguish it from addresses
+        # and hashes
+        private_key = private_key[2:]
+
     logger.info("Account address: %s", acc.address)
     logger.info("Account private key: %s", private_key)
 
