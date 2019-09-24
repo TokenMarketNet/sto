@@ -91,7 +91,7 @@ def cli(ctx, config: str, **kwargs):
             if value == opt.default:
                 config_file_value = config.get(dashed_name)
                 if config_file_value:
-                    print(opt.name, opt.type)
+                    # TODO: Figure out how to apply opt.process_value() here
                     if opt.type == click.types.INT:
                         kwargs[opt.name] = int(config_file_value)
                     else:
