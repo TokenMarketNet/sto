@@ -63,7 +63,7 @@ INTRO_TEXT = """{}TokenMarket{} security token management tool.
 @click.option('--network', required=False, default="ethereum", help="Network name. Either 'ethereum' or 'kovan' are supported for now.")
 @click.option('--ethereum-node-url', required=False, default="http://localhost:8545", help="Parity or Geth JSON-RPC to connect for Ethereum network access")
 @click.option('--ethereum-abi-file', required=False, help='Solidity compiler output JSON to override default smart contracts')
-@click.option('--ethereum-gas-price', required=False, help='How many GWei we pay for gas')
+@click.option('--ethereum-gas-price', required=False, help='How many GWei we pay for gas', type=int)
 @click.option('--ethereum-gas-limit', required=False, help='What is the transaction gas limit for broadcasts', type=int)
 @click.option('--ethereum-private-key', required=False, help='Private key for the broadcasting account')
 @click.option('--etherscan-api-key', required=False, help='EtherScan API key used for the contract source code verification')
@@ -91,7 +91,11 @@ def cli(ctx, config: str, **kwargs):
             if value == opt.default:
                 config_file_value = config.get(dashed_name)
                 if config_file_value:
-                    kwargs[opt.name] = config_file_value  # TODO: opt.process_value
+                    print(opt.name, opt.type)
+                    if opt.type == click.types.INT:
+                        kwargs[opt.name] = int(config_file_value)
+                    else:
+                        kwargs[opt.name] = config_file_value
 
     log_level = kwargs["log_level"]
 
