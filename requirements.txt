@@ -14,7 +14,7 @@ click==7.0
 colorama==0.4.1
 coloredlogs==10.0
 configobj==5.0.6
-cryptography==2.7         # via py-evm
+cryptography==3.2         # via py-evm
 cytoolz==0.10.0           # via eth-keyfile, eth-keys, eth-tester, eth-utils, py-evm, web3
 eth-abi==1.2.2
 eth-account==0.3.0
