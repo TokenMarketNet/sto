@@ -5,20 +5,20 @@
 #
 # Release:
 #
-# docker login --username=miohtama
-# docker tag miohtama/sto:latest miohtama/sto:0.1
-# docker push miohtama/sto:latest
-# docker push miohtama/sto:0.1
+# docker login --username=ilyaliko
+# docker tag ilyaliko/tokfetch:latest ilyaliko/tokfetch:0.0.1
+# docker push ilyaliko/tokfetch:latest
+# docker push ilyaliko/tokfetch:0.0.1
 #
 
 
-FROM jfloff/alpine-python:3.6
-MAINTAINER Mikko Ohtamaa <mikko@tokenmarket.net>
-ADD . /myapp
-WORKDIR /myapp
+FROM python:3.9-alpine
+MAINTAINER Illia Likhoshva <ilyaliko64@gmail.com>
+ADD . /tokfetch
+WORKDIR /tokfetch
 RUN apk add libffi-dev openssl-dev sqlite-dev
 RUN pip install -U pip
 RUN pip install -r requirements.txt
 RUN pip install -e .
 
-ENTRYPOINT ["sto"]
+ENTRYPOINT ["tokfetch"]

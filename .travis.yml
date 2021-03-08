@@ -1,5 +1,5 @@
 language: python
-python: 3.6
+python: 3.9
 dist: trusty
 sudo: false
 
@@ -7,7 +7,7 @@ services:
   - docker
 
 env:
-  - TOXENV=py36
+  - TOXENV=py39
 
 cache:
   - pip: true

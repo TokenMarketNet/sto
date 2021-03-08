@@ -1,4 +1,4 @@
-recursive-include sto *.py *.json
+recursive-include tokfetch *.py *.json
 include *.rst
 include *.txt
 exclude docs

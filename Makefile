@@ -34,18 +34,6 @@ test:
 test-all:
 	tox
 
-build-docs:
-	sphinx-apidoc -o docs/ . setup.py "*conftest*"
-	$(MAKE) -C docs clean
-	$(MAKE) -C docs html
-	$(MAKE) -C docs doctest
-
-docs: build-docs
-	open docs/_build/html/index.html
-
-linux-docs: build-docs
-	xdg-open docs/_build/html/index.html
-
 # TODO: Use in the future, do not bother yet
 x-release: clean
 	CURRENT_SIGN_SETTING=$(git config commit.gpgSign)
@@ -57,27 +45,28 @@ x-release: clean
 
 release: clean
 	if [ -z "$(VERSION)" ] ; then echo "No VERSION env var set" ; exit 1 ; fi
-	# bumpversion --new-version $(VERSION) devnum
-	# if [ "$(VERSION)" != `sto --version`] ; then echo "bumpversion failed us" ; exit 1 ; fi
 	git push origin && git push origin --tags
 	python setup.py sdist bdist_wheel
 	twine upload --repository-url https://upload.pypi.org/legacy/ dist/*
 
 publish-docker:
 	if [ -z "$(VERSION)" ] ; then echo "No VERSION env var set" ; exit 1 ; fi
-	docker build -t miohtama/sto:latest .
+	docker build -t ilyaliko/tokfetch:latest .
 	# Test run - smoke test will probably exit non-zero if Python dependencies failed
-	echo "Docker local version is now " && docker run -p 8545:8545 -v `pwd`:`pwd` -w `pwd` miohtama/sto:latest version
+	echo "Docker local version is now " && docker run -p 2222:2222 -v `pwd`:`pwd` -w `pwd` ilyaliko/tokfetch:latest version
 	# Push the release to hub
-	docker tag miohtama/sto:latest miohtama/sto:$(VERSION)
-	docker push miohtama/sto:$(VERSION) && docker push miohtama/sto:latest
+	docker tag ilyaliko/tokfetch:latest ilyaliko/tokfetch:$(VERSION)
+	docker push ilyaliko/tokfetch:$(VERSION) && docker push ilyaliko/sto:latest
+	# bumpversion --new-version $(VERSION) devnum
+	# if [ "$(VERSION)" != `sto --version`] ; then echo "bumpversion failed us" ; exit 1 ; fi
+	# bumpversion --new-version $(VERSION) devnum
+	# if [ "$(VERSION)" != `sto --version`] ; then echo "bumpversion failed us" ; exit 1 ; fi
+	# bumpversion --new-version $(VERSION) devnum
+	# if [ "$(VERSION)" != `sto --version`] ; then echo "bumpversion failed us" ; exit 1 ; fi
 
 dist: clean
 	python setup.py sdist bdist_wheel
 	ls -l dist
-
-reference:
-	sto reference > docs/source/command-line-reference.rst
 
 check-depds:
 	pip-compile
