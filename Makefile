@@ -59,10 +59,6 @@ publish-docker:
 	docker push ilyaliko/tokfetch:$(VERSION) && docker push ilyaliko/sto:latest
 	# bumpversion --new-version $(VERSION) devnum
 	# if [ "$(VERSION)" != `sto --version`] ; then echo "bumpversion failed us" ; exit 1 ; fi
-	# bumpversion --new-version $(VERSION) devnum
-	# if [ "$(VERSION)" != `sto --version`] ; then echo "bumpversion failed us" ; exit 1 ; fi
-	# bumpversion --new-version $(VERSION) devnum
-	# if [ "$(VERSION)" != `sto --version`] ; then echo "bumpversion failed us" ; exit 1 ; fi
 
 dist: clean
 	python setup.py sdist bdist_wheel

@@ -29,7 +29,7 @@ dev_requirements = [
 
 setup(
     name='tokfetch',
-    version='0.1.0',
+    version='0.0.1',
     description="Token balance manager",
     long_description=readme + '\n\n',
     author="Illia Likhoshva",
