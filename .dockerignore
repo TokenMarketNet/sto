@@ -5,3 +5,5 @@ dist
 tokfetch.egg-info
 venv
 tests
+*.chain.ini
+*.sqlite

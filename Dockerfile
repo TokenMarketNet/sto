@@ -16,7 +16,7 @@ FROM python:3.9-alpine
 MAINTAINER Illia Likhoshva <ilyaliko64@gmail.com>
 ADD . /tokfetch
 WORKDIR /tokfetch
-RUN apk add libffi-dev openssl-dev sqlite-dev
+RUN apk add build-base libffi-dev openssl-dev sqlite-dev
 RUN pip install -U pip
 RUN pip install -r requirements.txt
 RUN pip install -e .
