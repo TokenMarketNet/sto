@@ -48,6 +48,6 @@ tabulate==0.8.3
 toolz==0.10.0             # via cytoolz
 tqdm==4.32.2
 trie==1.4.0               # via py-evm
-urllib3==1.25.3           # via requests
+urllib3==1.25.8           # via requests
 web3==4.9.2
 websockets==6.0           # via web3
